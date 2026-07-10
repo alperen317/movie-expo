@@ -1,0 +1,151 @@
+import { MaterialIcons } from '@expo/vector-icons';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, Text, useWindowDimensions, View } from 'react-native';
+import { FadeIn } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { CARD_WIDTH, MediaCardItem, MovieCard, toMovieCardItem, toTVCardItem } from '../../../components/home/MovieCard';
+import { AnimatedPressable, AnimatedView } from '../../../components/ui/AnimatedPressable';
+import { getTrendingMovies } from '../../../lib/tmdb/movies';
+import { getPopularTVShows } from '../../../lib/tmdb/tv';
+
+type Source = 'trending-movies' | 'popular-tv';
+
+const GRID_GAP = 16;
+const GRID_PADDING = 16;
+
+interface SourcePage {
+  results: MediaCardItem[];
+  totalPages: number;
+}
+
+const SOURCE_CONFIG: Record<Source, { title: string; fetchPage: (page: number) => Promise<SourcePage> }> = {
+  'trending-movies': {
+    title: 'Trending This Week',
+    fetchPage: async (page) => {
+      const data = await getTrendingMovies('day', page);
+      return { results: data.results.map(toMovieCardItem), totalPages: data.total_pages };
+    },
+  },
+  'popular-tv': {
+    title: 'Popular TV Shows',
+    fetchPage: async (page) => {
+      const data = await getPopularTVShows(page);
+      return { results: data.results.map(toTVCardItem), totalPages: data.total_pages };
+    },
+  },
+};
+
+export default function ListScreen() {
+  const { source } = useLocalSearchParams<{ source: string }>();
+  const config = SOURCE_CONFIG[source as Source] ?? SOURCE_CONFIG['trending-movies'];
+  const { width: windowWidth } = useWindowDimensions();
+
+  const numColumns = Math.max(
+    2,
+    Math.floor((windowWidth - GRID_PADDING * 2 + GRID_GAP) / (CARD_WIDTH + GRID_GAP)),
+  );
+
+  const [items, setItems] = useState<MediaCardItem[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
+    setError(null);
+
+    config
+      .fetchPage(1)
+      .then(({ results, totalPages: total }) => {
+        if (cancelled) return;
+        setItems(results);
+        setTotalPages(total);
+        setPage(1);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : 'Failed to load list.');
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [config]);
+
+  const loadMore = useCallback(() => {
+    if (isLoading || isLoadingMore || page >= totalPages) return;
+    setIsLoadingMore(true);
+    const nextPage = page + 1;
+    config
+      .fetchPage(nextPage)
+      .then(({ results, totalPages: total }) => {
+        setItems((prev) => {
+          const seen = new Set(prev.map((entry) => `${entry.mediaType}-${entry.id}`));
+          const deduped = results.filter((entry) => !seen.has(`${entry.mediaType}-${entry.id}`));
+          return [...prev, ...deduped];
+        });
+        setTotalPages(total);
+        setPage(nextPage);
+      })
+      .catch(() => {})
+      .finally(() => setIsLoadingMore(false));
+  }, [config, isLoading, isLoadingMore, page, totalPages]);
+
+  return (
+    <SafeAreaView edges={['top']} className="flex-1 bg-background">
+      <View className="flex-row items-center gap-3 px-margin-mobile py-stack-md">
+        <AnimatedPressable
+          onPress={() => router.back()}
+          className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
+        >
+          <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />
+        </AnimatedPressable>
+        <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
+          {config.title}
+        </Text>
+      </View>
+
+      {isLoading && (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator color="#ffffff" />
+        </View>
+      )}
+
+      {error && !isLoading && (
+        <View className="flex-1 items-center justify-center px-margin-mobile">
+          <Text className="text-center font-sans text-body-md text-text-primary">{error}</Text>
+        </View>
+      )}
+
+      {!isLoading && !error && (
+        <FlatList
+          key={numColumns}
+          data={items}
+          numColumns={numColumns}
+          keyExtractor={(item) => `${item.mediaType}-${item.id}`}
+          renderItem={({ item, index }) => <MovieCard item={item} index={index % numColumns} />}
+          columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: GRID_GAP }}
+          contentContainerStyle={{ paddingHorizontal: GRID_PADDING, paddingBottom: 32 }}
+          showsVerticalScrollIndicator={false}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            isLoadingMore ? (
+              <AnimatedView entering={FadeIn} className="items-center py-stack-lg">
+                <ActivityIndicator color="#ffffff" />
+              </AnimatedView>
+            ) : null
+          }
+        />
+      )}
+    </SafeAreaView>
+  );
+}

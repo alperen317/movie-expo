@@ -2,9 +2,11 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { FadeIn, FadeOut } from 'react-native-reanimated';
 
 import { AuthBackground } from '../components/auth/AuthBackground';
 import { AuthTextInput } from '../components/auth/AuthTextInput';
+import { AnimatedPressable, AnimatedView } from '../components/ui/AnimatedPressable';
 import { useAuthStore } from '../stores/auth.store';
 
 export default function LoginScreen() {
@@ -68,9 +70,13 @@ export default function LoginScreen() {
         <Text className="font-sans text-caption text-primary-container">Şifremi unuttum</Text>
       </View>
 
-      {error && <Text className="mt-stack-sm w-full font-sans text-sm text-error">{error}</Text>}
+      {error && (
+        <AnimatedView entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)} className="w-full">
+          <Text className="mt-stack-sm font-sans text-sm text-error">{error}</Text>
+        </AnimatedView>
+      )}
 
-      <Pressable
+      <AnimatedPressable
         onPress={() => signIn(email, password)}
         disabled={!canSubmit}
         style={{
@@ -94,13 +100,13 @@ export default function LoginScreen() {
             <MaterialIcons name="arrow-forward" size={18} color="#3f2e00" />
           </>
         )}
-      </Pressable>
+      </AnimatedPressable>
 
-      <Pressable onPress={() => router.push('/sign-up')} className="mt-stack-lg">
+      <AnimatedPressable onPress={() => router.push('/sign-up')} className="mt-stack-lg">
         <Text className="font-sans text-caption text-text-secondary">
           Hesabın yok mu? <Text className="font-sans-bold text-text-primary">Kayıt Ol</Text>
         </Text>
-      </Pressable>
+      </AnimatedPressable>
     </AuthBackground>
   );
 }

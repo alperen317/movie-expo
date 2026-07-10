@@ -1,10 +1,12 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
+import { FadeIn, FadeOut } from 'react-native-reanimated';
 
 import { AuthBackground } from '../components/auth/AuthBackground';
 import { AuthTextInput } from '../components/auth/AuthTextInput';
+import { AnimatedPressable, AnimatedView } from '../components/ui/AnimatedPressable';
 import { useAuthStore } from '../stores/auth.store';
 
 export default function SignUpScreen() {
@@ -40,9 +42,9 @@ export default function SignUpScreen() {
           yapabilirsin.
         </Text>
 
-        <Pressable onPress={() => router.replace('/login')} className="mt-stack-lg">
+        <AnimatedPressable onPress={() => router.replace('/login')} className="mt-stack-lg">
           <Text className="font-sans-bold text-primary-container">Giriş ekranına dön</Text>
-        </Pressable>
+        </AnimatedPressable>
       </AuthBackground>
     );
   }
@@ -89,13 +91,17 @@ export default function SignUpScreen() {
       </View>
 
       {mismatch && (
-        <Text className="mt-stack-sm w-full font-sans text-sm text-error">
-          Şifreler eşleşmiyor.
-        </Text>
+        <AnimatedView entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)} className="w-full">
+          <Text className="mt-stack-sm font-sans text-sm text-error">Şifreler eşleşmiyor.</Text>
+        </AnimatedView>
       )}
-      {error && <Text className="mt-stack-sm w-full font-sans text-sm text-error">{error}</Text>}
+      {error && (
+        <AnimatedView entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)} className="w-full">
+          <Text className="mt-stack-sm font-sans text-sm text-error">{error}</Text>
+        </AnimatedView>
+      )}
 
-      <Pressable
+      <AnimatedPressable
         onPress={handleSubmit}
         disabled={!canSubmit}
         style={{
@@ -119,13 +125,13 @@ export default function SignUpScreen() {
             <MaterialIcons name="arrow-forward" size={18} color="#3f2e00" />
           </>
         )}
-      </Pressable>
+      </AnimatedPressable>
 
-      <Pressable onPress={() => router.push('/login')} className="mt-stack-lg">
+      <AnimatedPressable onPress={() => router.push('/login')} className="mt-stack-lg">
         <Text className="font-sans text-caption text-text-secondary">
           Zaten hesabın var mı? <Text className="font-sans-bold text-text-primary">Giriş Yap</Text>
         </Text>
-      </Pressable>
+      </AnimatedPressable>
     </AuthBackground>
   );
 }
