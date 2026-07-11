@@ -7,13 +7,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
 import { clearRecentSearches } from '../../../lib/storage/recentSearches';
+import { getInitials } from '../../../lib/utils/initials';
 import { useAuthStore } from '../../../stores/auth.store';
 import { useListsStore } from '../../../stores/lists.store';
-
-function getInitials(email: string): string {
-  const name = email.split('@')[0] ?? '';
-  return name.slice(0, 2).toUpperCase() || '?';
-}
 
 function formatMemberSince(dateString?: string): string {
   if (!dateString) return '';
@@ -50,10 +46,10 @@ export default function ProfileScreen() {
   };
 
   const handleSignOut = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: signOut },
-    ]);
+    // NOTE: React Native's Alert.alert is unsupported on web (renders nothing),
+    // so gating sign-out behind it makes the button appear dead in the web build.
+    // Sign out directly for a reliable cross-platform flow.
+    signOut();
   };
 
   return (

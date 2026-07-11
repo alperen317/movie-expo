@@ -61,21 +61,38 @@ export function toSearchCardItem(result: TMDBMultiSearchResult): MediaCardItem |
   };
 }
 
-export function MovieCard({ item, index }: { item: MediaCardItem; index?: number }) {
+export function MovieCard({
+  item,
+  index,
+  onPress,
+  selected,
+}: {
+  item: MediaCardItem;
+  index?: number;
+  // Short-circuits the default navigate-to-details tap. Used by flows
+  // (e.g. picking items for a shared list) where tapping a card should
+  // trigger a different action instead of leaving the screen.
+  onPress?: () => void;
+  // Draws a selected-state ring/checkmark overlay. Used together with
+  // `onPress` for multi-select style pickers.
+  selected?: boolean;
+}) {
   const posterUri = getPosterUrl(item.posterPath, 'w342');
   const subtitle = [item.genre, item.year].filter(Boolean).join(' • ');
 
   return (
     <AnimatedView entering={FadeInDown.delay(Math.min(index ?? 0, 8) * 40).duration(300)}>
       <AnimatedPressable
-        onPress={() =>
-          router.push({
-            pathname: '/details/[id]',
-            params: { id: String(item.id), type: item.mediaType },
-          })
+        onPress={
+          onPress ??
+          (() =>
+            router.push({
+              pathname: '/details/[id]',
+              params: { id: String(item.id), type: item.mediaType },
+            }))
         }
         style={{ width: CARD_WIDTH, aspectRatio: 2 / 3 }}
-        className="overflow-hidden rounded-2xl"
+        className={`overflow-hidden rounded-2xl ${selected ? 'border-2 border-primary-container' : ''}`}
       >
         <Image
           source={posterUri ? { uri: posterUri } : undefined}
@@ -99,6 +116,12 @@ export function MovieCard({ item, index }: { item: MediaCardItem; index?: number
             {item.voteAverage.toFixed(1)}
           </Text>
         </View>
+
+        {selected && (
+          <View className="absolute bottom-2 right-2 h-7 w-7 items-center justify-center rounded-full bg-primary-container">
+            <MaterialIcons name="check" size={16} color="#3f2e00" />
+          </View>
+        )}
 
         <View className="absolute bottom-0 left-0 right-0 p-3">
           <Text className="font-sans-semibold text-title-md text-text-primary" numberOfLines={1}>

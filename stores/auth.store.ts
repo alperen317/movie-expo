@@ -3,6 +3,7 @@ import { create } from 'zustand';
 
 import { supabase } from '../lib/supabase/client';
 import { useListsStore } from './lists.store';
+import { useSharedListsStore } from './sharedLists.store';
 
 interface AuthState {
   session: Session | null;
@@ -62,7 +63,17 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   signOut: async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Ignore network/remote errors — we still clear local auth state below
+      // so the user is signed out on the device regardless of connectivity.
+    }
+    // Explicitly clear the session. Relying solely on the onAuthStateChange
+    // listener can leave a stale truthy session momentarily, which makes the
+    // login screen immediately redirect back into the app (sign-out "not working").
+    set({ session: null, isLoading: false, error: null, needsEmailConfirmation: false });
     useListsStore.getState().reset();
+    useSharedListsStore.getState().reset();
   },
 }));

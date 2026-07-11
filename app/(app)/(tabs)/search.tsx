@@ -2,7 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -16,8 +16,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { CARD_WIDTH, MediaCardItem, MovieCard, toSearchCardItem } from '../../../components/home/MovieCard';
+import { CARD_WIDTH, MovieCard } from '../../../components/home/MovieCard';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
+import { useMediaSearch } from '../../../lib/hooks/useMediaSearch';
 import {
   addRecentSearch,
   clearRecentSearches,
@@ -25,11 +26,9 @@ import {
 } from '../../../lib/storage/recentSearches';
 import { getBackdropUrl } from '../../../lib/tmdb/config';
 import { discoverMoviesByGenre } from '../../../lib/tmdb/movies';
-import { searchMulti } from '../../../lib/tmdb/search';
 
 const GRID_GAP = 16;
 const GRID_PADDING = 16;
-const SEARCH_DEBOUNCE_MS = 400;
 const TILE_HEIGHT = 200;
 
 interface Genre {
@@ -93,16 +92,17 @@ function GenreTile({
 export default function SearchScreen() {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
-  const [query, setQuery] = useState('');
-  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(false);
-
-  const [results, setResults] = useState<MediaCardItem[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
-
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [genreBackdrops, setGenreBackdrops] = useState<Record<number, string | null>>({});
+
+  const handleQueryResolved = useCallback((resolvedQuery: string) => {
+    addRecentSearch(resolvedQuery).then(setRecentSearches);
+  }, []);
+
+  const { query, setQuery, debouncedQuery, results, isSearching, searchError } = useMediaSearch({
+    onQueryResolved: handleQueryResolved,
+  });
 
   useEffect(() => {
     getRecentSearches().then(setRecentSearches);
@@ -122,47 +122,6 @@ export default function SearchScreen() {
       cancelled = true;
     };
   }, []);
-
-  useEffect(() => {
-    const handle = setTimeout(() => setDebouncedQuery(query.trim()), SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(handle);
-  }, [query]);
-
-  useEffect(() => {
-    if (!debouncedQuery) {
-      setResults([]);
-      setSearchError(null);
-      setIsSearching(false);
-      return;
-    }
-
-    let cancelled = false;
-    setIsSearching(true);
-    setSearchError(null);
-
-    searchMulti(debouncedQuery)
-      .then((data) => {
-        if (cancelled) return;
-        const items = data.results
-          .map(toSearchCardItem)
-          .filter((item): item is MediaCardItem => item !== null);
-        setResults(items);
-        addRecentSearch(debouncedQuery).then((next) => {
-          if (!cancelled) setRecentSearches(next);
-        });
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        setSearchError(err instanceof Error ? err.message : 'Search failed.');
-      })
-      .finally(() => {
-        if (!cancelled) setIsSearching(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [debouncedQuery]);
 
   const handleClearRecent = () => {
     clearRecentSearches();

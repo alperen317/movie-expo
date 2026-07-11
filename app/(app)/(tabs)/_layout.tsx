@@ -11,6 +11,7 @@ export default function TabsLayout() {
         <TabTrigger name="index" href="/" />
         <TabTrigger name="search" href="/search" />
         <TabTrigger name="favorites" href="/favorites" />
+        <TabTrigger name="lists" href="/lists" />
         <TabTrigger name="profile" href="/profile" />
       </TabList>
     </Tabs>

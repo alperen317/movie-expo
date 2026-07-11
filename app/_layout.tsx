@@ -45,24 +45,12 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <RootNavigator />
-      <StatusBar style="light" />
-    </SafeAreaProvider>
-  );
-}
-
-function RootNavigator() {
-  const isAuthenticated = useAuthStore((state) => !!state.session);
-
-  return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Protected guard={isAuthenticated}>
+      <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(app)" />
-      </Stack.Protected>
-      <Stack.Protected guard={!isAuthenticated}>
         <Stack.Screen name="login" />
         <Stack.Screen name="sign-up" />
-      </Stack.Protected>
-    </Stack>
+      </Stack>
+      <StatusBar style="light" />
+    </SafeAreaProvider>
   );
 }

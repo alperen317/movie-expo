@@ -1,5 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { FadeIn, FadeOut } from 'react-native-reanimated';
@@ -10,12 +10,17 @@ import { AnimatedPressable, AnimatedView } from '../components/ui/AnimatedPressa
 import { useAuthStore } from '../stores/auth.store';
 
 export default function LoginScreen() {
+  const session = useAuthStore((state) => state.session);
+  const { signIn, isSubmitting, error } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  const { signIn, isSubmitting, error } = useAuthStore();
 
   const canSubmit = email.length > 0 && password.length > 0 && !isSubmitting;
+
+  if (session) {
+    return <Redirect href="/" />;
+  }
 
   return (
     <AuthBackground>

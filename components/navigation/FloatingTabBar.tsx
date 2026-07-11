@@ -12,6 +12,7 @@ const TABS: { name: string; icon: React.ComponentProps<typeof MaterialIcons>['na
   { name: 'index', icon: 'home' },
   { name: 'search', icon: 'search' },
   { name: 'favorites', icon: 'favorite' },
+  { name: 'lists', icon: 'groups' },
   { name: 'profile', icon: 'person' },
 ];
 
