@@ -3,7 +3,7 @@ import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -21,11 +21,13 @@ import Animated, { ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 
+import type { MediaCardItem } from '../../../components/home/MovieCard';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
 import { getBackdropUrl, getProfileUrl } from '../../../lib/tmdb/config';
 import { MediaDetails, toMovieDetails, toTVDetails } from '../../../lib/tmdb/details';
 import { getMovieDetails } from '../../../lib/tmdb/movies';
 import { getTVShowDetails } from '../../../lib/tmdb/tv';
+import { useListsStore } from '../../../stores/lists.store';
 
 export default function DetailsScreen() {
   const { id, type } = useLocalSearchParams<{ id: string; type?: string }>();
@@ -38,6 +40,28 @@ export default function DetailsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [isTrailerOpen, setIsTrailerOpen] = useState(false);
+
+  const isFavorite = useListsStore((state) =>
+    details ? state.isFavorite(details.mediaType, details.id) : false,
+  );
+  const isWatchlisted = useListsStore((state) =>
+    details ? state.isInWatchlist(details.mediaType, details.id) : false,
+  );
+  const toggleFavorite = useListsStore((state) => state.toggleFavorite);
+  const toggleWatchlist = useListsStore((state) => state.toggleWatchlist);
+
+  const cardItem: MediaCardItem | null = useMemo(() => {
+    if (!details) return null;
+    return {
+      id: details.id,
+      title: details.title,
+      year: details.year,
+      posterPath: details.posterPath,
+      voteAverage: details.voteAverage,
+      genre: details.genres[0] ?? null,
+      mediaType: details.mediaType,
+    };
+  }, [details]);
 
   useEffect(() => {
     let cancelled = false;
@@ -108,8 +132,15 @@ export default function DetailsScreen() {
         >
           <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />
         </AnimatedPressable>
-        <AnimatedPressable className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur">
-          <MaterialIcons name="favorite-border" size={20} color="#FF6B6B" />
+        <AnimatedPressable
+          onPress={() => cardItem && toggleFavorite(cardItem)}
+          className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
+        >
+          <MaterialIcons
+            name={isFavorite ? 'favorite' : 'favorite-border'}
+            size={20}
+            color="#FF6B6B"
+          />
         </AnimatedPressable>
       </View>
 
@@ -179,10 +210,17 @@ export default function DetailsScreen() {
                   </Text>
                 </Pressable>
               )}
-              <Pressable className="flex-row items-center justify-center gap-2 rounded-full border border-glass-border bg-background-blur py-4">
-                <MaterialIcons name="add" size={22} color="#FFFFFF" />
+              <Pressable
+                onPress={() => cardItem && toggleWatchlist(cardItem)}
+                className="flex-row items-center justify-center gap-2 rounded-full border border-glass-border bg-background-blur py-4"
+              >
+                <MaterialIcons
+                  name={isWatchlisted ? 'check' : 'add'}
+                  size={22}
+                  color="#FFFFFF"
+                />
                 <Text className="font-sans-semibold text-title-md text-text-primary">
-                  Add to Watchlist
+                  {isWatchlisted ? 'In Watchlist' : 'Add to Watchlist'}
                 </Text>
               </Pressable>
             </View>

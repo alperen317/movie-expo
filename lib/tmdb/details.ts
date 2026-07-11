@@ -22,6 +22,7 @@ export interface MediaDetails {
   title: string;
   overview: string;
   backdropPath: string | null;
+  posterPath: string | null;
   voteAverage: number;
   year: string | null;
   runtimeLabel: string | null;
@@ -75,6 +76,7 @@ export function toMovieDetails(movie: TMDBMovieDetails): MediaDetails {
     title: movie.title,
     overview: movie.overview,
     backdropPath: movie.backdrop_path,
+    posterPath: movie.poster_path,
     voteAverage: movie.vote_average,
     year: movie.release_date?.slice(0, 4) || null,
     runtimeLabel: formatRuntime(movie.runtime),
@@ -95,6 +97,7 @@ export function toTVDetails(show: TMDBTVShowDetails): MediaDetails {
     title: show.name,
     overview: show.overview,
     backdropPath: show.backdrop_path,
+    posterPath: show.poster_path,
     voteAverage: show.vote_average,
     year: show.first_air_date?.slice(0, 4) || null,
     runtimeLabel: formatRuntime(show.episode_run_time?.[0]),

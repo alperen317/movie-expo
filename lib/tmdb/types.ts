@@ -72,6 +72,7 @@ export interface TMDBMovieDetails {
   title: string;
   overview: string;
   backdrop_path: string | null;
+  poster_path: string | null;
   vote_average: number;
   release_date: string;
   runtime: number | null;
@@ -89,6 +90,7 @@ export interface TMDBTVShowDetails {
   name: string;
   overview: string;
   backdrop_path: string | null;
+  poster_path: string | null;
   vote_average: number;
   first_air_date: string;
   episode_run_time: number[];

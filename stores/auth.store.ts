@@ -2,6 +2,7 @@ import type { Session } from '@supabase/supabase-js';
 import { create } from 'zustand';
 
 import { supabase } from '../lib/supabase/client';
+import { useListsStore } from './lists.store';
 
 interface AuthState {
   session: Session | null;
@@ -62,5 +63,6 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   signOut: async () => {
     await supabase.auth.signOut();
+    useListsStore.getState().reset();
   },
 }));
