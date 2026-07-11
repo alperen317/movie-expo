@@ -1,4 +1,12 @@
-import type { TMDBCastMember, TMDBImages, TMDBMovieDetails, TMDBTVShowDetails } from './types';
+import { getPrimaryGenre, TMDB_TV_GENRE_MAP } from './genres';
+import type {
+  TMDBCastMember,
+  TMDBImages,
+  TMDBMovieDetails,
+  TMDBPersonCombinedCastCredit,
+  TMDBPersonDetails,
+  TMDBTVShowDetails,
+} from './types';
 
 export interface MediaCastMember {
   id: number;
@@ -82,5 +90,66 @@ export function toTVDetails(show: TMDBTVShowDetails): MediaDetails {
     genres: show.genres.map((genre) => genre.name),
     cast: mapCast(show.credits.cast),
     backdrops: mapBackdrops(show.images),
+  };
+}
+
+export interface PersonKnownForItem {
+  id: number;
+  title: string;
+  year: string | null;
+  posterPath: string | null;
+  voteAverage: number;
+  genre: string | null;
+  mediaType: 'movie' | 'tv';
+}
+
+export interface PersonDetails {
+  id: number;
+  name: string;
+  biography: string;
+  profilePath: string | null;
+  birthday: string | null;
+  deathday: string | null;
+  placeOfBirth: string | null;
+  knownForDepartment: string | null;
+  knownFor: PersonKnownForItem[];
+}
+
+function toPersonKnownForItem(credit: TMDBPersonCombinedCastCredit): PersonKnownForItem {
+  const isTV = credit.media_type === 'tv';
+  return {
+    id: credit.id,
+    title: (isTV ? credit.name : credit.title) || '',
+    year: (isTV ? credit.first_air_date : credit.release_date)?.slice(0, 4) || null,
+    posterPath: credit.poster_path,
+    voteAverage: credit.vote_average,
+    genre: getPrimaryGenre(credit.genre_ids, isTV ? TMDB_TV_GENRE_MAP : undefined),
+    mediaType: isTV ? 'tv' : 'movie',
+  };
+}
+
+export function toPersonDetails(person: TMDBPersonDetails): PersonDetails {
+  const seen = new Set<string>();
+  const knownFor = (person.combined_credits?.cast ?? [])
+    .filter((credit) => credit.poster_path)
+    .sort((a, b) => b.popularity - a.popularity)
+    .map(toPersonKnownForItem)
+    .filter((item) => {
+      const key = `${item.mediaType}-${item.id}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+  return {
+    id: person.id,
+    name: person.name,
+    biography: person.biography,
+    profilePath: person.profile_path,
+    birthday: person.birthday,
+    deathday: person.deathday,
+    placeOfBirth: person.place_of_birth,
+    knownForDepartment: person.known_for_department,
+    knownFor,
   };
 }

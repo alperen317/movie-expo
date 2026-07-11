@@ -87,3 +87,29 @@ export interface TMDBTVShowDetails {
   };
   images: TMDBImages;
 }
+
+export interface TMDBPersonCombinedCastCredit {
+  id: number;
+  media_type: 'movie' | 'tv';
+  title?: string;
+  name?: string;
+  poster_path: string | null;
+  vote_average: number;
+  release_date?: string;
+  first_air_date?: string;
+  genre_ids: number[];
+  character: string;
+  popularity: number;
+}
+
+export interface TMDBPersonDetails {
+  id: number;
+  name: string;
+  biography: string;
+  birthday: string | null;
+  deathday: string | null;
+  place_of_birth: string | null;
+  profile_path: string | null;
+  known_for_department: string | null;
+  combined_credits: { cast: TMDBPersonCombinedCastCredit[] };
+}

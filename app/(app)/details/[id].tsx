@@ -223,7 +223,16 @@ export default function DetailsScreen() {
                         {details.cast.map((member) => {
                           const profileUri = getProfileUrl(member.profilePath, 'w185');
                           return (
-                            <View key={member.id} className="w-20 items-center gap-2">
+                            <AnimatedPressable
+                              key={member.id}
+                              onPress={() =>
+                                router.push({
+                                  pathname: '/actor/[id]',
+                                  params: { id: String(member.id) },
+                                })
+                              }
+                              className="w-20 items-center gap-2"
+                            >
                               <View className="h-16 w-16 overflow-hidden rounded-full border border-glass-border">
                                 {profileUri ? (
                                   <Image
@@ -243,7 +252,7 @@ export default function DetailsScreen() {
                               >
                                 {member.name}
                               </Text>
-                            </View>
+                            </AnimatedPressable>
                           );
                         })}
                       </View>

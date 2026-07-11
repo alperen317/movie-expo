@@ -1,16 +1,18 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Text, useWindowDimensions, View } from 'react-native';
 import { FadeIn } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CARD_WIDTH, MediaCardItem, MovieCard, toMovieCardItem, toTVCardItem } from '../../../components/home/MovieCard';
 import { AnimatedPressable, AnimatedView } from '../../../components/ui/AnimatedPressable';
+import { toPersonDetails } from '../../../lib/tmdb/details';
 import { getTrendingMovies } from '../../../lib/tmdb/movies';
+import { getPersonDetails } from '../../../lib/tmdb/person';
 import { getPopularTVShows } from '../../../lib/tmdb/tv';
 
-type Source = 'trending-movies' | 'popular-tv';
+type Source = 'trending-movies' | 'popular-tv' | 'person-credits';
 
 const GRID_GAP = 16;
 const GRID_PADDING = 16;
@@ -20,7 +22,10 @@ interface SourcePage {
   totalPages: number;
 }
 
-const SOURCE_CONFIG: Record<Source, { title: string; fetchPage: (page: number) => Promise<SourcePage> }> = {
+const SOURCE_CONFIG: Record<
+  Exclude<Source, 'person-credits'>,
+  { title: string; fetchPage: (page: number) => Promise<SourcePage> }
+> = {
   'trending-movies': {
     title: 'Trending This Week',
     fetchPage: async (page) => {
@@ -38,9 +43,25 @@ const SOURCE_CONFIG: Record<Source, { title: string; fetchPage: (page: number) =
 };
 
 export default function ListScreen() {
-  const { source } = useLocalSearchParams<{ source: string }>();
-  const config = SOURCE_CONFIG[source as Source] ?? SOURCE_CONFIG['trending-movies'];
+  const { source, personId, title } = useLocalSearchParams<{
+    source: string;
+    personId?: string;
+    title?: string;
+  }>();
   const { width: windowWidth } = useWindowDimensions();
+
+  const config = useMemo<{ title: string; fetchPage: (page: number) => Promise<SourcePage> }>(() => {
+    if (source === 'person-credits' && personId) {
+      return {
+        title: title || 'Known For',
+        fetchPage: async () => {
+          const person = toPersonDetails(await getPersonDetails(Number(personId)));
+          return { results: person.knownFor, totalPages: 1 };
+        },
+      };
+    }
+    return SOURCE_CONFIG[source as Exclude<Source, 'person-credits'>] ?? SOURCE_CONFIG['trending-movies'];
+  }, [source, personId, title]);
 
   const numColumns = Math.max(
     2,

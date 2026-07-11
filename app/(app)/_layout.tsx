@@ -4,6 +4,7 @@ export default function AppLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="details/[id]" options={{ animation: 'fade' }} />
+      <Stack.Screen name="actor/[id]" options={{ animation: 'fade' }} />
     </Stack>
   );
 }
