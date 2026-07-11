@@ -8,11 +8,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CARD_WIDTH, MediaCardItem, MovieCard, toMovieCardItem, toTVCardItem } from '../../../components/home/MovieCard';
 import { AnimatedPressable, AnimatedView } from '../../../components/ui/AnimatedPressable';
 import { toPersonDetails } from '../../../lib/tmdb/details';
-import { getTrendingMovies } from '../../../lib/tmdb/movies';
+import { discoverMoviesByGenre, getTrendingMovies } from '../../../lib/tmdb/movies';
 import { getPersonDetails } from '../../../lib/tmdb/person';
 import { getPopularTVShows } from '../../../lib/tmdb/tv';
 
-type Source = 'trending-movies' | 'popular-tv' | 'person-credits';
+type Source = 'trending-movies' | 'popular-tv' | 'person-credits' | 'genre-movies';
 
 const GRID_GAP = 16;
 const GRID_PADDING = 16;
@@ -23,7 +23,7 @@ interface SourcePage {
 }
 
 const SOURCE_CONFIG: Record<
-  Exclude<Source, 'person-credits'>,
+  Exclude<Source, 'person-credits' | 'genre-movies'>,
   { title: string; fetchPage: (page: number) => Promise<SourcePage> }
 > = {
   'trending-movies': {
@@ -43,9 +43,10 @@ const SOURCE_CONFIG: Record<
 };
 
 export default function ListScreen() {
-  const { source, personId, title } = useLocalSearchParams<{
+  const { source, personId, genreId, title } = useLocalSearchParams<{
     source: string;
     personId?: string;
+    genreId?: string;
     title?: string;
   }>();
   const { width: windowWidth } = useWindowDimensions();
@@ -60,8 +61,20 @@ export default function ListScreen() {
         },
       };
     }
-    return SOURCE_CONFIG[source as Exclude<Source, 'person-credits'>] ?? SOURCE_CONFIG['trending-movies'];
-  }, [source, personId, title]);
+    if (source === 'genre-movies' && genreId) {
+      return {
+        title: title || 'Genre',
+        fetchPage: async (page) => {
+          const data = await discoverMoviesByGenre(Number(genreId), page);
+          return { results: data.results.map(toMovieCardItem), totalPages: data.total_pages };
+        },
+      };
+    }
+    return (
+      SOURCE_CONFIG[source as Exclude<Source, 'person-credits' | 'genre-movies'>] ??
+      SOURCE_CONFIG['trending-movies']
+    );
+  }, [source, personId, genreId, title]);
 
   const numColumns = Math.max(
     2,

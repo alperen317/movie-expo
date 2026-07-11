@@ -34,6 +34,32 @@ export interface TMDBPopularTVResponse {
   total_results: number;
 }
 
+export interface TMDBMultiSearchResult {
+  id: number;
+  media_type: 'movie' | 'tv' | 'person';
+  title?: string;
+  name?: string;
+  poster_path: string | null;
+  vote_average?: number;
+  release_date?: string;
+  first_air_date?: string;
+  genre_ids?: number[];
+}
+
+export interface TMDBMultiSearchResponse {
+  page: number;
+  results: TMDBMultiSearchResult[];
+  total_pages: number;
+  total_results: number;
+}
+
+export interface TMDBDiscoverMovieResponse {
+  page: number;
+  results: TMDBMovie[];
+  total_pages: number;
+  total_results: number;
+}
+
 export interface TMDBGenreDetail {
   id: number;
   name: string;
