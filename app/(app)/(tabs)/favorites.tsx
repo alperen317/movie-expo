@@ -1,4 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
+import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -31,7 +32,8 @@ const EMPTY_STATE: Record<Tab, { icon: React.ComponentProps<typeof MaterialIcons
 };
 
 export default function FavoritesScreen() {
-  const [activeTab, setActiveTab] = useState<Tab>('favorites');
+  const { tab } = useLocalSearchParams<{ tab?: string }>();
+  const [activeTab, setActiveTab] = useState<Tab>(tab === 'watchlist' ? 'watchlist' : 'favorites');
   const { width: windowWidth } = useWindowDimensions();
 
   const favorites = useListsStore((state) => state.favorites);
