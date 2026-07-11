@@ -56,6 +56,17 @@ export interface TMDBImages {
   backdrops: TMDBImage[];
 }
 
+export interface TMDBVideo {
+  key: string;
+  site: string;
+  type: string;
+  official: boolean;
+}
+
+export interface TMDBVideos {
+  results: TMDBVideo[];
+}
+
 export interface TMDBMovieDetails {
   id: number;
   title: string;
@@ -70,6 +81,7 @@ export interface TMDBMovieDetails {
     results: { iso_3166_1: string; release_dates: { certification: string }[] }[];
   };
   images: TMDBImages;
+  videos: TMDBVideos;
 }
 
 export interface TMDBTVShowDetails {
@@ -86,6 +98,7 @@ export interface TMDBTVShowDetails {
     results: { iso_3166_1: string; rating: string }[];
   };
   images: TMDBImages;
+  videos: TMDBVideos;
 }
 
 export interface TMDBPersonCombinedCastCredit {

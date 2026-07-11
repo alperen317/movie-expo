@@ -7,6 +7,6 @@ export function getTrendingMovies(window: 'day' | 'week' = 'day', page = 1) {
 
 export function getMovieDetails(id: number) {
   return tmdbFetch<TMDBMovieDetails>(`/movie/${id}`, {
-    append_to_response: 'credits,release_dates,images',
+    append_to_response: 'credits,release_dates,images,videos',
   });
 }

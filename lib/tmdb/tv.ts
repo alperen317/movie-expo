@@ -7,6 +7,6 @@ export function getPopularTVShows(page = 1) {
 
 export function getTVShowDetails(id: number) {
   return tmdbFetch<TMDBTVShowDetails>(`/tv/${id}`, {
-    append_to_response: 'credits,content_ratings,images',
+    append_to_response: 'credits,content_ratings,images,videos',
   });
 }

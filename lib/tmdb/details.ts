@@ -6,6 +6,7 @@ import type {
   TMDBPersonCombinedCastCredit,
   TMDBPersonDetails,
   TMDBTVShowDetails,
+  TMDBVideos,
 } from './types';
 
 export interface MediaCastMember {
@@ -28,6 +29,7 @@ export interface MediaDetails {
   genres: string[];
   cast: MediaCastMember[];
   backdrops: string[];
+  trailerKey: string | null;
 }
 
 function formatRuntime(minutes: number | null | undefined): string | null {
@@ -57,6 +59,15 @@ function getUSMovieCertification(release_dates: TMDBMovieDetails['release_dates'
   return us?.release_dates.find((entry) => entry.certification)?.certification || null;
 }
 
+function getTrailerKey(videos: TMDBVideos | undefined): string | null {
+  const clips = (videos?.results ?? []).filter((video) => video.site === 'YouTube');
+  const trailer =
+    clips.find((video) => video.type === 'Trailer' && video.official) ??
+    clips.find((video) => video.type === 'Trailer') ??
+    clips.find((video) => video.type === 'Teaser');
+  return trailer?.key ?? null;
+}
+
 export function toMovieDetails(movie: TMDBMovieDetails): MediaDetails {
   return {
     id: movie.id,
@@ -71,6 +82,7 @@ export function toMovieDetails(movie: TMDBMovieDetails): MediaDetails {
     genres: movie.genres.map((genre) => genre.name),
     cast: mapCast(movie.credits.cast),
     backdrops: mapBackdrops(movie.images),
+    trailerKey: getTrailerKey(movie.videos),
   };
 }
 
@@ -90,6 +102,7 @@ export function toTVDetails(show: TMDBTVShowDetails): MediaDetails {
     genres: show.genres.map((genre) => genre.name),
     cast: mapCast(show.credits.cast),
     backdrops: mapBackdrops(show.images),
+    trailerKey: getTrailerKey(show.videos),
   };
 }
 

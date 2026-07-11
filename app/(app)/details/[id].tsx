@@ -7,7 +7,9 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Linking,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -17,6 +19,7 @@ import {
 } from 'react-native';
 import Animated, { ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { WebView } from 'react-native-webview';
 
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
 import { getBackdropUrl, getProfileUrl } from '../../../lib/tmdb/config';
@@ -34,6 +37,7 @@ export default function DetailsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  const [isTrailerOpen, setIsTrailerOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -158,12 +162,23 @@ export default function DetailsScreen() {
             </View>
 
             <View className="gap-stack-sm">
-              <Pressable className="flex-row items-center justify-center gap-2 rounded-full bg-primary-container py-4">
-                <MaterialIcons name="play-arrow" size={22} color="#3f2e00" />
-                <Text className="font-sans-semibold text-title-md text-on-primary-container">
-                  Watch Trailer
-                </Text>
-              </Pressable>
+              {details.trailerKey && (
+                <Pressable
+                  onPress={() => {
+                    if (Platform.OS === 'web') {
+                      Linking.openURL(`https://www.youtube.com/watch?v=${details.trailerKey}`);
+                    } else {
+                      setIsTrailerOpen(true);
+                    }
+                  }}
+                  className="flex-row items-center justify-center gap-2 rounded-full bg-primary-container py-4"
+                >
+                  <MaterialIcons name="play-arrow" size={22} color="#3f2e00" />
+                  <Text className="font-sans-semibold text-title-md text-on-primary-container">
+                    Watch Trailer
+                  </Text>
+                </Pressable>
+              )}
               <Pressable className="flex-row items-center justify-center gap-2 rounded-full border border-glass-border bg-background-blur py-4">
                 <MaterialIcons name="add" size={22} color="#FFFFFF" />
                 <Text className="font-sans-semibold text-title-md text-text-primary">
@@ -312,6 +327,47 @@ export default function DetailsScreen() {
                 );
               }}
             />
+          )}
+        </View>
+      </Modal>
+
+      <Modal
+        visible={isTrailerOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsTrailerOpen(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: '#000000' }}>
+          <AnimatedPressable
+            onPress={() => setIsTrailerOpen(false)}
+            style={{ paddingTop: insets.top, marginTop: 12 }}
+            className="absolute right-4 top-0 z-10 h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
+          >
+            <MaterialIcons name="close" size={24} color="#FFFFFF" />
+          </AnimatedPressable>
+
+          {isTrailerOpen && details?.trailerKey && (
+            <View style={{ flex: 1, justifyContent: 'center' }}>
+              <View style={{ width: windowWidth, height: (windowWidth * 9) / 16 }}>
+                <WebView
+                  source={{
+                    uri: `https://www.youtube.com/embed/${details.trailerKey}?autoplay=1&playsinline=1&modestbranding=1&rel=0`,
+                  }}
+                  style={{ flex: 1, backgroundColor: '#000000' }}
+                  allowsFullscreenVideo
+                  mediaPlaybackRequiresUserAction={false}
+                  startInLoadingState
+                  renderLoading={() => (
+                    <View
+                      style={StyleSheet.absoluteFill}
+                      className="items-center justify-center bg-black"
+                    >
+                      <ActivityIndicator color="#ffffff" />
+                    </View>
+                  )}
+                />
+              </View>
+            </View>
           )}
         </View>
       </Modal>
