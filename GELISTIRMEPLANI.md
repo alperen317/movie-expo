@@ -51,9 +51,9 @@ TV Time 15 Temmuz'da kapanıyor ama kullanıcılar GDPR export dosyalarını (`g
 
 ## Faz 3 — Hijyen Özellikler *(~1.5 hafta)*
 
-- [ ] **Akış platformu bilgisi**: TMDB `watch/providers` (append_to_response ile mevcut detay çağrısına eklenir — ekstra istek yok); bölge cihaz locale'inden, ayarlardan değiştirilebilir. Detay ekranında "Nerede izlenir?" satırı + JustWatch atfı (TMDB koşulu).
-- [ ] **Takvim + bildirim**: "Takvim" ekranı (takip edilen dizilerin `next_episode_to_air`'ı); `expo-notifications` yerel bildirim — sunucu gerektirmez: uygulama açılışında 7 günlük yayın planını yerel bildirime kurar. (Push/edge-function versiyonu Faz 5+.)
-- [ ] **Puanlama görünürlüğü**: profíl ve listelerde kullanıcının puanı; 1a'daki `rating` alanı UI'da tamamlanır.
+- [x] **Akış platformu bilgisi**: TMDB `watch/providers` (append_to_response ile mevcut detay çağrısına eklenir — ekstra istek yok); bölge cihaz locale'inden (henüz ayarlardan değiştirilemiyor — sonraki faza bırakıldı). Detay ekranında "Nerede izlenir?" satırı + JustWatch atfı (TMDB koşulu).
+- [x] **Takvim + bildirim**: `/calendar` ekranı (takip edilen dizilerin `next_episode_to_air`'ı); `expo-notifications` yerel bildirim — uygulama açılışında 7 günlük yayın planını yerel bildirime kurar.
+- [x] **Puanlama görünürlüğü**: My List'e "Watched" sekmesi + MovieCard'da kişisel puan rozeti (TMDB puanının yerine); Profile'da 3. "Watched" sayacı.
 
 ## Faz 4 — İstatistik & Viral Döngü *(~1 hafta)*
 
