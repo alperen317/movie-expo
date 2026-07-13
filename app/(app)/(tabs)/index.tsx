@@ -1,13 +1,13 @@
+import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
-import { ActivityIndicator, ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ContinueWatchingRow } from '../../../components/home/ContinueWatchingRow';
 import { HeroCarousel } from '../../../components/home/HeroCarousel';
 import { MediaRow } from '../../../components/home/MediaRow';
 import { toMovieCardItem, toTVCardItem } from '../../../components/home/MovieCard';
-import { TopAppBar } from '../../../components/home/TopAppBar';
 import { useEpisodeProgressStore } from '../../../stores/episodeProgress.store';
 import { useMovieStore } from '../../../stores/movie.store';
 
@@ -34,7 +34,12 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView edges={['top']} style={{ height: windowHeight }} className="bg-background">
-      {/* <TopAppBar /> */}
+      <View className="flex-row items-center justify-between px-margin-mobile py-stack-sm">
+        <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">Home</Text>
+        <Pressable onPress={() => router.push('/calendar')} hitSlop={8}>
+          <MaterialIcons name="calendar-today" size={22} color="#FFFFFF" />
+        </Pressable>
+      </View>
 
       {isLoading && trendingMovies.length === 0 && (
         <View className="flex-1 items-center justify-center">

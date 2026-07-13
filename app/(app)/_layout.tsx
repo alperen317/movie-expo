@@ -2,7 +2,9 @@ import { Redirect, Stack } from 'expo-router';
 import { useEffect } from 'react';
 
 import { Toast } from '../../components/ui/Toast';
+import { scheduleUpcomingEpisodeReminders } from '../../lib/notifications/episodeReminders';
 import { useAuthStore } from '../../stores/auth.store';
+import { useEpisodeProgressStore } from '../../stores/episodeProgress.store';
 import { useListsStore } from '../../stores/lists.store';
 
 export default function AppLayout() {
@@ -11,6 +13,10 @@ export default function AppLayout() {
   useEffect(() => {
     useListsStore.getState().fetchFavorites();
     useListsStore.getState().fetchWatchlist();
+    useEpisodeProgressStore
+      .getState()
+      .fetchProgress()
+      .then(() => scheduleUpcomingEpisodeReminders());
   }, []);
 
   if (!session) {
@@ -24,6 +30,7 @@ export default function AppLayout() {
         <Stack.Screen name="actor/[id]" options={{ animation: 'fade' }} />
         <Stack.Screen name="lists/[id]" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="lists/add-items" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="calendar" options={{ animation: 'slide_from_right' }} />
       </Stack>
       <Toast />
     </>

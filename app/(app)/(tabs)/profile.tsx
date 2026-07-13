@@ -101,6 +101,17 @@ export default function ProfileScreen() {
         <View className="mb-section-gap px-margin-mobile">
           <View className="overflow-hidden rounded-xl border border-glass-border bg-surface-container-low">
             <AnimatedPressable
+              onPress={() => router.push('/calendar')}
+              className="flex-row items-center gap-3 px-4 py-stack-md"
+            >
+              <MaterialIcons name="calendar-today" size={20} color="#A1A1AA" />
+              <Text className="flex-1 font-sans text-body-md text-text-primary">
+                Upcoming Episodes
+              </Text>
+              <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
+            </AnimatedPressable>
+            <View className="h-px bg-glass-border" />
+            <AnimatedPressable
               onPress={handleClearHistory}
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >
