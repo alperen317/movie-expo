@@ -30,9 +30,19 @@ export function SeasonAccordion({ tvId, season }: SeasonAccordionProps) {
   const isWatched = (episodeNumber: number) =>
     Boolean(entries[episodeKey(tvId, season.seasonNumber, episodeNumber)]);
 
-  const watchedCount = episodes ? episodes.filter((ep) => isWatched(ep.episode_number)).length : 0;
+  // Before the accordion is expanded `episodes` is null (TMDB episode list
+  // hasn't been fetched yet), so fall back to counting progress entries for
+  // this season directly — otherwise the "fully watched" badge stays stale
+  // (grey) until the user opens and closes the accordion once.
+  const watchedCountFromStore = Object.values(entries).filter(
+    (entry) => entry.showId === tvId && entry.seasonNumber === season.seasonNumber,
+  ).length;
+
+  const watchedCount = episodes
+    ? episodes.filter((ep) => isWatched(ep.episode_number)).length
+    : watchedCountFromStore;
   const totalCount = episodes?.length ?? season.episodeCount;
-  const isFullyWatched = episodes !== null && totalCount > 0 && watchedCount === totalCount;
+  const isFullyWatched = totalCount > 0 && watchedCount === totalCount;
 
   const handleToggleExpand = async () => {
     const next = !expanded;
@@ -73,7 +83,7 @@ export function SeasonAccordion({ tvId, season }: SeasonAccordionProps) {
             {season.name}
           </Text>
           <Text className="font-sans text-caption text-text-secondary">
-            {episodes ? `${watchedCount}/${totalCount} watched` : `${season.episodeCount} episodes`}
+            {watchedCount > 0 ? `${watchedCount}/${totalCount} watched` : `${totalCount} episodes`}
           </Text>
         </View>
         <Pressable
