@@ -16,6 +16,21 @@ export interface MediaCastMember {
   profilePath: string | null;
 }
 
+export interface MediaSeasonSummary {
+  seasonNumber: number;
+  name: string;
+  episodeCount: number;
+  posterPath: string | null;
+  airDate: string | null;
+}
+
+export interface NextEpisodeInfo {
+  seasonNumber: number;
+  episodeNumber: number;
+  name: string;
+  airDate: string | null;
+}
+
 export interface MediaDetails {
   id: number;
   mediaType: 'movie' | 'tv';
@@ -31,6 +46,10 @@ export interface MediaDetails {
   cast: MediaCastMember[];
   backdrops: string[];
   trailerKey: string | null;
+  // tv-only; empty/null for movies
+  seasons: MediaSeasonSummary[];
+  numberOfSeasons: number | null;
+  nextEpisodeToAir: NextEpisodeInfo | null;
 }
 
 function formatRuntime(minutes: number | null | undefined): string | null {
@@ -85,6 +104,9 @@ export function toMovieDetails(movie: TMDBMovieDetails): MediaDetails {
     cast: mapCast(movie.credits.cast),
     backdrops: mapBackdrops(movie.images),
     trailerKey: getTrailerKey(movie.videos),
+    seasons: [],
+    numberOfSeasons: null,
+    nextEpisodeToAir: null,
   };
 }
 
@@ -106,6 +128,25 @@ export function toTVDetails(show: TMDBTVShowDetails): MediaDetails {
     cast: mapCast(show.credits.cast),
     backdrops: mapBackdrops(show.images),
     trailerKey: getTrailerKey(show.videos),
+    seasons: (show.seasons ?? [])
+      .filter((season) => season.episode_count > 0)
+      .map((season) => ({
+        seasonNumber: season.season_number,
+        name: season.name,
+        episodeCount: season.episode_count,
+        posterPath: season.poster_path,
+        airDate: season.air_date,
+      }))
+      .sort((a, b) => a.seasonNumber - b.seasonNumber),
+    numberOfSeasons: show.number_of_seasons ?? null,
+    nextEpisodeToAir: show.next_episode_to_air
+      ? {
+          seasonNumber: show.next_episode_to_air.season_number,
+          episodeNumber: show.next_episode_to_air.episode_number,
+          name: show.next_episode_to_air.name,
+          airDate: show.next_episode_to_air.air_date,
+        }
+      : null,
   };
 }
 

@@ -111,6 +111,25 @@ export interface TMDBMovieDetails {
   videos: TMDBVideos;
 }
 
+export interface TMDBSeasonSummary {
+  id: number;
+  season_number: number;
+  name: string;
+  episode_count: number;
+  air_date: string | null;
+  poster_path: string | null;
+}
+
+export interface TMDBEpisodeToAir {
+  id: number;
+  name: string;
+  overview: string;
+  season_number: number;
+  episode_number: number;
+  air_date: string | null;
+  still_path: string | null;
+}
+
 export interface TMDBTVShowDetails {
   id: number;
   name: string;
@@ -127,6 +146,34 @@ export interface TMDBTVShowDetails {
   };
   images: TMDBImages;
   videos: TMDBVideos;
+  seasons: TMDBSeasonSummary[];
+  number_of_seasons: number;
+  number_of_episodes: number;
+  in_production: boolean;
+  next_episode_to_air: TMDBEpisodeToAir | null;
+  last_episode_to_air: TMDBEpisodeToAir | null;
+}
+
+export interface TMDBSeasonEpisode {
+  id: number;
+  name: string;
+  overview: string;
+  episode_number: number;
+  season_number: number;
+  air_date: string | null;
+  still_path: string | null;
+  runtime: number | null;
+  vote_average: number;
+}
+
+export interface TMDBSeasonDetails {
+  id: number;
+  name: string;
+  overview: string;
+  season_number: number;
+  air_date: string | null;
+  poster_path: string | null;
+  episodes: TMDBSeasonEpisode[];
 }
 
 export interface TMDBPersonCombinedCastCredit {

@@ -23,11 +23,13 @@ import { WebView } from 'react-native-webview';
 
 import type { MediaCardItem } from '../../../components/home/MovieCard';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
+import { SeasonAccordion } from '../../../components/watchLog/SeasonAccordion';
 import { WatchLogSheet } from '../../../components/watchLog/WatchLogSheet';
 import { getBackdropUrl, getProfileUrl } from '../../../lib/tmdb/config';
 import { MediaDetails, toMovieDetails, toTVDetails } from '../../../lib/tmdb/details';
 import { getMovieDetails } from '../../../lib/tmdb/movies';
 import { getTVShowDetails } from '../../../lib/tmdb/tv';
+import { useEpisodeProgressStore } from '../../../stores/episodeProgress.store';
 import { useListsStore } from '../../../stores/lists.store';
 import { useWatchLogStore } from '../../../stores/watchLog.store';
 
@@ -71,6 +73,7 @@ export default function DetailsScreen() {
 
   useEffect(() => {
     useWatchLogStore.getState().fetchWatchLog();
+    useEpisodeProgressStore.getState().fetchProgress();
   }, []);
 
   useEffect(() => {
@@ -255,6 +258,17 @@ export default function DetailsScreen() {
                 </Text>
               </Pressable>
             </View>
+
+            {details.mediaType === 'tv' && details.seasons.length > 0 && (
+              <View className="gap-stack-sm">
+                <Text className="font-sans-semibold text-title-md text-text-primary">Seasons</Text>
+                <View className="gap-stack-sm">
+                  {details.seasons.map((season) => (
+                    <SeasonAccordion key={season.seasonNumber} tvId={details.id} season={season} />
+                  ))}
+                </View>
+              </View>
+            )}
 
             <BlurView intensity={30} tint="dark" style={{ borderRadius: 24, overflow: 'hidden' }}>
               <View className="gap-stack-lg border border-glass-border bg-background-blur p-stack-md">

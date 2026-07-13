@@ -3,10 +3,12 @@ import { useEffect } from 'react';
 import { ActivityIndicator, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ContinueWatchingRow } from '../../../components/home/ContinueWatchingRow';
 import { HeroCarousel } from '../../../components/home/HeroCarousel';
 import { MediaRow } from '../../../components/home/MediaRow';
 import { toMovieCardItem, toTVCardItem } from '../../../components/home/MovieCard';
 import { TopAppBar } from '../../../components/home/TopAppBar';
+import { useEpisodeProgressStore } from '../../../stores/episodeProgress.store';
 import { useMovieStore } from '../../../stores/movie.store';
 
 export default function HomeScreen() {
@@ -24,6 +26,7 @@ export default function HomeScreen() {
   useEffect(() => {
     fetchTrendingMovies();
     fetchPopularTVShows();
+    useEpisodeProgressStore.getState().fetchProgress();
   }, [fetchTrendingMovies, fetchPopularTVShows]);
 
   const heroSlides = trendingMovies.slice(0, 5);
@@ -52,6 +55,7 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
         >
           <HeroCarousel movies={heroSlides} />
+          <ContinueWatchingRow />
           {rest.length > 0 && (
             <MediaRow
               title="Trending This Week"

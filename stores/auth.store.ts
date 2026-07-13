@@ -2,6 +2,7 @@ import type { Session } from '@supabase/supabase-js';
 import { create } from 'zustand';
 
 import { supabase } from '../lib/supabase/client';
+import { useEpisodeProgressStore } from './episodeProgress.store';
 import { useListsStore } from './lists.store';
 import { useSharedListsStore } from './sharedLists.store';
 import { useWatchLogStore } from './watchLog.store';
@@ -77,5 +78,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     useListsStore.getState().reset();
     useSharedListsStore.getState().reset();
     useWatchLogStore.getState().reset();
+    useEpisodeProgressStore.getState().reset();
   },
 }));
