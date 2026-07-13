@@ -33,6 +33,7 @@ export default function AppLayout() {
         <Stack.Screen name="lists/[id]" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="lists/add-items" options={{ presentation: 'modal' }} />
         <Stack.Screen name="calendar" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="stats" options={{ animation: 'slide_from_right' }} />
       </Stack>
       <Toast />
     </>

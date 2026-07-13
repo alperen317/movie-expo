@@ -59,9 +59,9 @@ TV Time 15 Temmuz'da kapanıyor ama kullanıcılar GDPR export dosyalarını (`g
 
 Ekşi başlığında en çok konuşulan özellik — retention + paylaşım motoru:
 
-- [ ] İstatistik ekranı: toplam izleme süresi (bölüm runtime × işaretli bölüm; TMDB `episode_run_time`/film `runtime`), "hayatının X günü", tür dağılımı, yıllık grafik. Hesaplama tek pure modülde (`lib/stats.ts`) + birim test.
-- [ ] **Paylaşılabilir kart** (PNG): aylık/yıllık özet — `react-native-view-shot` (İçsel Harita repo'sundaki `src/features/share/` kalıbı doğrudan taşınabilir).
-- [ ] "Yıl Özeti" (Aralık'ta öne çıkar — Wrapped etkisi).
+- [x] İstatistik ekranı: `/stats` — toplam izleme süresi (bölüm runtime × işaretli bölüm; TMDB `episode_run_time`/film `runtime`), "hayatının X günü" (gün/saat), tür dağılımı, {yıl} aylık aktivite grafiği. Hesaplama tek pure modülde (`lib/stats.ts`) + Jest birim testleri (`lib/stats.test.ts`).
+- [x] **Paylaşılabilir kart** (PNG): `react-native-view-shot` + `expo-sharing` ile `/stats` ekranındaki özet kart (`components/stats/ShareableStatsCard.tsx`) native share sheet'e gönderiliyor.
+- [x] "Yıl Özeti": ayrı ekran yerine `/stats`'ta "All Time / This Year" segment kontrolü + Aralık ayında banner + varsayılan sekme "This Year".
 
 ## Faz 5 — Sosyal Katman *(~2 hafta)*
 
