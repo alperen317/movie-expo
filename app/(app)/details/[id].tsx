@@ -31,7 +31,14 @@ import { getMovieDetails } from '../../../lib/tmdb/movies';
 import { getTVShowDetails } from '../../../lib/tmdb/tv';
 import { useEpisodeProgressStore } from '../../../stores/episodeProgress.store';
 import { useListsStore } from '../../../stores/lists.store';
+import { useToastStore } from '../../../stores/toast.store';
 import { useWatchLogStore } from '../../../stores/watchLog.store';
+
+function openUrlSafely(url: string) {
+  Linking.openURL(url).catch(() => {
+    useToastStore.getState().show('Could not open link', 'error-outline');
+  });
+}
 
 export default function DetailsScreen() {
   const { id, type } = useLocalSearchParams<{ id: string; type?: string }>();
@@ -210,7 +217,7 @@ export default function DetailsScreen() {
                 <Pressable
                   onPress={() => {
                     if (Platform.OS === 'web') {
-                      Linking.openURL(`https://www.youtube.com/watch?v=${details.trailerKey}`);
+                      openUrlSafely(`https://www.youtube.com/watch?v=${details.trailerKey}`);
                     } else {
                       setIsTrailerOpen(true);
                     }
@@ -265,7 +272,7 @@ export default function DetailsScreen() {
                   Where to Watch
                 </Text>
                 <Pressable
-                  onPress={() => Linking.openURL(details.watchProviders!.link)}
+                  onPress={() => openUrlSafely(details.watchProviders!.link)}
                   className="flex-row flex-wrap items-center gap-2"
                 >
                   {(details.watchProviders.flatrate.length > 0
@@ -444,13 +451,17 @@ export default function DetailsScreen() {
           {/* Rendered after the FlatList so it stays tappable — on iOS a
               full-bleed scroll view sibling can otherwise take touches meant
               for a control painted "above" it only in JS z-index terms. */}
-          <AnimatedPressable
-            onPress={() => setViewerIndex(null)}
+          <View
             style={{ paddingTop: insets.top, marginTop: 12 }}
-            className="absolute right-4 top-0 z-10 h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
+            className="absolute right-4 top-0 z-10"
           >
-            <MaterialIcons name="close" size={24} color="#FFFFFF" />
-          </AnimatedPressable>
+            <AnimatedPressable
+              onPress={() => setViewerIndex(null)}
+              className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
+            >
+              <MaterialIcons name="close" size={24} color="#FFFFFF" />
+            </AnimatedPressable>
+          </View>
         </View>
       </Modal>
 
@@ -495,7 +506,7 @@ export default function DetailsScreen() {
             <AnimatedPressable
               onPress={() =>
                 details?.trailerKey &&
-                Linking.openURL(`https://www.youtube.com/watch?v=${details.trailerKey}`)
+                openUrlSafely(`https://www.youtube.com/watch?v=${details.trailerKey}`)
               }
               className="h-10 flex-row items-center gap-2 rounded-full border border-glass-border bg-background-blur px-4"
             >
