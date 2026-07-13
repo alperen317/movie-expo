@@ -18,8 +18,21 @@ interface WatchLogState {
   error: string | null;
   fetchWatchLog: () => Promise<void>;
   isWatched: (mediaType: 'movie' | 'tv', id: number) => boolean;
+  ratingFor: (mediaType: 'movie' | 'tv', id: number) => number | null;
   logWatch: (item: MediaCardItem, options: LogWatchOptions) => Promise<void>;
   reset: () => void;
+}
+
+// Rewatches create multiple watch_log rows per title; keep only the most
+// recent one so lists/grids don't show duplicate posters.
+export function dedupeWatchLog(entries: WatchLogEntry[]): WatchLogEntry[] {
+  const latest = new Map<string, WatchLogEntry>();
+  for (const entry of entries) {
+    const key = `${entry.mediaType}-${entry.id}`;
+    const current = latest.get(key);
+    if (!current || entry.watchedAt > current.watchedAt) latest.set(key, entry);
+  }
+  return Array.from(latest.values()).sort((a, b) => b.watchedAt.localeCompare(a.watchedAt));
 }
 
 export const useWatchLogStore = create<WatchLogState>((set, get) => ({
@@ -40,6 +53,14 @@ export const useWatchLogStore = create<WatchLogState>((set, get) => ({
   },
   isWatched: (mediaType, id) =>
     get().entries.some((entry) => entry.mediaType === mediaType && entry.id === id),
+  ratingFor: (mediaType, id) => {
+    let latest: WatchLogEntry | null = null;
+    for (const entry of get().entries) {
+      if (entry.mediaType !== mediaType || entry.id !== id) continue;
+      if (!latest || entry.watchedAt > latest.watchedAt) latest = entry;
+    }
+    return latest?.rating ?? null;
+  },
   logWatch: async (item, options) => {
     const tempId = `pending-${Date.now()}`;
     const optimisticEntry: WatchLogEntry = {

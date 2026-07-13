@@ -6,6 +6,7 @@ import { scheduleUpcomingEpisodeReminders } from '../../lib/notifications/episod
 import { useAuthStore } from '../../stores/auth.store';
 import { useEpisodeProgressStore } from '../../stores/episodeProgress.store';
 import { useListsStore } from '../../stores/lists.store';
+import { useWatchLogStore } from '../../stores/watchLog.store';
 
 export default function AppLayout() {
   const session = useAuthStore((state) => state.session);
@@ -13,6 +14,7 @@ export default function AppLayout() {
   useEffect(() => {
     useListsStore.getState().fetchFavorites();
     useListsStore.getState().fetchWatchlist();
+    useWatchLogStore.getState().fetchWatchLog();
     useEpisodeProgressStore
       .getState()
       .fetchProgress()

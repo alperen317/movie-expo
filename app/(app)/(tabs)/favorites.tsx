@@ -4,18 +4,20 @@ import { useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { CARD_WIDTH, MovieCard } from '../../../components/home/MovieCard';
+import { CARD_WIDTH, MediaCardItem, MovieCard } from '../../../components/home/MovieCard';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
 import { useListsStore } from '../../../stores/lists.store';
+import { dedupeWatchLog, useWatchLogStore } from '../../../stores/watchLog.store';
 
 const GRID_GAP = 16;
 const GRID_PADDING = 16;
 
-type Tab = 'favorites' | 'watchlist';
+type Tab = 'favorites' | 'watchlist' | 'watched';
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'favorites', label: 'Favorites' },
   { key: 'watchlist', label: 'Watchlist' },
+  { key: 'watched', label: 'Watched' },
 ];
 
 const EMPTY_STATE: Record<Tab, { icon: React.ComponentProps<typeof MaterialIcons>['name']; title: string; subtitle: string }> = {
@@ -29,11 +31,18 @@ const EMPTY_STATE: Record<Tab, { icon: React.ComponentProps<typeof MaterialIcons
     title: 'Your watchlist is empty',
     subtitle: 'Tap "Add to Watchlist" on a title to save it for later.',
   },
+  watched: {
+    icon: 'history',
+    title: 'No watched titles yet',
+    subtitle: 'Mark a title as watched from its details page to see it here.',
+  },
 };
 
 export default function FavoritesScreen() {
   const { tab } = useLocalSearchParams<{ tab?: string }>();
-  const [activeTab, setActiveTab] = useState<Tab>(tab === 'watchlist' ? 'watchlist' : 'favorites');
+  const [activeTab, setActiveTab] = useState<Tab>(
+    tab === 'watchlist' || tab === 'watched' ? tab : 'favorites',
+  );
   const { width: windowWidth } = useWindowDimensions();
 
   const favorites = useListsStore((state) => state.favorites);
@@ -46,15 +55,25 @@ export default function FavoritesScreen() {
   const watchlistError = useListsStore((state) => state.watchlistError);
   const fetchWatchlist = useListsStore((state) => state.fetchWatchlist);
 
-  const isFavoritesTab = activeTab === 'favorites';
-  const items = useMemo(() => {
-    const source = isFavoritesTab ? favorites : watchlist;
-    return Object.values(source).sort((a, b) => b.savedAt.localeCompare(a.savedAt));
-  }, [isFavoritesTab, favorites, watchlist]);
+  const watchLogEntries = useWatchLogStore((state) => state.entries);
+  const isWatchedLoading = useWatchLogStore((state) => state.isLoading);
+  const watchedError = useWatchLogStore((state) => state.error);
+  const fetchWatchLog = useWatchLogStore((state) => state.fetchWatchLog);
 
-  const isLoading = isFavoritesTab ? isFavoritesLoading : isWatchlistLoading;
-  const error = isFavoritesTab ? favoritesError : watchlistError;
-  const refetch = isFavoritesTab ? fetchFavorites : fetchWatchlist;
+  const items = useMemo((): MediaCardItem[] => {
+    if (activeTab === 'favorites') {
+      return Object.values(favorites).sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+    }
+    if (activeTab === 'watchlist') {
+      return Object.values(watchlist).sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+    }
+    return dedupeWatchLog(watchLogEntries);
+  }, [activeTab, favorites, watchlist, watchLogEntries]);
+
+  const isLoading =
+    activeTab === 'favorites' ? isFavoritesLoading : activeTab === 'watchlist' ? isWatchlistLoading : isWatchedLoading;
+  const error = activeTab === 'favorites' ? favoritesError : activeTab === 'watchlist' ? watchlistError : watchedError;
+  const refetch = activeTab === 'favorites' ? fetchFavorites : activeTab === 'watchlist' ? fetchWatchlist : fetchWatchLog;
 
   const numColumns = Math.max(
     2,

@@ -9,6 +9,7 @@ import { AnimatedPressable, AnimatedView } from '../ui/AnimatedPressable';
 import { getPosterUrl } from '../../lib/tmdb/config';
 import { getPrimaryGenre, TMDB_GENRE_MAP, TMDB_TV_GENRE_MAP } from '../../lib/tmdb/genres';
 import type { TMDBMovie, TMDBMultiSearchResult, TMDBTVShow } from '../../lib/tmdb/types';
+import { useWatchLogStore } from '../../stores/watchLog.store';
 
 export const CARD_WIDTH = 180;
 
@@ -79,6 +80,7 @@ export function MovieCard({
 }) {
   const posterUri = getPosterUrl(item.posterPath, 'w342');
   const subtitle = [item.genre, item.year].filter(Boolean).join(' • ');
+  const personalRating = useWatchLogStore((state) => state.ratingFor(item.mediaType, item.id));
 
   return (
     <AnimatedView entering={FadeInDown.delay(Math.min(index ?? 0, 8) * 40).duration(300)}>
@@ -110,12 +112,21 @@ export function MovieCard({
           </Text>
         </View>
 
-        <View className="absolute right-2 top-2 flex-row items-center gap-1 rounded-full border border-glass-border bg-background-blur px-2 py-1">
-          <MaterialIcons name="star" size={12} color="#f5c451" />
-          <Text className="font-sans-bold text-[10px] text-text-primary">
-            {item.voteAverage.toFixed(1)}
-          </Text>
-        </View>
+        {personalRating !== null ? (
+          <View className="absolute right-2 top-2 flex-row items-center gap-1 rounded-full bg-primary-container px-2 py-1">
+            <MaterialIcons name="star" size={12} color="#3f2e00" />
+            <Text className="font-sans-bold text-[10px] text-on-primary-container">
+              {personalRating.toFixed(1)}
+            </Text>
+          </View>
+        ) : (
+          <View className="absolute right-2 top-2 flex-row items-center gap-1 rounded-full border border-glass-border bg-background-blur px-2 py-1">
+            <MaterialIcons name="star" size={12} color="#f5c451" />
+            <Text className="font-sans-bold text-[10px] text-text-primary">
+              {item.voteAverage.toFixed(1)}
+            </Text>
+          </View>
+        )}
 
         {selected && (
           <View className="absolute bottom-2 right-2 h-7 w-7 items-center justify-center rounded-full bg-primary-container">

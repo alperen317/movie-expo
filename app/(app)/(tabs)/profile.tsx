@@ -10,6 +10,7 @@ import { clearRecentSearches } from '../../../lib/storage/recentSearches';
 import { getInitials } from '../../../lib/utils/initials';
 import { useAuthStore } from '../../../stores/auth.store';
 import { useListsStore } from '../../../stores/lists.store';
+import { dedupeWatchLog, useWatchLogStore } from '../../../stores/watchLog.store';
 
 function formatMemberSince(dateString?: string): string {
   if (!dateString) return '';
@@ -27,16 +28,21 @@ export default function ProfileScreen() {
   const fetchFavorites = useListsStore((state) => state.fetchFavorites);
   const fetchWatchlist = useListsStore((state) => state.fetchWatchlist);
 
+  const watchLogEntries = useWatchLogStore((state) => state.entries);
+  const fetchWatchLog = useWatchLogStore((state) => state.fetchWatchLog);
+
   useEffect(() => {
     fetchFavorites();
     fetchWatchlist();
-  }, [fetchFavorites, fetchWatchlist]);
+    fetchWatchLog();
+  }, [fetchFavorites, fetchWatchlist, fetchWatchLog]);
 
   const email = session?.user?.email ?? '';
   const initials = getInitials(email);
   const memberSince = formatMemberSince(session?.user?.created_at);
   const favoritesCount = Object.keys(favorites).length;
   const watchlistCount = Object.keys(watchlist).length;
+  const watchedCount = dedupeWatchLog(watchLogEntries).length;
 
   const handleClearHistory = () => {
     Alert.alert('Clear Search History', 'This will remove all your recent searches.', [
@@ -95,6 +101,15 @@ export default function ProfileScreen() {
               {watchlistCount}
             </Text>
             <Text className="font-sans text-caption text-text-secondary">Watchlist</Text>
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => router.push({ pathname: '/favorites', params: { tab: 'watched' } })}
+            className="flex-1 items-center gap-1 rounded-xl border border-glass-border bg-surface-container-low py-stack-md"
+          >
+            <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
+              {watchedCount}
+            </Text>
+            <Text className="font-sans text-caption text-text-secondary">Watched</Text>
           </AnimatedPressable>
         </View>
 
