@@ -136,6 +136,17 @@ export default function ProfileScreen() {
             </AnimatedPressable>
             <View className="h-px bg-glass-border" />
             <AnimatedPressable
+              onPress={() => router.push('/import')}
+              className="flex-row items-center gap-3 px-4 py-stack-md"
+            >
+              <MaterialIcons name="file-upload" size={20} color="#A1A1AA" />
+              <Text className="flex-1 font-sans text-body-md text-text-primary">
+                Import from TV Time / Letterboxd
+              </Text>
+              <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
+            </AnimatedPressable>
+            <View className="h-px bg-glass-border" />
+            <AnimatedPressable
               onPress={handleClearHistory}
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >

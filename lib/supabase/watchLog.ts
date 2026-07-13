@@ -83,6 +83,40 @@ export async function addWatchLogEntry(
   return fromRow(data);
 }
 
+const BATCH_CHUNK_SIZE = 500;
+
+// Bulk insert used by the TV Time / Letterboxd importer. watch_log has no
+// uniqueness constraint (rewatches are allowed by design), so this is a
+// plain insert, chunked to stay under Supabase's request size limits.
+export async function addWatchLogEntriesBatch(
+  items: { item: MediaCardItem; watchedAt: Date; rating: number | null }[],
+): Promise<void> {
+  if (items.length === 0) return;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated.');
+
+  const rows = items.map(({ item, watchedAt, rating }) => ({
+    user_id: user.id,
+    media_id: item.id,
+    media_type: item.mediaType,
+    title: item.title,
+    poster_path: item.posterPath,
+    vote_average: item.voteAverage,
+    year: item.year,
+    genre: item.genre,
+    watched_at: watchedAt.toISOString(),
+    rating,
+    note: null,
+  }));
+
+  for (let i = 0; i < rows.length; i += BATCH_CHUNK_SIZE) {
+    const { error } = await supabase.from('watch_log').insert(rows.slice(i, i + BATCH_CHUNK_SIZE));
+    if (error) throw error;
+  }
+}
+
 export async function updateWatchLogEntry(
   logId: string,
   options: { watchedAt: Date; rating: number | null; note?: string | null },

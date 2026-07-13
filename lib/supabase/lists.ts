@@ -63,6 +63,42 @@ export async function addSavedMedia(item: MediaCardItem, listType: ListType): Pr
   if (error) throw error;
 }
 
+const BATCH_CHUNK_SIZE = 500;
+
+// Bulk insert used by the TV Time / Letterboxd importer. Uses the existing
+// (user_id, list_type, media_id, media_type) unique constraint (see
+// 0001_saved_media.sql) to silently skip titles already saved, so re-running
+// an import doesn't error or duplicate rows.
+export async function addSavedMediaBatch(items: MediaCardItem[], listType: ListType): Promise<void> {
+  if (items.length === 0) return;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated.');
+
+  const rows = items.map((item) => ({
+    user_id: user.id,
+    list_type: listType,
+    media_id: item.id,
+    media_type: item.mediaType,
+    title: item.title,
+    poster_path: item.posterPath,
+    vote_average: item.voteAverage,
+    year: item.year,
+    genre: item.genre,
+  }));
+
+  for (let i = 0; i < rows.length; i += BATCH_CHUNK_SIZE) {
+    const { error } = await supabase
+      .from('saved_media')
+      .upsert(rows.slice(i, i + BATCH_CHUNK_SIZE), {
+        onConflict: 'user_id,list_type,media_id,media_type',
+        ignoreDuplicates: true,
+      });
+    if (error) throw error;
+  }
+}
+
 export async function removeSavedMedia(
   mediaId: number,
   mediaType: 'movie' | 'tv',
