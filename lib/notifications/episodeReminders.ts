@@ -1,4 +1,5 @@
 import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
 
 import { getTVShowDetails } from '../tmdb/tv';
 import { useEpisodeProgressStore } from '../../stores/episodeProgress.store';
@@ -27,6 +28,12 @@ function reminderDate(airDate: string): Date {
 }
 
 export async function scheduleUpcomingEpisodeReminders(): Promise<void> {
+  // expo-notifications' local scheduling APIs (getAllScheduledNotificationsAsync,
+  // scheduleNotificationAsync, etc.) aren't implemented on web at all -- calling
+  // them throws "method not available", unlike the graceful no-ops some other
+  // Expo modules provide. Skip the whole flow there.
+  if (Platform.OS === 'web') return;
+
   const { status } = await Notifications.requestPermissionsAsync();
   if (status !== 'granted') return;
 
