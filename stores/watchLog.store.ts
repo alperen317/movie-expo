@@ -1,7 +1,12 @@
 import { create } from 'zustand';
 
 import type { MediaCardItem } from '../components/home/MovieCard';
-import { addWatchLogEntry, fetchWatchLog, WatchLogEntry } from '../lib/supabase/watchLog';
+import {
+  addWatchLogEntry,
+  fetchWatchLog,
+  updateWatchLogEntry,
+  WatchLogEntry,
+} from '../lib/supabase/watchLog';
 import { useListsStore } from './lists.store';
 import { useToastStore } from './toast.store';
 
@@ -18,8 +23,10 @@ interface WatchLogState {
   error: string | null;
   fetchWatchLog: () => Promise<void>;
   isWatched: (mediaType: 'movie' | 'tv', id: number) => boolean;
+  latestEntryFor: (mediaType: 'movie' | 'tv', id: number) => WatchLogEntry | null;
   ratingFor: (mediaType: 'movie' | 'tv', id: number) => number | null;
   logWatch: (item: MediaCardItem, options: LogWatchOptions) => Promise<void>;
+  updateWatch: (logId: string, options: LogWatchOptions) => Promise<void>;
   reset: () => void;
 }
 
@@ -53,14 +60,15 @@ export const useWatchLogStore = create<WatchLogState>((set, get) => ({
   },
   isWatched: (mediaType, id) =>
     get().entries.some((entry) => entry.mediaType === mediaType && entry.id === id),
-  ratingFor: (mediaType, id) => {
+  latestEntryFor: (mediaType, id) => {
     let latest: WatchLogEntry | null = null;
     for (const entry of get().entries) {
       if (entry.mediaType !== mediaType || entry.id !== id) continue;
       if (!latest || entry.watchedAt > latest.watchedAt) latest = entry;
     }
-    return latest?.rating ?? null;
+    return latest;
   },
+  ratingFor: (mediaType, id) => get().latestEntryFor(mediaType, id)?.rating ?? null,
   logWatch: async (item, options) => {
     const tempId = `pending-${Date.now()}`;
     const optimisticEntry: WatchLogEntry = {
@@ -85,6 +93,37 @@ export const useWatchLogStore = create<WatchLogState>((set, get) => ({
       }
     } catch (err) {
       set((state) => ({ entries: state.entries.filter((entry) => entry.logId !== tempId) }));
+      useToastStore.getState().show('Something went wrong. Please try again.', 'error-outline');
+      throw err;
+    }
+  },
+  updateWatch: async (logId, options) => {
+    const previous = get().entries;
+    set((state) => ({
+      entries: state.entries.map((entry) =>
+        entry.logId === logId
+          ? {
+              ...entry,
+              watchedAt: options.watchedAt.toISOString(),
+              rating: options.rating,
+              note: options.note ?? null,
+            }
+          : entry,
+      ),
+    }));
+    useToastStore.getState().show('Watch log updated', 'check-circle');
+
+    try {
+      const saved = await updateWatchLogEntry(logId, options);
+      set((state) => ({
+        entries: state.entries.map((entry) => (entry.logId === logId ? saved : entry)),
+      }));
+
+      if (options.dropFromWatchlist && useListsStore.getState().isInWatchlist(saved.mediaType, saved.id)) {
+        await useListsStore.getState().toggleWatchlist(saved, { silent: true });
+      }
+    } catch (err) {
+      set({ entries: previous });
       useToastStore.getState().show('Something went wrong. Please try again.', 'error-outline');
       throw err;
     }

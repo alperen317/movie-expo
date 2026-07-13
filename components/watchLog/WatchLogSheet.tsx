@@ -1,5 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -35,6 +35,8 @@ function toDateInput(date: Date): string {
 
 export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheetProps) {
   const logWatch = useWatchLogStore((state) => state.logWatch);
+  const updateWatch = useWatchLogStore((state) => state.updateWatch);
+  const existingEntry = useWatchLogStore((state) => state.latestEntryFor(item.mediaType, item.id));
   const markSeason = useEpisodeProgressStore((state) => state.markSeason);
   const isInWatchlist = useListsStore((state) => state.isInWatchlist(item.mediaType, item.id));
   const hasSeasons = item.mediaType === 'tv' && (seasons?.length ?? 0) > 0;
@@ -47,6 +49,41 @@ export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheet
   const [markAllEpisodes, setMarkAllEpisodes] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Re-opening the sheet for an already-logged title previously always
+  // showed a blank form (no fetch of the existing row), which read as if
+  // the earlier submission had been lost. Prefill from the latest entry
+  // so the sheet reflects what's actually saved, and edit that row in
+  // place on submit instead of silently inserting a rewatch duplicate.
+  useEffect(() => {
+    if (!visible) return;
+    if (existingEntry) {
+      const entryDate = new Date(existingEntry.watchedAt);
+      const entryDateStr = toDateInput(entryDate);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      if (entryDateStr === toDateInput(new Date())) setDateChoice('today');
+      else if (entryDateStr === toDateInput(yesterday)) setDateChoice('yesterday');
+      else {
+        setDateChoice('custom');
+        setCustomDate(entryDateStr);
+      }
+
+      setRating(existingEntry.rating);
+      setNote(existingEntry.note ?? '');
+      setMarkAllEpisodes(false);
+    } else {
+      setDateChoice('today');
+      setCustomDate(toDateInput(new Date()));
+      setRating(null);
+      setNote('');
+      setMarkAllEpisodes(true);
+    }
+    setDropFromWatchlist(true);
+    setError(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
 
   // Stars are a 5-point UI over the same 1-10 rating scale the DB stores
   // (each star = 2 points), so no schema change is needed for this.
@@ -86,12 +123,17 @@ export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheet
     setIsSubmitting(true);
     setError(null);
     try {
-      await logWatch(item, {
+      const options = {
         watchedAt: resolvedDate,
         rating,
         note: note.trim().length > 0 ? note.trim() : null,
         dropFromWatchlist: dropFromWatchlist && isInWatchlist,
-      });
+      };
+      if (existingEntry) {
+        await updateWatch(existingEntry.logId, options);
+      } else {
+        await logWatch(item, options);
+      }
 
       if (hasSeasons && markAllEpisodes && seasons) {
         for (const season of seasons) {
@@ -122,7 +164,7 @@ export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheet
       >
         <View className="w-full max-w-md gap-stack-md rounded-2xl border border-glass-border bg-surface-container-low p-6">
           <Text className="font-sans-bold text-title-md text-text-primary" numberOfLines={1}>
-            Mark &quot;{item.title}&quot; as watched
+            {existingEntry ? `Edit your log for "${item.title}"` : `Mark "${item.title}" as watched`}
           </Text>
 
           <View className="gap-stack-sm">
@@ -258,7 +300,7 @@ export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheet
                 <ActivityIndicator color="#3f2e00" />
               ) : (
                 <Text className="font-sans-semibold text-body-md text-on-primary-container">
-                  Mark as Watched
+                  {existingEntry ? 'Save Changes' : 'Mark as Watched'}
                 </Text>
               )}
             </AnimatedPressable>

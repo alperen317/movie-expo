@@ -82,3 +82,24 @@ export async function addWatchLogEntry(
   if (error) throw error;
   return fromRow(data);
 }
+
+export async function updateWatchLogEntry(
+  logId: string,
+  options: { watchedAt: Date; rating: number | null; note?: string | null },
+): Promise<WatchLogEntry> {
+  const { data, error } = await supabase
+    .from('watch_log')
+    .update({
+      watched_at: options.watchedAt.toISOString(),
+      rating: options.rating,
+      note: options.note ?? null,
+    })
+    .eq('id', logId)
+    .select(
+      'id, media_id, media_type, title, poster_path, vote_average, year, genre, watched_at, rating, note',
+    )
+    .single();
+
+  if (error) throw error;
+  return fromRow(data);
+}
