@@ -1,8 +1,10 @@
 import { MaterialIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { JoinByCodeModal } from '../../../components/lists/JoinByCodeModal';
 import { ListCard } from '../../../components/lists/ListCard';
 import { ListNameModal } from '../../../components/lists/ListNameModal';
 import { PendingInviteCard } from '../../../components/lists/PendingInviteCard';
@@ -11,6 +13,7 @@ import { useSharedListsStore } from '../../../stores/sharedLists.store';
 
 export default function ListsScreen() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isJoinOpen, setIsJoinOpen] = useState(false);
   const [respondingId, setRespondingId] = useState<string | null>(null);
 
   const myLists = useSharedListsStore((state) => state.myLists);
@@ -22,6 +25,7 @@ export default function ListsScreen() {
   const fetchPendingInvites = useSharedListsStore((state) => state.fetchPendingInvites);
 
   const createList = useSharedListsStore((state) => state.createList);
+  const joinListByCode = useSharedListsStore((state) => state.joinListByCode);
   const respondToInvite = useSharedListsStore((state) => state.respondToInvite);
 
   useEffect(() => {
@@ -50,12 +54,20 @@ export default function ListsScreen() {
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
       <View className="flex-row items-center justify-between px-margin-mobile py-stack-md">
         <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">Lists</Text>
-        <AnimatedPressable
-          onPress={() => setIsCreateOpen(true)}
-          className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
-        >
-          <MaterialIcons name="add" size={22} color="#f5c451" />
-        </AnimatedPressable>
+        <View className="flex-row gap-2">
+          <AnimatedPressable
+            onPress={() => setIsJoinOpen(true)}
+            className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
+          >
+            <MaterialIcons name="key" size={20} color="#f5c451" />
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => setIsCreateOpen(true)}
+            className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
+          >
+            <MaterialIcons name="add" size={22} color="#f5c451" />
+          </AnimatedPressable>
+        </View>
       </View>
 
       {isMyListsLoading && lists.length === 0 && (
@@ -131,6 +143,15 @@ export default function ListsScreen() {
         onClose={() => setIsCreateOpen(false)}
         onSubmit={async (name) => {
           await createList(name);
+        }}
+      />
+
+      <JoinByCodeModal
+        visible={isJoinOpen}
+        onClose={() => setIsJoinOpen(false)}
+        onSubmit={async (code) => {
+          const list = await joinListByCode(code);
+          router.push({ pathname: '/lists/[id]', params: { id: list.id } });
         }}
       />
     </SafeAreaView>

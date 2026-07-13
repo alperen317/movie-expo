@@ -1,7 +1,7 @@
 import { Text, View } from 'react-native';
 
 import type { ListMember } from '../../lib/supabase/sharedLists';
-import { getInitials } from '../../lib/utils/initials';
+import { BoringAvatar } from '../ui/BoringAvatar';
 
 const MAX_VISIBLE = 4;
 
@@ -21,11 +21,9 @@ export function MemberAvatarRow({ members, size = 28 }: { members: ListMember[];
             borderRadius: size / 2,
             marginLeft: index === 0 ? 0 : -size * 0.3,
           }}
-          className="items-center justify-center border border-surface bg-surface-container-high"
+          className="overflow-hidden border border-surface"
         >
-          <Text className="font-sans-bold text-[10px] text-primary-container">
-            {getInitials(member.email)}
-          </Text>
+          <BoringAvatar name={member.displayName || member.email} variant={member.avatarVariant} size={size} />
         </View>
       ))}
       {overflow > 0 && (

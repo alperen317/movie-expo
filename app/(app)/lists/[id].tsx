@@ -1,7 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Modal, Text, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, FlatList, Modal, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CARD_WIDTH } from '../../../components/home/MovieCard';
@@ -9,8 +9,9 @@ import { InviteModal } from '../../../components/lists/InviteModal';
 import { ListItemCard } from '../../../components/lists/ListItemCard';
 import { ListNameModal } from '../../../components/lists/ListNameModal';
 import { MemberAvatarRow } from '../../../components/lists/MemberAvatarRow';
+import { ActionSheetModal } from '../../../components/ui/ActionSheetModal';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
-import { getInitials } from '../../../lib/utils/initials';
+import { BoringAvatar } from '../../../components/ui/BoringAvatar';
 import { useAuthStore } from '../../../stores/auth.store';
 import { useSharedListsStore } from '../../../stores/sharedLists.store';
 
@@ -29,6 +30,9 @@ export default function SharedListDetailScreen() {
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [isRenameOpen, setIsRenameOpen] = useState(false);
   const [isMembersOpen, setIsMembersOpen] = useState(false);
+  const [isOverflowOpen, setIsOverflowOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isLeaveConfirmOpen, setIsLeaveConfirmOpen] = useState(false);
 
   const activeList = useSharedListsStore((state) => state.activeList);
   const members = useSharedListsStore((state) => state.members);
@@ -40,6 +44,7 @@ export default function SharedListDetailScreen() {
   const renameList = useSharedListsStore((state) => state.renameList);
   const deleteList = useSharedListsStore((state) => state.deleteList);
   const inviteMember = useSharedListsStore((state) => state.inviteMember);
+  const regenerateJoinCode = useSharedListsStore((state) => state.regenerateJoinCode);
   const removeMember = useSharedListsStore((state) => state.removeMember);
   const leaveList = useSharedListsStore((state) => state.leaveList);
   const removeItem = useSharedListsStore((state) => state.removeItem);
@@ -60,47 +65,15 @@ export default function SharedListDetailScreen() {
     Math.floor((windowWidth - GRID_PADDING * 2 + GRID_GAP) / (CARD_WIDTH + GRID_GAP)),
   );
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!activeList) return;
-    Alert.alert('Delete List', 'This removes it for everyone. This can’t be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          await deleteList(activeList.id);
-          router.back();
-        },
-      },
-    ]);
+    await deleteList(activeList.id);
+    router.back();
   };
 
   const handleLeave = () => {
     if (!myMembership) return;
-    Alert.alert('Leave List', 'You’ll need a new invite to rejoin.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Leave',
-        style: 'destructive',
-        onPress: () => leaveList(myMembership.membershipId),
-      },
-    ]);
-  };
-
-  const handleOverflowPress = () => {
-    if (isCreator) {
-      Alert.alert(activeList?.name ?? 'List', undefined, [
-        { text: 'Rename', onPress: () => setIsRenameOpen(true) },
-        { text: 'Delete List', style: 'destructive', onPress: handleDelete },
-        { text: 'Cancel', style: 'cancel' },
-      ]);
-    } else {
-      Alert.alert(activeList?.name ?? 'List', undefined, [
-        { text: 'Rename', onPress: () => setIsRenameOpen(true) },
-        { text: 'Leave List', style: 'destructive', onPress: handleLeave },
-        { text: 'Cancel', style: 'cancel' },
-      ]);
-    }
+    leaveList(myMembership.membershipId);
   };
 
   return (
@@ -119,7 +92,7 @@ export default function SharedListDetailScreen() {
           {activeList?.name ?? 'List'}
         </Text>
         <AnimatedPressable
-          onPress={handleOverflowPress}
+          onPress={() => setIsOverflowOpen(true)}
           className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
         >
           <MaterialIcons name="more-vert" size={22} color="#FFFFFF" />
@@ -201,13 +174,18 @@ export default function SharedListDetailScreen() {
         </AnimatedPressable>
       )}
 
-      <InviteModal
-        visible={isInviteOpen}
-        onClose={() => setIsInviteOpen(false)}
-        onSubmit={async (email) => {
-          if (activeList) await inviteMember(activeList.id, email);
-        }}
-      />
+      {activeList && (
+        <InviteModal
+          visible={isInviteOpen}
+          joinCode={activeList.joinCode}
+          isCreator={isCreator}
+          onClose={() => setIsInviteOpen(false)}
+          onSubmit={async (email) => {
+            await inviteMember(activeList.id, email);
+          }}
+          onRegenerate={() => regenerateJoinCode(activeList.id)}
+        />
+      )}
 
       {activeList && (
         <ListNameModal
@@ -221,6 +199,34 @@ export default function SharedListDetailScreen() {
           }}
         />
       )}
+
+      <ActionSheetModal
+        visible={isOverflowOpen}
+        title={activeList?.name ?? 'List'}
+        onClose={() => setIsOverflowOpen(false)}
+        actions={[
+          { label: 'Rename', onPress: () => setIsRenameOpen(true) },
+          isCreator
+            ? { label: 'Delete List', destructive: true, onPress: () => setIsDeleteConfirmOpen(true) }
+            : { label: 'Leave List', destructive: true, onPress: () => setIsLeaveConfirmOpen(true) },
+        ]}
+      />
+
+      <ActionSheetModal
+        visible={isDeleteConfirmOpen}
+        title="Delete List"
+        message="This removes it for everyone. This can’t be undone."
+        onClose={() => setIsDeleteConfirmOpen(false)}
+        actions={[{ label: 'Delete', destructive: true, onPress: handleDelete }]}
+      />
+
+      <ActionSheetModal
+        visible={isLeaveConfirmOpen}
+        title="Leave List"
+        message="You’ll need a new invite to rejoin."
+        onClose={() => setIsLeaveConfirmOpen(false)}
+        actions={[{ label: 'Leave', destructive: true, onPress: handleLeave }]}
+      />
 
       <Modal
         visible={isMembersOpen}
@@ -239,10 +245,8 @@ export default function SharedListDetailScreen() {
             <View className="gap-3">
               {memberList.map((member) => (
                 <View key={member.membershipId} className="flex-row items-center gap-3">
-                  <View className="h-9 w-9 items-center justify-center rounded-full border border-glass-border bg-surface-container-high">
-                    <Text className="font-sans-bold text-[11px] text-primary-container">
-                      {getInitials(member.email)}
-                    </Text>
+                  <View className="h-9 w-9 overflow-hidden rounded-full border border-glass-border">
+                    <BoringAvatar name={member.displayName || member.email} variant={member.avatarVariant} size={36} />
                   </View>
                   <View className="flex-1">
                     <Text className="font-sans text-body-md text-text-primary" numberOfLines={1}>

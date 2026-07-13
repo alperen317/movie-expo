@@ -1,6 +1,7 @@
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 import type { MediaCardItem } from '../../components/home/MovieCard';
+import type { AvatarVariant } from '../avatar/generate';
 import { supabase } from './client';
 
 export type MemberRole = 'owner' | 'member';
@@ -12,6 +13,7 @@ export interface SharedListSummary {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  joinCode: string;
 }
 
 export interface SharedListItem extends MediaCardItem {
@@ -27,6 +29,8 @@ export interface ListMember {
   listId: string;
   userId: string;
   email: string;
+  displayName: string | null;
+  avatarVariant: AvatarVariant;
   role: MemberRole;
   status: MemberStatus;
   invitedBy: string | null;
@@ -43,7 +47,13 @@ export interface PendingInvite {
 }
 
 export class SharedListsError extends Error {
-  code: 'user_not_found' | 'cannot_invite_self' | 'already_invited_or_member' | 'unknown';
+  code:
+    | 'user_not_found'
+    | 'cannot_invite_self'
+    | 'already_invited_or_member'
+    | 'invalid_code'
+    | 'not_owner'
+    | 'unknown';
 
   constructor(code: SharedListsError['code'], message: string) {
     super(message);
@@ -65,6 +75,17 @@ function fromInviteRpcError(err: unknown): never {
   throw new SharedListsError('unknown', message);
 }
 
+function fromJoinCodeRpcError(err: unknown): never {
+  const message = err instanceof Error ? err.message : String(err);
+  if (message.includes('invalid_code')) {
+    throw new SharedListsError('invalid_code', 'That code doesn’t match any list.');
+  }
+  if (message.includes('not_owner')) {
+    throw new SharedListsError('not_owner', 'Only the list owner can do that.');
+  }
+  throw new SharedListsError('unknown', message);
+}
+
 // ---------------------------------------------------------------------------
 // Lists
 // ---------------------------------------------------------------------------
@@ -75,6 +96,7 @@ interface ListRow {
   created_by: string;
   created_at: string;
   updated_at: string;
+  join_code: string;
 }
 
 function fromListRow(row: ListRow): SharedListSummary {
@@ -84,6 +106,7 @@ function fromListRow(row: ListRow): SharedListSummary {
     createdBy: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    joinCode: row.join_code,
   };
 }
 
@@ -94,7 +117,7 @@ function fromListRow(row: ListRow): SharedListSummary {
 export async function fetchMyLists(): Promise<SharedListSummary[]> {
   const { data, error } = await supabase
     .from('list_members')
-    .select('list:lists(id, name, created_by, created_at, updated_at)')
+    .select('list:lists(id, name, created_by, created_at, updated_at, join_code)')
     .eq('status', 'accepted')
     .order('created_at', { referencedTable: 'lists', ascending: false });
 
@@ -131,7 +154,7 @@ export async function fetchPendingInvites(): Promise<PendingInvite[]> {
 export async function fetchListById(listId: string): Promise<SharedListSummary> {
   const { data, error } = await supabase
     .from('lists')
-    .select('id, name, created_by, created_at, updated_at')
+    .select('id, name, created_by, created_at, updated_at, join_code')
     .eq('id', listId)
     .single();
 
@@ -155,6 +178,21 @@ export async function deleteSharedList(listId: string): Promise<void> {
   if (error) throw error;
 }
 
+// Joins instantly (accepted, no pending step) -- possessing the code is the
+// authorization, unlike inviteMemberByEmail which requires the invitee to
+// accept. See join_list_by_code in 0009_list_join_code.sql.
+export async function joinListByCode(code: string): Promise<SharedListSummary> {
+  const { data, error } = await supabase.rpc('join_list_by_code', { p_code: code.trim() });
+  if (error) fromJoinCodeRpcError(error);
+  return fromListRow(data as ListRow);
+}
+
+export async function regenerateJoinCode(listId: string): Promise<string> {
+  const { data, error } = await supabase.rpc('regenerate_list_join_code', { p_list_id: listId });
+  if (error) fromJoinCodeRpcError(error);
+  return data as string;
+}
+
 // ---------------------------------------------------------------------------
 // Membership
 // ---------------------------------------------------------------------------
@@ -168,7 +206,7 @@ interface MemberRow {
   invited_by: string | null;
   created_at: string;
   responded_at: string | null;
-  member: { email: string } | null;
+  member: { email: string; display_name: string | null; avatar_variant: string } | null;
 }
 
 function fromMemberRow(row: MemberRow): ListMember {
@@ -177,6 +215,8 @@ function fromMemberRow(row: MemberRow): ListMember {
     listId: row.list_id,
     userId: row.user_id,
     email: row.member?.email ?? '',
+    displayName: row.member?.display_name ?? null,
+    avatarVariant: (row.member?.avatar_variant as AvatarVariant) ?? 'beam',
     role: row.role,
     status: row.status,
     invitedBy: row.invited_by,
@@ -189,7 +229,7 @@ export async function fetchListMembers(listId: string): Promise<ListMember[]> {
   const { data, error } = await supabase
     .from('list_members')
     .select(
-      'id, list_id, user_id, role, status, invited_by, created_at, responded_at, member:profiles!list_members_user_id_fkey(email)',
+      'id, list_id, user_id, role, status, invited_by, created_at, responded_at, member:profiles!list_members_user_id_fkey(email, display_name, avatar_variant)',
     )
     .eq('list_id', listId)
     .order('created_at', { ascending: true });

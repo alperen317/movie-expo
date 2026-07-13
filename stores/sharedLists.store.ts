@@ -12,8 +12,10 @@ import {
   fetchMyLists,
   fetchPendingInvites,
   inviteMemberByEmail,
+  joinListByCode as joinListByCodeRequest,
   ListMember,
   PendingInvite,
+  regenerateJoinCode as regenerateJoinCodeRequest,
   removeListItem,
   removeMember as removeMemberRequest,
   renameSharedList,
@@ -46,6 +48,8 @@ interface SharedListsState {
   renameList: (listId: string, name: string) => Promise<void>;
   deleteList: (listId: string) => Promise<void>;
   respondToInvite: (membershipId: string, accept: boolean) => Promise<void>;
+  joinListByCode: (code: string) => Promise<SharedListSummary>;
+  regenerateJoinCode: (listId: string) => Promise<void>;
 
   activeListId: string | null;
   activeList: SharedListSummary | null;
@@ -140,6 +144,31 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
       delete myLists[listId];
       return { myLists };
     });
+  },
+
+  joinListByCode: async (code) => {
+    try {
+      const list = await joinListByCodeRequest(code);
+      set((state) => ({ myLists: { ...state.myLists, [list.id]: list } }));
+      return list;
+    } catch (err) {
+      const message =
+        err instanceof SharedListsError ? err.message : 'Something went wrong. Please try again.';
+      useToastStore.getState().show(message, 'error-outline');
+      throw err;
+    }
+  },
+
+  regenerateJoinCode: async (listId) => {
+    const joinCode = await regenerateJoinCodeRequest(listId);
+    set((state) => ({
+      myLists: state.myLists[listId]
+        ? { ...state.myLists, [listId]: { ...state.myLists[listId], joinCode } }
+        : state.myLists,
+      activeList: state.activeListId === listId && state.activeList
+        ? { ...state.activeList, joinCode }
+        : state.activeList,
+    }));
   },
 
   respondToInvite: async (membershipId, accept) => {
