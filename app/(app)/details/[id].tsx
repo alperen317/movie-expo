@@ -25,7 +25,7 @@ import type { MediaCardItem } from '../../../components/home/MovieCard';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
 import { SeasonAccordion } from '../../../components/watchLog/SeasonAccordion';
 import { WatchLogSheet } from '../../../components/watchLog/WatchLogSheet';
-import { getBackdropUrl, getProfileUrl } from '../../../lib/tmdb/config';
+import { getBackdropUrl, getLogoUrl, getProfileUrl } from '../../../lib/tmdb/config';
 import { MediaDetails, toMovieDetails, toTVDetails } from '../../../lib/tmdb/details';
 import { getMovieDetails } from '../../../lib/tmdb/movies';
 import { getTVShowDetails } from '../../../lib/tmdb/tv';
@@ -258,6 +258,43 @@ export default function DetailsScreen() {
                 </Text>
               </Pressable>
             </View>
+
+            {details.watchProviders && (
+              <View className="gap-stack-sm">
+                <Text className="font-sans-semibold text-title-md text-text-primary">
+                  Where to Watch
+                </Text>
+                <Pressable
+                  onPress={() => Linking.openURL(details.watchProviders!.link)}
+                  className="flex-row flex-wrap items-center gap-2"
+                >
+                  {(details.watchProviders.flatrate.length > 0
+                    ? details.watchProviders.flatrate
+                    : details.watchProviders.rent.length > 0
+                      ? details.watchProviders.rent
+                      : details.watchProviders.buy
+                  ).map((provider) => (
+                    <View
+                      key={provider.id}
+                      className="h-12 w-12 overflow-hidden rounded-xl border border-glass-border"
+                    >
+                      <Image
+                        source={
+                          getLogoUrl(provider.logoPath, 'w92')
+                            ? { uri: getLogoUrl(provider.logoPath, 'w92')! }
+                            : undefined
+                        }
+                        style={{ width: '100%', height: '100%' }}
+                        contentFit="cover"
+                      />
+                    </View>
+                  ))}
+                </Pressable>
+                <Text className="font-sans text-[11px] text-text-secondary">
+                  Streaming data provided by JustWatch
+                </Text>
+              </View>
+            )}
 
             {details.mediaType === 'tv' && details.seasons.length > 0 && (
               <View className="gap-stack-sm">

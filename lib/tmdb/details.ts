@@ -1,4 +1,5 @@
 import { getPrimaryGenre, TMDB_TV_GENRE_MAP } from './genres';
+import { getDeviceRegion } from './region';
 import type {
   TMDBCastMember,
   TMDBImages,
@@ -7,6 +8,8 @@ import type {
   TMDBPersonDetails,
   TMDBTVShowDetails,
   TMDBVideos,
+  TMDBWatchProviderRegion,
+  TMDBWatchProviders,
 } from './types';
 
 export interface MediaCastMember {
@@ -31,6 +34,19 @@ export interface NextEpisodeInfo {
   airDate: string | null;
 }
 
+export interface WatchProviderInfo {
+  id: number;
+  name: string;
+  logoPath: string | null;
+}
+
+export interface WatchProviderOffering {
+  link: string;
+  flatrate: WatchProviderInfo[];
+  rent: WatchProviderInfo[];
+  buy: WatchProviderInfo[];
+}
+
 export interface MediaDetails {
   id: number;
   mediaType: 'movie' | 'tv';
@@ -50,6 +66,7 @@ export interface MediaDetails {
   seasons: MediaSeasonSummary[];
   numberOfSeasons: number | null;
   nextEpisodeToAir: NextEpisodeInfo | null;
+  watchProviders: WatchProviderOffering | null;
 }
 
 function formatRuntime(minutes: number | null | undefined): string | null {
@@ -77,6 +94,24 @@ function mapBackdrops(images: TMDBImages | undefined): string[] {
 function getUSMovieCertification(release_dates: TMDBMovieDetails['release_dates']): string | null {
   const us = release_dates?.results.find((entry) => entry.iso_3166_1 === 'US');
   return us?.release_dates.find((entry) => entry.certification)?.certification || null;
+}
+
+function getWatchProviders(providers: TMDBWatchProviders | undefined): WatchProviderOffering | null {
+  const region: TMDBWatchProviderRegion | undefined = providers?.results[getDeviceRegion()];
+  if (!region) return null;
+
+  const mapProvider = (provider: { provider_id: number; provider_name: string; logo_path: string }): WatchProviderInfo => ({
+    id: provider.provider_id,
+    name: provider.provider_name,
+    logoPath: provider.logo_path,
+  });
+
+  return {
+    link: region.link,
+    flatrate: (region.flatrate ?? []).map(mapProvider),
+    rent: (region.rent ?? []).map(mapProvider),
+    buy: (region.buy ?? []).map(mapProvider),
+  };
 }
 
 function getTrailerKey(videos: TMDBVideos | undefined): string | null {
@@ -107,6 +142,7 @@ export function toMovieDetails(movie: TMDBMovieDetails): MediaDetails {
     seasons: [],
     numberOfSeasons: null,
     nextEpisodeToAir: null,
+    watchProviders: getWatchProviders(movie['watch/providers']),
   };
 }
 
@@ -147,6 +183,7 @@ export function toTVDetails(show: TMDBTVShowDetails): MediaDetails {
           airDate: show.next_episode_to_air.air_date,
         }
       : null,
+    watchProviders: getWatchProviders(show['watch/providers']),
   };
 }
 

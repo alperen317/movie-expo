@@ -93,6 +93,23 @@ export interface TMDBVideos {
   results: TMDBVideo[];
 }
 
+export interface TMDBWatchProvider {
+  provider_id: number;
+  provider_name: string;
+  logo_path: string;
+}
+
+export interface TMDBWatchProviderRegion {
+  link: string;
+  flatrate?: TMDBWatchProvider[];
+  rent?: TMDBWatchProvider[];
+  buy?: TMDBWatchProvider[];
+}
+
+export interface TMDBWatchProviders {
+  results: Record<string, TMDBWatchProviderRegion>;
+}
+
 export interface TMDBMovieDetails {
   id: number;
   title: string;
@@ -109,6 +126,7 @@ export interface TMDBMovieDetails {
   };
   images: TMDBImages;
   videos: TMDBVideos;
+  'watch/providers'?: TMDBWatchProviders;
 }
 
 export interface TMDBSeasonSummary {
@@ -152,6 +170,7 @@ export interface TMDBTVShowDetails {
   in_production: boolean;
   next_episode_to_air: TMDBEpisodeToAir | null;
   last_episode_to_air: TMDBEpisodeToAir | null;
+  'watch/providers'?: TMDBWatchProviders;
 }
 
 export interface TMDBSeasonEpisode {
