@@ -370,14 +370,6 @@ export default function DetailsScreen() {
         onRequestClose={() => setViewerIndex(null)}
       >
         <View style={{ flex: 1, backgroundColor: '#000000' }}>
-          <AnimatedPressable
-            onPress={() => setViewerIndex(null)}
-            style={{ paddingTop: insets.top, marginTop: 12 }}
-            className="absolute right-4 top-0 z-10 h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
-          >
-            <MaterialIcons name="close" size={24} color="#FFFFFF" />
-          </AnimatedPressable>
-
           {viewerIndex !== null && details && (
             <FlatList
               data={details.backdrops}
@@ -411,6 +403,17 @@ export default function DetailsScreen() {
               }}
             />
           )}
+
+          {/* Rendered after the FlatList so it stays tappable — on iOS a
+              full-bleed scroll view sibling can otherwise take touches meant
+              for a control painted "above" it only in JS z-index terms. */}
+          <AnimatedPressable
+            onPress={() => setViewerIndex(null)}
+            style={{ paddingTop: insets.top, marginTop: 12 }}
+            className="absolute right-4 top-0 z-10 h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
+          >
+            <MaterialIcons name="close" size={24} color="#FFFFFF" />
+          </AnimatedPressable>
         </View>
       </Modal>
 
@@ -421,14 +424,6 @@ export default function DetailsScreen() {
         onRequestClose={() => setIsTrailerOpen(false)}
       >
         <View style={{ flex: 1, backgroundColor: '#000000' }}>
-          <AnimatedPressable
-            onPress={() => setIsTrailerOpen(false)}
-            style={{ paddingTop: insets.top, marginTop: 12 }}
-            className="absolute right-4 top-0 z-10 h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
-          >
-            <MaterialIcons name="close" size={24} color="#FFFFFF" />
-          </AnimatedPressable>
-
           {isTrailerOpen && details?.trailerKey && (
             <View style={{ flex: 1, justifyContent: 'center' }}>
               <View style={{ width: windowWidth, height: (windowWidth * 9) / 16 }}>
@@ -452,6 +447,33 @@ export default function DetailsScreen() {
               </View>
             </View>
           )}
+
+          {/* Rendered after the WebView so these stay tappable — on iOS a
+              full-bleed WebView sibling can otherwise swallow touches meant
+              for controls painted "above" it only in JS z-index terms. */}
+          <View
+            style={{ paddingTop: insets.top, marginTop: 12 }}
+            className="absolute left-4 right-4 top-0 z-10 flex-row items-center justify-between"
+          >
+            <AnimatedPressable
+              onPress={() =>
+                details?.trailerKey &&
+                Linking.openURL(`https://www.youtube.com/watch?v=${details.trailerKey}`)
+              }
+              className="h-10 flex-row items-center gap-2 rounded-full border border-glass-border bg-background-blur px-4"
+            >
+              <MaterialIcons name="open-in-new" size={16} color="#FFFFFF" />
+              <Text className="font-sans-semibold text-caption text-text-primary">
+                Open in YouTube
+              </Text>
+            </AnimatedPressable>
+            <AnimatedPressable
+              onPress={() => setIsTrailerOpen(false)}
+              className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
+            >
+              <MaterialIcons name="close" size={24} color="#FFFFFF" />
+            </AnimatedPressable>
+          </View>
         </View>
       </Modal>
 
@@ -460,6 +482,7 @@ export default function DetailsScreen() {
           visible={isWatchSheetOpen}
           item={cardItem}
           onClose={() => setIsWatchSheetOpen(false)}
+          seasons={details?.mediaType === 'tv' ? details.seasons : undefined}
         />
       )}
     </View>

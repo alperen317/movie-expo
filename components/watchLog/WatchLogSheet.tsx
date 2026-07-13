@@ -6,13 +6,15 @@ import {
   Modal,
   Platform,
   Pressable,
-  ScrollView,
   Text,
   TextInput,
   View,
 } from 'react-native';
 
 import type { MediaCardItem } from '../home/MovieCard';
+import type { MediaSeasonSummary } from '../../lib/tmdb/details';
+import { getSeasonDetails } from '../../lib/tmdb/tv';
+import { useEpisodeProgressStore } from '../../stores/episodeProgress.store';
 import { useListsStore } from '../../stores/lists.store';
 import { useWatchLogStore } from '../../stores/watchLog.store';
 import { AnimatedPressable } from '../ui/AnimatedPressable';
@@ -21,6 +23,8 @@ interface WatchLogSheetProps {
   visible: boolean;
   item: MediaCardItem;
   onClose: () => void;
+  // TV-only: lets the sheet offer "mark every episode too" alongside the log entry.
+  seasons?: MediaSeasonSummary[];
 }
 
 type DateChoice = 'today' | 'yesterday' | 'custom';
@@ -29,17 +33,24 @@ function toDateInput(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-export function WatchLogSheet({ visible, item, onClose }: WatchLogSheetProps) {
+export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheetProps) {
   const logWatch = useWatchLogStore((state) => state.logWatch);
+  const markSeason = useEpisodeProgressStore((state) => state.markSeason);
   const isInWatchlist = useListsStore((state) => state.isInWatchlist(item.mediaType, item.id));
+  const hasSeasons = item.mediaType === 'tv' && (seasons?.length ?? 0) > 0;
 
   const [dateChoice, setDateChoice] = useState<DateChoice>('today');
   const [customDate, setCustomDate] = useState(toDateInput(new Date()));
   const [rating, setRating] = useState<number | null>(null);
   const [note, setNote] = useState('');
   const [dropFromWatchlist, setDropFromWatchlist] = useState(true);
+  const [markAllEpisodes, setMarkAllEpisodes] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Stars are a 5-point UI over the same 1-10 rating scale the DB stores
+  // (each star = 2 points), so no schema change is needed for this.
+  const starCount = rating === null ? 0 : Math.round(rating / 2);
 
   const resolvedDate = useMemo(() => {
     if (dateChoice === 'today') return new Date();
@@ -58,6 +69,7 @@ export function WatchLogSheet({ visible, item, onClose }: WatchLogSheetProps) {
     setRating(null);
     setNote('');
     setDropFromWatchlist(true);
+    setMarkAllEpisodes(true);
     setError(null);
   };
 
@@ -80,6 +92,18 @@ export function WatchLogSheet({ visible, item, onClose }: WatchLogSheetProps) {
         note: note.trim().length > 0 ? note.trim() : null,
         dropFromWatchlist: dropFromWatchlist && isInWatchlist,
       });
+
+      if (hasSeasons && markAllEpisodes && seasons) {
+        for (const season of seasons) {
+          const details = await getSeasonDetails(item.id, season.seasonNumber);
+          await markSeason(
+            item.id,
+            season.seasonNumber,
+            details.episodes.map((episode) => episode.episode_number),
+          );
+        }
+      }
+
       reset();
       onClose();
     } catch (err) {
@@ -139,29 +163,21 @@ export function WatchLogSheet({ visible, item, onClose }: WatchLogSheetProps) {
             <Text className="font-sans-semibold text-caption text-text-secondary">
               Rating (optional)
             </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View className="flex-row gap-2">
-                {Array.from({ length: 10 }, (_, index) => index + 1).map((value) => (
-                  <Pressable
-                    key={value}
-                    onPress={() => setRating(rating === value ? null : value)}
-                    className={`h-9 w-9 items-center justify-center rounded-full border ${
-                      rating === value
-                        ? 'border-primary-container bg-primary-container'
-                        : 'border-glass-border bg-surface/50'
-                    }`}
-                  >
-                    <Text
-                      className={`font-sans-bold text-caption ${
-                        rating === value ? 'text-on-primary-container' : 'text-text-secondary'
-                      }`}
-                    >
-                      {value}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            </ScrollView>
+            <View className="flex-row gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Pressable
+                  key={star}
+                  onPress={() => setRating(star === starCount ? null : star * 2)}
+                  hitSlop={6}
+                >
+                  <MaterialIcons
+                    name={star <= starCount ? 'star' : 'star-border'}
+                    size={32}
+                    color={star <= starCount ? '#f5c451' : '#A1A1AA'}
+                  />
+                </Pressable>
+              ))}
+            </View>
           </View>
 
           <View className="gap-stack-sm">
@@ -174,9 +190,35 @@ export function WatchLogSheet({ visible, item, onClose }: WatchLogSheetProps) {
               placeholder="Any thoughts?"
               placeholderTextColor="#A1A1AA80"
               multiline
-              className="rounded-lg border border-glass-border bg-surface/50 px-4 py-3 font-sans text-text-primary"
+              textAlignVertical="top"
+              className="min-h-[100px] rounded-lg border border-glass-border bg-surface/50 px-4 py-3 font-sans text-text-primary"
             />
           </View>
+
+          {hasSeasons && (
+            <View className="gap-1">
+              <Pressable
+                onPress={() => setMarkAllEpisodes((value) => !value)}
+                className="flex-row items-center gap-2"
+              >
+                <View
+                  className={`h-5 w-5 items-center justify-center rounded border ${
+                    markAllEpisodes
+                      ? 'border-primary-container bg-primary-container'
+                      : 'border-glass-border bg-surface'
+                  }`}
+                >
+                  {markAllEpisodes && <MaterialIcons name="check" size={16} color="#3f2e00" />}
+                </View>
+                <Text className="font-sans text-caption text-text-secondary">
+                  Mark every episode as watched too
+                </Text>
+              </Pressable>
+              <Text className="font-sans text-[11px] text-text-secondary">
+                Only watched some seasons? Uncheck this and use the Seasons list below instead.
+              </Text>
+            </View>
+          )}
 
           {isInWatchlist && (
             <Pressable
