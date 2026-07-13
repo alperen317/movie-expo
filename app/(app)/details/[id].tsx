@@ -23,11 +23,13 @@ import { WebView } from 'react-native-webview';
 
 import type { MediaCardItem } from '../../../components/home/MovieCard';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
+import { WatchLogSheet } from '../../../components/watchLog/WatchLogSheet';
 import { getBackdropUrl, getProfileUrl } from '../../../lib/tmdb/config';
 import { MediaDetails, toMovieDetails, toTVDetails } from '../../../lib/tmdb/details';
 import { getMovieDetails } from '../../../lib/tmdb/movies';
 import { getTVShowDetails } from '../../../lib/tmdb/tv';
 import { useListsStore } from '../../../stores/lists.store';
+import { useWatchLogStore } from '../../../stores/watchLog.store';
 
 export default function DetailsScreen() {
   const { id, type } = useLocalSearchParams<{ id: string; type?: string }>();
@@ -40,6 +42,7 @@ export default function DetailsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [isTrailerOpen, setIsTrailerOpen] = useState(false);
+  const [isWatchSheetOpen, setIsWatchSheetOpen] = useState(false);
 
   const isFavorite = useListsStore((state) =>
     details ? state.isFavorite(details.mediaType, details.id) : false,
@@ -49,6 +52,9 @@ export default function DetailsScreen() {
   );
   const toggleFavorite = useListsStore((state) => state.toggleFavorite);
   const toggleWatchlist = useListsStore((state) => state.toggleWatchlist);
+  const isWatched = useWatchLogStore((state) =>
+    details ? state.isWatched(details.mediaType, details.id) : false,
+  );
 
   const cardItem: MediaCardItem | null = useMemo(() => {
     if (!details) return null;
@@ -62,6 +68,10 @@ export default function DetailsScreen() {
       mediaType: details.mediaType,
     };
   }, [details]);
+
+  useEffect(() => {
+    useWatchLogStore.getState().fetchWatchLog();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -210,6 +220,27 @@ export default function DetailsScreen() {
                   </Text>
                 </Pressable>
               )}
+              <Pressable
+                onPress={() => setIsWatchSheetOpen(true)}
+                className={`flex-row items-center justify-center gap-2 rounded-full py-4 ${
+                  isWatched
+                    ? 'bg-primary-container'
+                    : 'border border-glass-border bg-background-blur'
+                }`}
+              >
+                <MaterialIcons
+                  name={isWatched ? 'check-circle' : 'visibility'}
+                  size={22}
+                  color={isWatched ? '#3f2e00' : '#FFFFFF'}
+                />
+                <Text
+                  className={`font-sans-semibold text-title-md ${
+                    isWatched ? 'text-on-primary-container' : 'text-text-primary'
+                  }`}
+                >
+                  {isWatched ? 'Watched' : 'Mark as Watched'}
+                </Text>
+              </Pressable>
               <Pressable
                 onPress={() => cardItem && toggleWatchlist(cardItem)}
                 className="flex-row items-center justify-center gap-2 rounded-full border border-glass-border bg-background-blur py-4"
@@ -409,6 +440,14 @@ export default function DetailsScreen() {
           )}
         </View>
       </Modal>
+
+      {cardItem && (
+        <WatchLogSheet
+          visible={isWatchSheetOpen}
+          item={cardItem}
+          onClose={() => setIsWatchSheetOpen(false)}
+        />
+      )}
     </View>
   );
 }

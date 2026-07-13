@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { supabase } from '../lib/supabase/client';
 import { useListsStore } from './lists.store';
 import { useSharedListsStore } from './sharedLists.store';
+import { useWatchLogStore } from './watchLog.store';
 
 interface AuthState {
   session: Session | null;
@@ -75,5 +76,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ session: null, isLoading: false, error: null, needsEmailConfirmation: false });
     useListsStore.getState().reset();
     useSharedListsStore.getState().reset();
+    useWatchLogStore.getState().reset();
   },
 }));

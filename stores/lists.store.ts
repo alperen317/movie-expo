@@ -21,7 +21,7 @@ interface ListsState {
   watchlistError: string | null;
   fetchWatchlist: () => Promise<void>;
   isInWatchlist: (mediaType: 'movie' | 'tv', id: number) => boolean;
-  toggleWatchlist: (item: MediaCardItem) => Promise<void>;
+  toggleWatchlist: (item: MediaCardItem, options?: { silent?: boolean }) => Promise<void>;
 
   reset: () => void;
 }
@@ -97,7 +97,7 @@ export const useListsStore = create<ListsState>((set, get) => ({
     }
   },
   isInWatchlist: (mediaType, id) => Boolean(get().watchlist[keyOf(mediaType, id)]),
-  toggleWatchlist: async (item) => {
+  toggleWatchlist: async (item, options) => {
     const key = keyOf(item.mediaType, item.id);
     const wasSaved = Boolean(get().watchlist[key]);
 
@@ -107,12 +107,14 @@ export const useListsStore = create<ListsState>((set, get) => ({
       else watchlist[key] = { ...item, savedAt: new Date().toISOString() };
       return { watchlist };
     });
-    useToastStore
-      .getState()
-      .show(
-        wasSaved ? `${item.title} removed from Watchlist` : `${item.title} added to Watchlist`,
-        wasSaved ? 'bookmark-border' : 'bookmark',
-      );
+    if (!options?.silent) {
+      useToastStore
+        .getState()
+        .show(
+          wasSaved ? `${item.title} removed from Watchlist` : `${item.title} added to Watchlist`,
+          wasSaved ? 'bookmark-border' : 'bookmark',
+        );
+    }
 
     try {
       if (wasSaved) await removeSavedMedia(item.id, item.mediaType, 'watchlist');
