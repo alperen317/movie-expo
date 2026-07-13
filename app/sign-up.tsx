@@ -91,12 +91,18 @@ export default function SignUpScreen() {
       </View>
 
       {mismatch && (
-        <AnimatedView entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)} className="w-full">
+        <AnimatedView
+          entering={FadeIn.duration(200)}
+          exiting={FadeOut.duration(150)}
+          style={{ width: '100%' }}>
           <Text className="mt-stack-sm font-sans text-sm text-error">Şifreler eşleşmiyor.</Text>
         </AnimatedView>
       )}
       {error && (
-        <AnimatedView entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)} className="w-full">
+        <AnimatedView
+          entering={FadeIn.duration(200)}
+          exiting={FadeOut.duration(150)}
+          style={{ width: '100%' }}>
           <Text className="mt-stack-sm font-sans text-sm text-error">{error}</Text>
         </AnimatedView>
       )}

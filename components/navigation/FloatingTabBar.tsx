@@ -44,8 +44,11 @@ function TabBarButton({
     >
       <AnimatedView
         pointerEvents="none"
-        style={[StyleSheet.absoluteFill, pillStyle]}
-        className="rounded-full bg-primary-container"
+        style={[
+          StyleSheet.absoluteFill,
+          { borderRadius: 999, backgroundColor: '#f5c451' },
+          pillStyle,
+        ]}
       />
       <MaterialIcons name={icon} size={24} color={isFocused ? '#3f2e00' : '#A1A1AA'} />
     </AnimatedPressable>

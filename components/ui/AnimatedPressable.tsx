@@ -1,16 +1,13 @@
-import { cssInterop } from 'nativewind';
-import { Pressable, type PressableProps } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { useState } from 'react';
+import { Pressable, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
+import Animated from 'react-native-reanimated';
 
-const Base = Animated.createAnimatedComponent(Pressable);
-cssInterop(Base, { className: 'style' });
-
-// Animated.View/Text aren't pre-registered by NativeWind (they come from
-// react-native-reanimated, not react-native), so className silently no-ops
-// on them unless explicitly registered here.
-cssInterop(Animated.View, { className: 'style' });
-cssInterop(Animated.Text, { className: 'style' });
-
+// react-native-reanimated >= 4.1.1 regressed NativeWind's cssInterop: components
+// created via createAnimatedComponent silently drop every resolved style
+// (className AND inline) on native (software-mansion/react-native-reanimated#8329).
+// Until that's fixed upstream, never pass className to Animated.* components —
+// style them with inline styles only. These re-exports exist for entering/exiting
+// animations; keep className off them.
 export const AnimatedView = Animated.View;
 export const AnimatedText = Animated.Text;
 
@@ -21,20 +18,19 @@ export function AnimatedPressable({
   onPressOut,
   ...props
 }: PressableProps & { scaleTo?: number }) {
-  const scale = useSharedValue(1);
-  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const [pressed, setPressed] = useState(false);
 
   return (
-    <Base
+    <Pressable
       onPressIn={(e) => {
-        scale.value = withTiming(scaleTo, { duration: 100 });
+        setPressed(true);
         onPressIn?.(e);
       }}
       onPressOut={(e) => {
-        scale.value = withTiming(1, { duration: 150 });
+        setPressed(false);
         onPressOut?.(e);
       }}
-      style={[style, animatedStyle]}
+      style={[style as StyleProp<ViewStyle>, pressed && { transform: [{ scale: scaleTo }] }]}
       {...props}
     />
   );

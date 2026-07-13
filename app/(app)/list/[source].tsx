@@ -173,7 +173,7 @@ export default function ListScreen() {
           onEndReachedThreshold={0.5}
           ListFooterComponent={
             isLoadingMore ? (
-              <AnimatedView entering={FadeIn} className="items-center py-stack-lg">
+              <AnimatedView entering={FadeIn} style={{ alignItems: 'center', paddingVertical: 32 }}>
                 <ActivityIndicator color="#ffffff" />
               </AnimatedView>
             ) : null
