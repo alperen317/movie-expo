@@ -21,18 +21,19 @@ Bloklamayan ama her şeyi etkileyen kararlar:
 ## Faz 1 — Çekirdek Takip Modeli 🎯 *(kategori giriş bileti · ~2 hafta)*
 
 ### 1a. İzleme günlüğü (film + dizi geneli)
-- [ ] Migration `0006_watch_log.sql`: `watch_log(id, user_id, media_id, media_type, watched_at, rating smallint null check 1-10, note text null, created_at)` + RLS (saved_media kalıbı kopyalanır).
-- [ ] Detay ekranına "İzledim" butonu + tarih/puan girişli hızlı log sheet'i.
-- [ ] `lists.store.ts` kalıbında `watchLog.store.ts`.
+- [x] Migration `0006_watch_log.sql`: `watch_log(id, user_id, media_id, media_type, watched_at, rating smallint null check 1-10, note text null, created_at)` + RLS (saved_media kalıbı kopyalanır).
+- [x] Detay ekranına "İzledim" butonu + tarih/puan girişli hızlı log sheet'i (`components/watchLog/WatchLogSheet.tsx`).
+- [x] `lists.store.ts` kalıbında `watchLog.store.ts`.
 
 ### 1b. Dizi bölüm-seviyesi takip
-- [ ] `lib/tmdb/tv.ts`'e sezon endpoint'i: `getSeasonDetails(tvId, seasonNumber)` → `/tv/{id}/season/{n}` (bölüm listesi, yayın tarihleri, still'ler).
-- [ ] Migration `0007_episode_progress.sql`: `episode_progress(user_id, show_id, season_number, episode_number, watched_at)` — PK `(user_id, show_id, season_number, episode_number)`; toplu işaretleme için tek tek satır (istatistik bunu ister).
-- [ ] Dizi detay ekranına sezon akordeonu: bölüm satırı → tek dokunuş işaretleme; sezon başlığında "buraya kadar işaretle" (upsert batch).
-- [ ] Ana sekmeye **"İzlemeye devam et"** rafı: son işaretlenen bölümden sonraki bölüm (`episode_progress` + TMDB `next_episode_to_air` birleşimi).
+- [x] `lib/tmdb/tv.ts`'e sezon endpoint'i: `getSeasonDetails(tvId, seasonNumber)` → `/tv/{id}/season/{n}` (bölüm listesi, yayın tarihleri, still'ler).
+- [x] Migration `0007_episode_progress.sql`: `episode_progress(user_id, show_id, season_number, episode_number, watched_at)` — PK `(user_id, show_id, season_number, episode_number)`; toplu işaretleme için tek tek satır (istatistik bunu ister).
+- [x] Dizi detay ekranına sezon akordeonu (`components/watchLog/SeasonAccordion.tsx`): bölüm satırı → tek dokunuş işaretleme.
+- [ ] Sezon başlığında "buraya kadar işaretle" toplu işaretleme (upsert batch) — henüz yok, tek tek dokunmak gerekiyor.
+- [x] Ana sekmeye **"İzlemeye devam et"** rafı (`components/home/ContinueWatchingRow.tsx`): son işaretlenen bölümden sonraki bölüm.
 
 ### 1c. Watchlist'in yeni anlamı
-- [ ] `saved_media` watchlist'i korunur; izlendi loglanınca watchlist'ten otomatik düşürme opsiyonu.
+- [x] `saved_media` watchlist'i korunur; izlendi loglanınca watchlist'ten otomatik düşürme opsiyonu (`WatchLogSheet` "Remove from Watchlist" onay kutusu, varsayılan işaretli → `watchLog.store.ts` `logWatch`/`updateWatch` içinde `toggleWatchlist` çağrısı).
 
 **Kabul ölçütü:** Bir dizide 3 sezonu 30 saniyede işaretleyip ana ekranda "sıradaki bölüm" kartını görmek.
 
@@ -40,14 +41,15 @@ Bloklamayan ama her şeyi etkileyen kararlar:
 
 TV Time 15 Temmuz'da kapanıyor ama kullanıcılar GDPR export dosyalarını (`gdpr.tvtime.com/gdpr/self-service`) elinde tutacak — **içe aktarıcı kapanıştan sonra da aylarca değerli.**
 
-- [ ] `expo-document-picker` + export formatı parser'ı (`seen_episode.csv` / `tracking-prod-records*.csv` varyantları; TVDB id bazlı).
-- [ ] Kimlik eşleştirme: TVDB id → TMDB `/find/{id}?external_source=tvdb_id` (`lib/tmdb/find.ts` yeni).
-- [ ] Eşleşmeyenler için elle arama-eşleştirme ekranı (atlanabilir).
-- [ ] Sonuç: `episode_progress` + `watch_log` toplu insert (Supabase batch, 500'lük parçalar).
-- [ ] Letterboxd CSV import (film günlüğü — aynı altyapı, düşük ek maliyet).
-- [ ] Onboarding'e "TV Time'dan mı geliyorsun? Dosyanı sürükle" adımı.
+- [x] `expo-document-picker` + `jszip` ile zip'i uygulama içinde açıp export parser'ı (`lib/importers/tvtime.ts`, `lib/importers/letterboxd.ts`, `lib/importers/csv.ts`, `lib/importers/zip.ts`). Gerçek export dosyaları incelendi: `tracking-prod-records.csv` (movie watch/towatch) + `tracking-prod-records-v2.csv` (takip edilen diziler).
+- [x] ~~Kimlik eşleştirme: TVDB id → TMDB `/find`~~ **Plan değişti**: gerçek TV Time export'unda TVDB/TMDB id yok (sadece TV Time internal UUID'leri var). Eşleştirme başlık+yıl bazlı TMDB arama ile yapılıyor (`lib/tmdb/search.ts` `searchMovies`/`searchTVShows`, `lib/importers/match.ts`).
+- [x] Eşleşmeyenler için elle arama-eşleştirme ekranı (`app/(app)/import.tsx` "Gözden geçir gerekiyor" bölümü, mevcut `searchMulti` ile).
+- [x] Sonuç: `watch_log` + `saved_media` toplu insert (`addWatchLogEntriesBatch`, `addSavedMediaBatch`, 500'lük parçalar).
+- [x] Letterboxd CSV import (`lib/importers/letterboxd.ts`: diary.csv öncelikli, yoksa watched.csv+ratings.csv birleşimi; watchlist.csv).
+- [ ] Onboarding'e "TV Time'dan mı geliyorsun?" adımı — **kapsam dışı bırakıldı**, uygulamada henüz onboarding akışı yok. Import, Profile ekranından erişiliyor (`app/(app)/(tabs)/profile.tsx` "Import from TV Time / Letterboxd").
+- [ ] Bölüm-seviyesi TV Time importu (`episode_progress`) — **kapsam dışı bırakıldı**, incelenen gerçek export'ta hiç episode-level veri yoktu (`ep_watch_count` her satırda 0); sahte veriyle doğrulanamayacak bir yol eklemek yerine gerçek veriyle karşılaşılırsa ayrı iş olarak ele alınacak. Takip edilen diziler (`is_followed=true`) watchlist'e ekleniyor, kullanıcı bölümleri `SeasonAccordion`'dan kendi işaretliyor.
 
-**Kabul ölçütü:** 2.000 bölümlük gerçek bir TV Time export'u < 1 dakikada, eşleşme oranı ≥ %95 ile içeri alınıyor.
+**Kabul ölçütü:** Gerçek bir TV Time + Letterboxd export'u uygulama içinden (zip seç → eşleştir → gözden geçir → içe aktar) hatasız tamamlanıyor; yüksek güvenli eşleşmeler otomatik seçili geliyor, düşük güvenli/eşleşmeyenler elle aranabiliyor.
 
 ## Faz 3 — Hijyen Özellikler *(~1.5 hafta)*
 
