@@ -1,11 +1,16 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
+import { router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
-const AVATAR_IMAGE =
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuD6iagr9INugbsYNXHuHuC1SYMoFD5qj4u8Z4e307wv7JolNiANBEFqUitzN6ScCozklNUhqaIFZpCraOjrP3nSw99a-ExnpS3VgtHjAwM67EBidPFG8rH0eFBEeEP_elZIAKzuc-XbfLQO23H5wI7tEDH9oJesTw2RbPxInOTFqixAhNhueraucG0Bw2flxsqa_wA9pD0xvl1N4BNEs9HbQ67blrnD8Oh5NkgKsh4w22wOFDe8TwPH';
+import { BoringAvatar } from '../ui/BoringAvatar';
+import { useAuthStore } from '../../stores/auth.store';
+import { useProfileStore } from '../../stores/profile.store';
 
 export function TopAppBar() {
+  const email = useAuthStore((state) => state.session?.user?.email ?? '');
+  const profile = useProfileStore((state) => state.profile);
+  const avatarSeed = profile?.displayName || email;
+
   return (
     <View className="h-20 flex-row items-center justify-between border-b border-glass-border bg-background-blur px-margin-mobile">
       <Pressable hitSlop={8}>
@@ -16,13 +21,10 @@ export function TopAppBar() {
 
       <Pressable
         hitSlop={8}
+        onPress={() => router.push('/edit-profile')}
         className="h-10 w-10 overflow-hidden rounded-full border border-glass-border"
       >
-        <Image
-          source={{ uri: AVATAR_IMAGE }}
-          style={{ width: '100%', height: '100%' }}
-          contentFit="cover"
-        />
+        <BoringAvatar name={avatarSeed} variant={profile?.avatarVariant ?? 'beam'} size={40} />
       </Pressable>
     </View>
   );

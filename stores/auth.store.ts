@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { supabase } from '../lib/supabase/client';
 import { useEpisodeProgressStore } from './episodeProgress.store';
 import { useListsStore } from './lists.store';
+import { useProfileStore } from './profile.store';
 import { useSharedListsStore } from './sharedLists.store';
 import { useWatchLogStore } from './watchLog.store';
 
@@ -79,5 +80,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     useSharedListsStore.getState().reset();
     useWatchLogStore.getState().reset();
     useEpisodeProgressStore.getState().reset();
+    useProfileStore.getState().reset();
   },
 }));

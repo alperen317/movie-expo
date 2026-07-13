@@ -1,15 +1,17 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
-import { useEffect } from 'react';
-import { Alert, ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ActionSheetModal } from '../../../components/ui/ActionSheetModal';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
+import { BoringAvatar } from '../../../components/ui/BoringAvatar';
 import { clearRecentSearches } from '../../../lib/storage/recentSearches';
-import { getInitials } from '../../../lib/utils/initials';
 import { useAuthStore } from '../../../stores/auth.store';
 import { useListsStore } from '../../../stores/lists.store';
+import { useProfileStore } from '../../../stores/profile.store';
 import { dedupeWatchLog, useWatchLogStore } from '../../../stores/watchLog.store';
 
 function formatMemberSince(dateString?: string): string {
@@ -31,25 +33,24 @@ export default function ProfileScreen() {
   const watchLogEntries = useWatchLogStore((state) => state.entries);
   const fetchWatchLog = useWatchLogStore((state) => state.fetchWatchLog);
 
+  const profile = useProfileStore((state) => state.profile);
+  const fetchProfile = useProfileStore((state) => state.fetchProfile);
+
   useEffect(() => {
     fetchFavorites();
     fetchWatchlist();
     fetchWatchLog();
-  }, [fetchFavorites, fetchWatchlist, fetchWatchLog]);
+    fetchProfile();
+  }, [fetchFavorites, fetchWatchlist, fetchWatchLog, fetchProfile]);
 
   const email = session?.user?.email ?? '';
-  const initials = getInitials(email);
+  const avatarSeed = profile?.displayName || email;
   const memberSince = formatMemberSince(session?.user?.created_at);
   const favoritesCount = Object.keys(favorites).length;
   const watchlistCount = Object.keys(watchlist).length;
   const watchedCount = dedupeWatchLog(watchLogEntries).length;
 
-  const handleClearHistory = () => {
-    Alert.alert('Clear Search History', 'This will remove all your recent searches.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Clear', style: 'destructive', onPress: () => clearRecentSearches() },
-    ]);
-  };
+  const [isClearHistoryConfirmOpen, setIsClearHistoryConfirmOpen] = useState(false);
 
   const handleSignOut = () => {
     // NOTE: React Native's Alert.alert is unsupported on web (renders nothing),
@@ -70,12 +71,15 @@ export default function ProfileScreen() {
         </View>
 
         <View className="items-center gap-stack-sm px-margin-mobile pb-section-gap">
-          <View className="h-24 w-24 items-center justify-center rounded-full border border-glass-border bg-surface-container-low">
-            <Text className="text-headline-lg-mobile font-sans-bold text-primary-container">
-              {initials}
-            </Text>
-          </View>
-          <Text className="font-sans-semibold text-title-md text-text-primary">{email}</Text>
+          <AnimatedPressable
+            onPress={() => router.push('/edit-profile')}
+            className="h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-glass-border"
+          >
+            <BoringAvatar name={avatarSeed} variant={profile?.avatarVariant ?? 'beam'} size={96} />
+          </AnimatedPressable>
+          <Text className="font-sans-semibold text-title-md text-text-primary">
+            {profile?.displayName || email}
+          </Text>
           {memberSince.length > 0 && (
             <Text className="font-sans text-body-md text-text-secondary">
               Member since {memberSince}
@@ -147,7 +151,7 @@ export default function ProfileScreen() {
             </AnimatedPressable>
             <View className="h-px bg-glass-border" />
             <AnimatedPressable
-              onPress={handleClearHistory}
+              onPress={() => setIsClearHistoryConfirmOpen(true)}
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >
               <MaterialIcons name="history" size={20} color="#A1A1AA" />
@@ -171,6 +175,14 @@ export default function ProfileScreen() {
           CineLux v{Constants.expoConfig?.version ?? '1.0.0'}
         </Text>
       </ScrollView>
+
+      <ActionSheetModal
+        visible={isClearHistoryConfirmOpen}
+        title="Clear Search History"
+        message="This will remove all your recent searches."
+        onClose={() => setIsClearHistoryConfirmOpen(false)}
+        actions={[{ label: 'Clear', destructive: true, onPress: () => clearRecentSearches() }]}
+      />
     </SafeAreaView>
   );
 }

@@ -6,6 +6,7 @@ import { scheduleUpcomingEpisodeReminders } from '../../lib/notifications/episod
 import { useAuthStore } from '../../stores/auth.store';
 import { useEpisodeProgressStore } from '../../stores/episodeProgress.store';
 import { useListsStore } from '../../stores/lists.store';
+import { useProfileStore } from '../../stores/profile.store';
 import { useWatchLogStore } from '../../stores/watchLog.store';
 
 export default function AppLayout() {
@@ -15,6 +16,7 @@ export default function AppLayout() {
     useListsStore.getState().fetchFavorites();
     useListsStore.getState().fetchWatchlist();
     useWatchLogStore.getState().fetchWatchLog();
+    useProfileStore.getState().fetchProfile();
     useEpisodeProgressStore
       .getState()
       .fetchProgress()
@@ -35,6 +37,7 @@ export default function AppLayout() {
         <Stack.Screen name="calendar" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="stats" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="import" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="edit-profile" options={{ animation: 'slide_from_right' }} />
       </Stack>
       <Toast />
     </>
