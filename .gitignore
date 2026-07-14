@@ -46,3 +46,6 @@ yarn-error.*
 CLAUDE.md
 AGENTS.md
 plan.md
+PRODUCT.md
+DESIGN.md
+.impeccable/design.json
