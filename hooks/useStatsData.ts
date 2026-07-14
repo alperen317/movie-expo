@@ -22,7 +22,10 @@ export function useStatsData() {
 
   const moviesKey = movies.map((movie) => `${movie.id}-${movie.watchedAt}`).join(',');
   const episodesKey = episodes
-    .map((episode) => `${episode.showId}-${episode.seasonNumber}-${episode.episodeNumber}-${episode.watchedAt}`)
+    .map(
+      (episode) =>
+        `${episode.showId}-${episode.seasonNumber}-${episode.episodeNumber}-${episode.watchedAt}`,
+    )
     .join(',');
 
   useEffect(() => {
@@ -41,7 +44,11 @@ export function useStatsData() {
         Promise.allSettled(
           movies.map(async (movie) => {
             const metadata = await getMediaMetadata('movie', movie.id);
-            return { runtimeMinutes: metadata.runtimeMinutes, genres: metadata.genres, watchedAt: movie.watchedAt };
+            return {
+              runtimeMinutes: metadata.runtimeMinutes,
+              genres: metadata.genres,
+              watchedAt: movie.watchedAt,
+            };
           }),
         ),
         Promise.allSettled(
@@ -55,7 +62,10 @@ export function useStatsData() {
       if (cancelled) return;
 
       const movieInputs = movieResults
-        .filter((result): result is PromiseFulfilledResult<StatsInput['movies'][number]> => result.status === 'fulfilled')
+        .filter(
+          (result): result is PromiseFulfilledResult<StatsInput['movies'][number]> =>
+            result.status === 'fulfilled',
+        )
         .map((result) => result.value);
 
       const showMetaById = new Map<number, { runtimeMinutes: number; genres: string[] }>();

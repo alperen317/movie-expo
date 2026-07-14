@@ -37,9 +37,24 @@ describe('summarizeStats', () => {
     const input: StatsInput = {
       movies: [],
       episodes: [
-        { showId: 1, runtimeMinutes: 30, genres: ['Comedy'], watchedAt: '2026-01-01T00:00:00.000Z' },
-        { showId: 1, runtimeMinutes: 30, genres: ['Comedy'], watchedAt: '2026-01-02T00:00:00.000Z' },
-        { showId: 1, runtimeMinutes: 30, genres: ['Comedy'], watchedAt: '2026-01-03T00:00:00.000Z' },
+        {
+          showId: 1,
+          runtimeMinutes: 30,
+          genres: ['Comedy'],
+          watchedAt: '2026-01-01T00:00:00.000Z',
+        },
+        {
+          showId: 1,
+          runtimeMinutes: 30,
+          genres: ['Comedy'],
+          watchedAt: '2026-01-02T00:00:00.000Z',
+        },
+        {
+          showId: 1,
+          runtimeMinutes: 30,
+          genres: ['Comedy'],
+          watchedAt: '2026-01-03T00:00:00.000Z',
+        },
         { showId: 2, runtimeMinutes: 30, genres: ['Drama'], watchedAt: '2026-01-04T00:00:00.000Z' },
       ],
     };
@@ -53,7 +68,11 @@ describe('summarizeStats', () => {
   it('counts one genre tag per genre for multi-genre movies and sorts by count desc', () => {
     const input: StatsInput = {
       movies: [
-        { runtimeMinutes: 100, genres: ['Action', 'Comedy'], watchedAt: '2026-01-01T00:00:00.000Z' },
+        {
+          runtimeMinutes: 100,
+          genres: ['Action', 'Comedy'],
+          watchedAt: '2026-01-01T00:00:00.000Z',
+        },
         { runtimeMinutes: 100, genres: ['Action'], watchedAt: '2026-01-02T00:00:00.000Z' },
       ],
       episodes: [],

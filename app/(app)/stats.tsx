@@ -12,16 +12,22 @@ import { useStatsData } from '../../hooks/useStatsData';
 import { filterInputByYear, monthlyActivity, summarizeStats } from '../../lib/stats';
 
 const MONTH_LABELS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
 
 type Period = 'all' | 'year';
-
-function formatTotalTime(totalMinutes: number): string {
-  const totalHours = Math.floor(totalMinutes / 60);
-  const days = Math.floor(totalHours / 24);
-  const hours = totalHours % 24;
-  if (days === 0) return `${hours}h`;
-  return `${days}d ${hours}h`;
-}
 
 export default function StatsScreen() {
   const currentYear = new Date().getFullYear();
@@ -39,8 +45,15 @@ export default function StatsScreen() {
   const summary = useMemo(() => summarizeStats(scopedInput), [scopedInput]);
   const activity = useMemo(() => monthlyActivity(input, currentYear), [input, currentYear]);
   const maxActivity = Math.max(1, ...activity.map((entry) => entry.count));
+  const peakMonth = activity.reduce(
+    (peak, entry) => (entry.count > peak.count ? entry : peak),
+    activity[0] ?? { month: 0, count: 0 },
+  );
 
   const hasData = summary.movieCount + summary.episodeCount > 0;
+
+  const lifeDaysWhole = Math.floor(summary.lifeDays);
+  const lifeHoursRemainder = Math.floor(summary.lifeHours % 24);
 
   const handleShare = async () => {
     if (!viewShotRef.current?.capture) return;
@@ -70,8 +83,15 @@ export default function StatsScreen() {
       </View>
 
       {isLoading && (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#ffffff" />
+        <View className="gap-stack-md px-margin-mobile pt-stack-sm">
+          <View className="h-11 rounded-full bg-surface-container-low" />
+          <View className="h-32 rounded-xl bg-surface-container-low" />
+          <View className="flex-row gap-gutter">
+            <View className="h-20 flex-1 rounded-xl bg-surface-container-low" />
+            <View className="h-20 flex-1 rounded-xl bg-surface-container-low" />
+            <View className="h-20 flex-1 rounded-xl bg-surface-container-low" />
+          </View>
+          <View className="h-40 rounded-xl bg-surface-container-low" />
         </View>
       )}
 
@@ -91,8 +111,8 @@ export default function StatsScreen() {
           showsVerticalScrollIndicator={false}
         >
           {isDecember && (
-            <View className="flex-row items-center gap-2 rounded-2xl border border-primary-container bg-surface-container-low p-4">
-              <MaterialIcons name="celebration" size={20} color="#f5c451" />
+            <View className="flex-row items-center gap-2 overflow-hidden rounded-xl border border-primary-container/40 bg-primary-container/10 p-4">
+              <MaterialIcons name="auto-awesome" size={20} color="#f5c451" />
               <Text className="flex-1 font-sans-semibold text-body-md text-primary-container">
                 Your Year Wrapped is ready
               </Text>
@@ -122,13 +142,27 @@ export default function StatsScreen() {
             </AnimatedPressable>
           </View>
 
+          {/* Hero metric: the screen's one spotlight moment (ambient gold glow,
+              narrative framing) — everything below is quieter by comparison. */}
+          <View className="overflow-hidden rounded-xl border border-primary-container/30 bg-surface-container-low p-5">
+            <View
+              className="absolute -right-8 -top-12 h-36 w-36 rounded-full"
+              style={{ backgroundColor: 'rgba(245,196,81,0.14)' }}
+            />
+            <Text className="font-sans text-caption text-text-secondary">
+              {period === 'year'
+                ? `In ${currentYear}, you've spent`
+                : "Across your life, you've spent"}
+            </Text>
+            <Text className="mt-1 text-display-xl-mobile font-sans-bold text-text-primary">
+              {lifeDaysWhole}d {lifeHoursRemainder}h
+            </Text>
+            <Text className="font-sans text-body-md text-text-secondary">
+              watching movies and TV
+            </Text>
+          </View>
+
           <View className="flex-row gap-gutter">
-            <View className="flex-1 items-center gap-1 rounded-xl border border-glass-border bg-surface-container-low py-stack-md">
-              <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
-                {formatTotalTime(summary.totalMinutes)}
-              </Text>
-              <Text className="font-sans text-caption text-text-secondary">Watch time</Text>
-            </View>
             <View className="flex-1 items-center gap-1 rounded-xl border border-glass-border bg-surface-container-low py-stack-md">
               <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
                 {summary.movieCount}
@@ -141,23 +175,33 @@ export default function StatsScreen() {
               </Text>
               <Text className="font-sans text-caption text-text-secondary">Episodes</Text>
             </View>
+            <View className="flex-1 items-center gap-1 rounded-xl border border-glass-border bg-surface-container-low py-stack-md">
+              <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
+                {summary.showCount}
+              </Text>
+              <Text className="font-sans text-caption text-text-secondary">Shows</Text>
+            </View>
           </View>
 
           {summary.topGenres.length > 0 && (
             <View className="gap-stack-sm">
               <Text className="font-sans-semibold text-title-md text-text-primary">Genres</Text>
-              <View className="gap-3 rounded-2xl border border-glass-border bg-surface-container-low p-4">
-                {summary.topGenres.map((genre) => (
+              <View className="gap-3 rounded-xl border border-glass-border bg-surface-container-low p-4">
+                {summary.topGenres.map((genre, index) => (
                   <View key={genre.genre} className="gap-1">
                     <View className="flex-row items-center justify-between">
-                      <Text className="font-sans text-body-md text-text-primary">{genre.genre}</Text>
+                      <Text
+                        className={`font-sans text-body-md ${index === 0 ? 'font-sans-semibold text-primary-container' : 'text-text-primary'}`}
+                      >
+                        {genre.genre}
+                      </Text>
                       <Text className="font-sans text-caption text-text-secondary">
                         {Math.round(genre.pct)}%
                       </Text>
                     </View>
                     <View className="h-2 overflow-hidden rounded-full bg-surface-container-high">
                       <View
-                        className="h-full rounded-full bg-primary-container"
+                        className={`h-full rounded-full ${index === 0 ? 'bg-primary-container' : 'bg-outline'}`}
                         style={{ width: `${genre.pct}%` }}
                       />
                     </View>
@@ -168,11 +212,21 @@ export default function StatsScreen() {
           )}
 
           <View className="gap-stack-sm">
-            <Text className="font-sans-semibold text-title-md text-text-primary">
-              {currentYear} Activity
-            </Text>
+            <View className="flex-row items-center justify-between">
+              <Text className="font-sans-semibold text-title-md text-text-primary">
+                {currentYear} Activity
+              </Text>
+              {peakMonth.count > 0 && (
+                <View className="flex-row items-center gap-1">
+                  <MaterialIcons name="local-fire-department" size={14} color="#f5c451" />
+                  <Text className="font-sans text-caption text-primary-container">
+                    Peak in {MONTH_NAMES[peakMonth.month]}
+                  </Text>
+                </View>
+              )}
+            </View>
             <View
-              className="flex-row items-end justify-between rounded-2xl border border-glass-border bg-surface-container-low p-4"
+              className="flex-row items-end justify-between rounded-xl border border-glass-border bg-surface-container-low p-4"
               style={{ height: 130 }}
             >
               {activity.map((entry) => (
@@ -182,7 +236,11 @@ export default function StatsScreen() {
                   style={{ height: 100, justifyContent: 'flex-end' }}
                 >
                   <View
-                    className="w-2 rounded-full bg-primary-container"
+                    className={`w-2 rounded-full ${
+                      entry.month === peakMonth.month && entry.count > 0
+                        ? 'bg-primary-container'
+                        : 'bg-outline'
+                    }`}
                     style={{ height: Math.max(4, (entry.count / maxActivity) * 70) }}
                   />
                   <Text className="font-sans text-[9px] text-text-secondary">
@@ -194,26 +252,37 @@ export default function StatsScreen() {
           </View>
 
           <View className="gap-stack-sm">
-            <Text className="font-sans-semibold text-title-md text-text-primary">Share your recap</Text>
+            <Text className="font-sans-semibold text-title-md text-text-primary">
+              Share your recap
+            </Text>
             <ViewShot ref={viewShotRef} options={{ format: 'png', quality: 1 }}>
               <ShareableStatsCard
                 periodLabel={period === 'year' ? String(currentYear) : 'All Time'}
                 totalMinutes={summary.totalMinutes}
                 movieCount={summary.movieCount}
                 episodeCount={summary.episodeCount}
-                topGenre={summary.topGenres[0]?.genre ?? null}
+                showCount={summary.showCount}
+                topGenres={summary.topGenres}
+                activity={activity}
+                activityYear={currentYear}
               />
             </ViewShot>
             <AnimatedPressable
               onPress={handleShare}
               disabled={isSharing}
               className="flex-row items-center justify-center gap-2 rounded-full bg-primary-container py-4"
+              style={{
+                shadowColor: '#F5C451',
+                shadowOpacity: 0.35,
+                shadowRadius: 12,
+                elevation: 8,
+              }}
             >
               {isSharing ? (
                 <ActivityIndicator color="#3f2e00" />
               ) : (
                 <>
-                  <MaterialIcons name="share" size={20} color="#3f2e00" />
+                  <MaterialIcons name="ios-share" size={20} color="#3f2e00" />
                   <Text className="font-sans-semibold text-title-md text-on-primary-container">
                     Share
                   </Text>
