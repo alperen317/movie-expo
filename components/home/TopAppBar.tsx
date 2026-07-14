@@ -17,7 +17,7 @@ export function TopAppBar() {
         <MaterialIcons name="menu" size={28} color="#ffe4af" />
       </Pressable>
 
-      <Text className="text-display-xl-mobile uppercase text-primary">Cinephile</Text>
+      <Text className="text-display-xl-mobile uppercase text-primary">Previously</Text>
 
       <Pressable
         hitSlop={8}

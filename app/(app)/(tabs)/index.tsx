@@ -1,7 +1,14 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ContinueWatchingRow } from '../../../components/home/ContinueWatchingRow';
@@ -35,7 +42,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView edges={['top']} style={{ height: windowHeight }} className="bg-background">
       <View className="flex-row items-center justify-between px-margin-mobile py-stack-sm">
-        <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">Home</Text>
+        <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">Previously</Text>
         <Pressable onPress={() => router.push('/calendar')} hitSlop={8}>
           <MaterialIcons name="calendar-today" size={22} color="#FFFFFF" />
         </Pressable>

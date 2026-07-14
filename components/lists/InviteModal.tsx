@@ -1,7 +1,15 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Share, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Share,
+  Text,
+  View,
+} from 'react-native';
 
 import { AuthTextInput } from '../auth/AuthTextInput';
 import { AnimatedPressable } from '../ui/AnimatedPressable';
@@ -61,7 +69,7 @@ export function InviteModal({
   };
 
   const handleShare = () => {
-    Share.share({ message: `Join my list on CineLux — use code ${joinCode}` });
+    Share.share({ message: `Join my list on Previously — use code ${joinCode}` });
   };
 
   const handleRegenerate = async () => {
@@ -113,7 +121,11 @@ export function InviteModal({
               </AnimatedPressable>
             </View>
             {isCreator && (
-              <AnimatedPressable onPress={handleRegenerate} disabled={isRegenerating} className="self-center">
+              <AnimatedPressable
+                onPress={handleRegenerate}
+                disabled={isRegenerating}
+                className="self-center"
+              >
                 <Text className="font-sans text-caption text-text-secondary underline">
                   {isRegenerating ? 'Regenerating…' : 'Regenerate code'}
                 </Text>
@@ -128,7 +140,7 @@ export function InviteModal({
           </View>
 
           <Text className="font-sans text-caption text-text-secondary">
-            They need an existing CineLux account to be added.
+            They need an existing Previously account to be added.
           </Text>
           <AuthTextInput
             icon="alternate-email"

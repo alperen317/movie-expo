@@ -24,7 +24,7 @@ export default function LoginScreen() {
 
   return (
     <AuthBackground>
-      <Text className="text-display-xl-mobile uppercase text-primary-container">CineLux</Text>
+      <Text className="text-display-xl-mobile uppercase text-primary-container">Previously</Text>
 
       <View className="mt-stack-lg w-full items-center">
         <Text className="text-headline-lg-mobile font-sans-semibold text-text-primary">
@@ -79,7 +79,8 @@ export default function LoginScreen() {
         <AnimatedView
           entering={FadeIn.duration(200)}
           exiting={FadeOut.duration(150)}
-          style={{ width: '100%' }}>
+          style={{ width: '100%' }}
+        >
           <Text className="mt-stack-sm font-sans text-sm text-error">{error}</Text>
         </AnimatedView>
       )}

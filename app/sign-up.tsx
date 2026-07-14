@@ -51,14 +51,14 @@ export default function SignUpScreen() {
 
   return (
     <AuthBackground>
-      <Text className="text-display-xl-mobile uppercase text-primary-container">CineLux</Text>
+      <Text className="text-display-xl-mobile uppercase text-primary-container">Previously</Text>
 
       <View className="mt-stack-lg w-full items-center">
         <Text className="text-headline-lg-mobile font-sans-semibold text-text-primary">
           Hesap oluştur
         </Text>
         <Text className="mt-stack-sm text-center font-sans text-body-md text-text-secondary">
-          CineLux'a katılmak için bilgilerini gir.
+          Previously&apos;e katılmak için bilgilerini gir.
         </Text>
       </View>
 
@@ -94,7 +94,8 @@ export default function SignUpScreen() {
         <AnimatedView
           entering={FadeIn.duration(200)}
           exiting={FadeOut.duration(150)}
-          style={{ width: '100%' }}>
+          style={{ width: '100%' }}
+        >
           <Text className="mt-stack-sm font-sans text-sm text-error">Şifreler eşleşmiyor.</Text>
         </AnimatedView>
       )}
@@ -102,7 +103,8 @@ export default function SignUpScreen() {
         <AnimatedView
           entering={FadeIn.duration(200)}
           exiting={FadeOut.duration(150)}
-          style={{ width: '100%' }}>
+          style={{ width: '100%' }}
+        >
           <Text className="mt-stack-sm font-sans text-sm text-error">{error}</Text>
         </AnimatedView>
       )}
