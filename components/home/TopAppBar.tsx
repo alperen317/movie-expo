@@ -9,7 +9,7 @@ import { useProfileStore } from '../../stores/profile.store';
 export function TopAppBar() {
   const email = useAuthStore((state) => state.session?.user?.email ?? '');
   const profile = useProfileStore((state) => state.profile);
-  const avatarSeed = profile?.displayName || email;
+  const avatarSeed = profile?.avatarSeed || profile?.displayName || email;
 
   return (
     <View className="h-20 flex-row items-center justify-between border-b border-glass-border bg-background-blur px-margin-mobile">

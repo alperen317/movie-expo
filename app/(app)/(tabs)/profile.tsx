@@ -45,7 +45,7 @@ export default function ProfileScreen() {
   }, [fetchFavorites, fetchWatchlist, fetchWatchLog, fetchProfile]);
 
   const email = session?.user?.email ?? '';
-  const avatarSeed = profile?.displayName || email;
+  const avatarSeed = profile?.avatarSeed || profile?.displayName || email;
   const memberSince = formatMemberSince(session?.user?.created_at);
   const favoritesCount = Object.keys(favorites).length;
   const watchlistCount = Object.keys(watchlist).length;
@@ -188,7 +188,10 @@ export default function ProfileScreen() {
           <Text className="text-center font-sans text-caption text-text-secondary">
             This product uses the TMDB API but is not endorsed or certified by TMDB.
           </Text>
-          <Text className="mt-1 text-center font-sans-semibold text-caption" style={{ color: '#01b4e4' }}>
+          <Text
+            className="mt-1 text-center font-sans-semibold text-caption"
+            style={{ color: '#01b4e4' }}
+          >
             themoviedb.org
           </Text>
         </Pressable>

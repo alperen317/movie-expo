@@ -23,7 +23,11 @@ export function MemberAvatarRow({ members, size = 28 }: { members: ListMember[];
           }}
           className="overflow-hidden border border-surface"
         >
-          <BoringAvatar name={member.displayName || member.email} variant={member.avatarVariant} size={size} />
+          <BoringAvatar
+            name={member.avatarSeed || member.displayName || member.email}
+            variant={member.avatarVariant}
+            size={size}
+          />
         </View>
       ))}
       {overflow > 0 && (

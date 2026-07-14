@@ -31,6 +31,7 @@ export interface ListMember {
   email: string;
   displayName: string | null;
   avatarVariant: AvatarVariant;
+  avatarSeed: string | null;
   role: MemberRole;
   status: MemberStatus;
   invitedBy: string | null;
@@ -64,13 +65,16 @@ export class SharedListsError extends Error {
 function fromInviteRpcError(err: unknown): never {
   const message = err instanceof Error ? err.message : String(err);
   if (message.includes('user_not_found')) {
-    throw new SharedListsError('user_not_found', "No account found with that email.");
+    throw new SharedListsError('user_not_found', 'No account found with that email.');
   }
   if (message.includes('cannot_invite_self')) {
     throw new SharedListsError('cannot_invite_self', "You can't invite yourself.");
   }
   if (message.includes('already_invited_or_member')) {
-    throw new SharedListsError('already_invited_or_member', 'This person is already invited or a member.');
+    throw new SharedListsError(
+      'already_invited_or_member',
+      'This person is already invited or a member.',
+    );
   }
   throw new SharedListsError('unknown', message);
 }
@@ -206,7 +210,12 @@ interface MemberRow {
   invited_by: string | null;
   created_at: string;
   responded_at: string | null;
-  member: { email: string; display_name: string | null; avatar_variant: string } | null;
+  member: {
+    email: string;
+    display_name: string | null;
+    avatar_variant: string;
+    avatar_seed: string | null;
+  } | null;
 }
 
 function fromMemberRow(row: MemberRow): ListMember {
@@ -217,6 +226,7 @@ function fromMemberRow(row: MemberRow): ListMember {
     email: row.member?.email ?? '',
     displayName: row.member?.display_name ?? null,
     avatarVariant: (row.member?.avatar_variant as AvatarVariant) ?? 'beam',
+    avatarSeed: row.member?.avatar_seed ?? null,
     role: row.role,
     status: row.status,
     invitedBy: row.invited_by,
@@ -229,7 +239,7 @@ export async function fetchListMembers(listId: string): Promise<ListMember[]> {
   const { data, error } = await supabase
     .from('list_members')
     .select(
-      'id, list_id, user_id, role, status, invited_by, created_at, responded_at, member:profiles!list_members_user_id_fkey(email, display_name, avatar_variant)',
+      'id, list_id, user_id, role, status, invited_by, created_at, responded_at, member:profiles!list_members_user_id_fkey(email, display_name, avatar_variant, avatar_seed)',
     )
     .eq('list_id', listId)
     .order('created_at', { ascending: true });
@@ -299,7 +309,9 @@ function fromItemRow(row: ItemRow): SharedListItem {
 export async function fetchListItems(listId: string): Promise<SharedListItem[]> {
   const { data, error } = await supabase
     .from('list_items')
-    .select('id, list_id, media_id, media_type, title, poster_path, vote_average, year, genre, added_by, created_at')
+    .select(
+      'id, list_id, media_id, media_type, title, poster_path, vote_average, year, genre, added_by, created_at',
+    )
     .eq('list_id', listId)
     .order('created_at', { ascending: false });
 
@@ -375,15 +387,11 @@ export function subscribeToList(
   // filter because UPDATE events carry the full new row, so the filter works.
   return supabase
     .channel(`list:${listId}`)
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'list_items' },
-      (payload) => handlers.onItemsChange?.(payload),
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'list_items' }, (payload) =>
+      handlers.onItemsChange?.(payload),
     )
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'list_members' },
-      (payload) => handlers.onMembersChange?.(payload),
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'list_members' }, (payload) =>
+      handlers.onMembersChange?.(payload),
     )
     .on(
       'postgres_changes',

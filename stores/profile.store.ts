@@ -8,7 +8,11 @@ interface ProfileState {
   isLoading: boolean;
   error: string | null;
   fetchProfile: () => Promise<void>;
-  updateProfile: (updates: { displayName?: string | null; avatarVariant?: AvatarVariant }) => Promise<void>;
+  updateProfile: (updates: {
+    displayName?: string | null;
+    avatarVariant?: AvatarVariant;
+    avatarSeed?: string | null;
+  }) => Promise<void>;
   reset: () => void;
 }
 

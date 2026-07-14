@@ -18,19 +18,25 @@ export default function EditProfileScreen() {
 
   const [name, setName] = useState(profile?.displayName ?? '');
   const [variant, setVariant] = useState<AvatarVariant>(profile?.avatarVariant ?? 'beam');
+  const [avatarSeed, setAvatarSeed] = useState<string | null>(profile?.avatarSeed ?? null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const seed = name.trim().length > 0 ? name.trim() : email;
+  const seed = avatarSeed ?? (name.trim().length > 0 ? name.trim() : email);
 
   const handleRandomizeVariant = () => {
     const options = AVATAR_VARIANTS.filter((option) => option !== variant);
     setVariant(options[Math.floor(Math.random() * options.length)]);
+    setAvatarSeed(Math.random().toString(36).slice(2));
   };
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await updateProfile({ displayName: name.trim().length > 0 ? name.trim() : null, avatarVariant: variant });
+      await updateProfile({
+        displayName: name.trim().length > 0 ? name.trim() : null,
+        avatarVariant: variant,
+        avatarSeed,
+      });
       useToastStore.getState().show('Profile updated', 'check-circle');
       router.back();
     } catch {
@@ -50,7 +56,9 @@ export default function EditProfileScreen() {
         >
           <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />
         </AnimatedPressable>
-        <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">Edit Profile</Text>
+        <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
+          Edit Profile
+        </Text>
       </View>
 
       <ScrollView

@@ -269,7 +269,7 @@ export default function SharedListDetailScreen() {
                 <View key={member.membershipId} className="flex-row items-center gap-3">
                   <View className="h-9 w-9 overflow-hidden rounded-full border border-glass-border">
                     <BoringAvatar
-                      name={member.displayName || member.email}
+                      name={member.avatarSeed || member.displayName || member.email}
                       variant={member.avatarVariant}
                       size={36}
                     />
