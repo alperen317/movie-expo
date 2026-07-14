@@ -2,7 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import { Linking, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ActionSheetModal } from '../../../components/ui/ActionSheetModal';
@@ -12,6 +12,7 @@ import { clearRecentSearches } from '../../../lib/storage/recentSearches';
 import { useAuthStore } from '../../../stores/auth.store';
 import { useListsStore } from '../../../stores/lists.store';
 import { useProfileStore } from '../../../stores/profile.store';
+import { useToastStore } from '../../../stores/toast.store';
 import { dedupeWatchLog, useWatchLogStore } from '../../../stores/watchLog.store';
 
 function formatMemberSince(dateString?: string): string {
@@ -172,8 +173,25 @@ export default function ProfileScreen() {
         </View>
 
         <Text className="text-center font-sans text-caption text-text-secondary">
-          CineLux v{Constants.expoConfig?.version ?? '1.0.0'}
+          {Constants.expoConfig?.name ?? 'Previously'} v{Constants.expoConfig?.version ?? '1.0.0'}
         </Text>
+
+        {/* TMDB API terms require this attribution notice. */}
+        <Pressable
+          onPress={() =>
+            Linking.openURL('https://www.themoviedb.org/').catch(() => {
+              useToastStore.getState().show('Could not open link', 'error-outline');
+            })
+          }
+          className="mt-stack-sm px-margin-mobile"
+        >
+          <Text className="text-center font-sans text-caption text-text-secondary">
+            This product uses the TMDB API but is not endorsed or certified by TMDB.
+          </Text>
+          <Text className="mt-1 text-center font-sans-semibold text-caption" style={{ color: '#01b4e4' }}>
+            themoviedb.org
+          </Text>
+        </Pressable>
       </ScrollView>
 
       <ActionSheetModal

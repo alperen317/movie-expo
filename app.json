@@ -1,18 +1,20 @@
 {
   "expo": {
-    "name": "mobile-base",
-    "slug": "mobile-base",
+    "name": "Previously",
+    "slug": "previously",
     "version": "1.0.0",
-    "scheme": "mobile-base",
+    "scheme": "previously",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.alperen317.previously"
     },
     "android": {
+      "package": "com.alperen317.previously",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#150D09",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
