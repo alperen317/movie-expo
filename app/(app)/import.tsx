@@ -168,7 +168,9 @@ function ReviewRow({
       {isSearching && <ManualSearchBox initialQuery={record.title} onPick={onPick} />}
       {candidate && confidence === 'low' && !isSearching && (
         <AnimatedPressable onPress={onStartSearch} className="self-start">
-          <Text className="font-sans text-caption text-primary-container">Farklı bir sonuç seç</Text>
+          <Text className="font-sans text-caption text-primary-container">
+            Farklı bir sonuç seç
+          </Text>
         </AnimatedPressable>
       )}
     </View>
@@ -210,7 +212,9 @@ export default function ImportScreen() {
         setMatchProgress({ done, total }),
       );
       setResults(matched);
-      setSelected(new Set(matched.map((_, i) => i).filter((i) => matched[i].confidence === 'high')));
+      setSelected(
+        new Set(matched.map((_, i) => i).filter((i) => matched[i].confidence === 'high')),
+      );
       setStep('review');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Dosya okunamadı.');
@@ -229,7 +233,9 @@ export default function ImportScreen() {
 
   const applyManualMatch = (index: number, candidate: MediaCardItem) => {
     setResults((prev) =>
-      prev.map((result, i) => (i === index ? { ...result, candidate, confidence: 'high' } : result)),
+      prev.map((result, i) =>
+        i === index ? { ...result, candidate, confidence: 'high' } : result,
+      ),
     );
     setSelected((prev) => new Set(prev).add(index));
     setSearchingIndex(null);

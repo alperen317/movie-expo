@@ -33,7 +33,9 @@ export default function ListsScreen() {
     fetchPendingInvites();
   }, [fetchMyLists, fetchPendingInvites]);
 
-  const invites = Object.values(pendingInvites).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const invites = Object.values(pendingInvites).sort((a, b) =>
+    b.createdAt.localeCompare(a.createdAt),
+  );
   const lists = Object.values(myLists).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 
   const handleRespond = async (membershipId: string, accept: boolean) => {
@@ -78,7 +80,9 @@ export default function ListsScreen() {
 
       {myListsError && !isMyListsLoading && (
         <View className="flex-1 items-center justify-center gap-stack-md px-margin-mobile">
-          <Text className="text-center font-sans text-body-md text-text-primary">{myListsError}</Text>
+          <Text className="text-center font-sans text-body-md text-text-primary">
+            {myListsError}
+          </Text>
           <AnimatedPressable
             onPress={refetch}
             className="rounded-full border border-glass-border bg-background-blur px-6 py-3"
@@ -91,7 +95,9 @@ export default function ListsScreen() {
       {!myListsError && !isMyListsLoading && lists.length === 0 && invites.length === 0 && (
         <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
           <MaterialIcons name="groups" size={32} color="#A1A1AA" />
-          <Text className="text-title-md font-sans-semibold text-text-primary">No shared lists yet</Text>
+          <Text className="text-title-md font-sans-semibold text-text-primary">
+            No shared lists yet
+          </Text>
           <Text className="text-center font-sans text-body-md text-text-secondary">
             Create a list and invite a friend to start building it together.
           </Text>

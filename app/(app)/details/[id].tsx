@@ -255,11 +255,7 @@ export default function DetailsScreen() {
                 onPress={() => cardItem && toggleWatchlist(cardItem)}
                 className="flex-row items-center justify-center gap-2 rounded-full border border-glass-border bg-background-blur py-4"
               >
-                <MaterialIcons
-                  name={isWatchlisted ? 'check' : 'add'}
-                  size={22}
-                  color="#FFFFFF"
-                />
+                <MaterialIcons name={isWatchlisted ? 'check' : 'add'} size={22} color="#FFFFFF" />
                 <Text className="font-sans-semibold text-title-md text-text-primary">
                   {isWatchlisted ? 'In Watchlist' : 'Add to Watchlist'}
                 </Text>
@@ -357,9 +353,7 @@ export default function DetailsScreen() {
 
                 {details.cast.length > 0 && (
                   <View className="gap-stack-sm">
-                    <Text className="font-sans-semibold text-title-md text-text-primary">
-                      Cast
-                    </Text>
+                    <Text className="font-sans-semibold text-title-md text-text-primary">Cast</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                       <View className="flex-row gap-stack-md">
                         {details.cast.map((member) => {

@@ -88,7 +88,10 @@ export const useWatchLogStore = create<WatchLogState>((set, get) => ({
         entries: state.entries.map((entry) => (entry.logId === tempId ? saved : entry)),
       }));
 
-      if (options.dropFromWatchlist && useListsStore.getState().isInWatchlist(item.mediaType, item.id)) {
+      if (
+        options.dropFromWatchlist &&
+        useListsStore.getState().isInWatchlist(item.mediaType, item.id)
+      ) {
         await useListsStore.getState().toggleWatchlist(item, { silent: true });
       }
     } catch (err) {
@@ -119,7 +122,10 @@ export const useWatchLogStore = create<WatchLogState>((set, get) => ({
         entries: state.entries.map((entry) => (entry.logId === logId ? saved : entry)),
       }));
 
-      if (options.dropFromWatchlist && useListsStore.getState().isInWatchlist(saved.mediaType, saved.id)) {
+      if (
+        options.dropFromWatchlist &&
+        useListsStore.getState().isInWatchlist(saved.mediaType, saved.id)
+      ) {
         await useListsStore.getState().toggleWatchlist(saved, { silent: true });
       }
     } catch (err) {

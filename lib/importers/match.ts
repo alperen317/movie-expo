@@ -92,7 +92,8 @@ export async function matchImportRecords(
       if (index >= records.length) return;
 
       const record = records[index];
-      results[index] = record.mediaType === 'movie' ? await matchMovie(record) : await matchTVShow(record);
+      results[index] =
+        record.mediaType === 'movie' ? await matchMovie(record) : await matchTVShow(record);
 
       completed += 1;
       onProgress?.(completed, records.length);

@@ -69,7 +69,10 @@ const BATCH_CHUNK_SIZE = 500;
 // (user_id, list_type, media_id, media_type) unique constraint (see
 // 0001_saved_media.sql) to silently skip titles already saved, so re-running
 // an import doesn't error or duplicate rows.
-export async function addSavedMediaBatch(items: MediaCardItem[], listType: ListType): Promise<void> {
+export async function addSavedMediaBatch(
+  items: MediaCardItem[],
+  listType: ListType,
+): Promise<void> {
   if (items.length === 0) return;
   const {
     data: { user },

@@ -164,7 +164,9 @@ export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheet
       >
         <View className="w-full max-w-md gap-stack-md rounded-2xl border border-glass-border bg-surface-container-low p-6">
           <Text className="font-sans-bold text-title-md text-text-primary" numberOfLines={1}>
-            {existingEntry ? `Edit your log for "${item.title}"` : `Mark "${item.title}" as watched`}
+            {existingEntry
+              ? `Edit your log for "${item.title}"`
+              : `Mark "${item.title}" as watched`}
           </Text>
 
           <View className="gap-stack-sm">

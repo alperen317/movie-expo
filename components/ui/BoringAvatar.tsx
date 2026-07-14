@@ -73,8 +73,20 @@ function MarbleAvatar({ name, colors, size, square }: VariantProps) {
 
   return (
     <Svg viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`} width={size} height={size}>
-      <Mask id={maskId} maskUnits="userSpaceOnUse" x={0} y={0} width={viewBoxSize} height={viewBoxSize}>
-        <Rect width={viewBoxSize} height={viewBoxSize} rx={square ? undefined : viewBoxSize * 2} fill="#FFFFFF" />
+      <Mask
+        id={maskId}
+        maskUnits="userSpaceOnUse"
+        x={0}
+        y={0}
+        width={viewBoxSize}
+        height={viewBoxSize}
+      >
+        <Rect
+          width={viewBoxSize}
+          height={viewBoxSize}
+          rx={square ? undefined : viewBoxSize * 2}
+          fill="#FFFFFF"
+        />
       </Mask>
       <G mask={`url(#${maskId})`}>
         <Rect width={viewBoxSize} height={viewBoxSize} fill={props[0].color} />
@@ -109,8 +121,20 @@ function BeamAvatar({ name, colors, size, square }: VariantProps) {
 
   return (
     <Svg viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`} width={size} height={size}>
-      <Mask id={maskId} maskUnits="userSpaceOnUse" x={0} y={0} width={viewBoxSize} height={viewBoxSize}>
-        <Rect width={viewBoxSize} height={viewBoxSize} rx={square ? undefined : viewBoxSize * 2} fill="#FFFFFF" />
+      <Mask
+        id={maskId}
+        maskUnits="userSpaceOnUse"
+        x={0}
+        y={0}
+        width={viewBoxSize}
+        height={viewBoxSize}
+      >
+        <Rect
+          width={viewBoxSize}
+          height={viewBoxSize}
+          rx={square ? undefined : viewBoxSize * 2}
+          fill="#FFFFFF"
+        />
       </Mask>
       <G mask={`url(#${maskId})`}>
         <Rect width={viewBoxSize} height={viewBoxSize} fill={props.backgroundColor} />
@@ -136,8 +160,24 @@ function BeamAvatar({ name, colors, size, square }: VariantProps) {
           ) : (
             <Path d={`M13,${19 + props.mouthSpread} a1,0.75 0 0,0 10,0`} fill={props.faceColor} />
           )}
-          <Rect x={14 - props.eyeSpread} y={14} width={1.5} height={2} rx={1} stroke="none" fill={props.faceColor} />
-          <Rect x={20 + props.eyeSpread} y={14} width={1.5} height={2} rx={1} stroke="none" fill={props.faceColor} />
+          <Rect
+            x={14 - props.eyeSpread}
+            y={14}
+            width={1.5}
+            height={2}
+            rx={1}
+            stroke="none"
+            fill={props.faceColor}
+          />
+          <Rect
+            x={20 + props.eyeSpread}
+            y={14}
+            width={1.5}
+            height={2}
+            rx={1}
+            stroke="none"
+            fill={props.faceColor}
+          />
         </G>
       </G>
     </Svg>
@@ -151,8 +191,20 @@ function BauhausAvatar({ name, colors, size, square }: VariantProps) {
 
   return (
     <Svg viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`} width={size} height={size}>
-      <Mask id={maskId} maskUnits="userSpaceOnUse" x={0} y={0} width={viewBoxSize} height={viewBoxSize}>
-        <Rect width={viewBoxSize} height={viewBoxSize} rx={square ? undefined : viewBoxSize * 2} fill="#FFFFFF" />
+      <Mask
+        id={maskId}
+        maskUnits="userSpaceOnUse"
+        x={0}
+        y={0}
+        width={viewBoxSize}
+        height={viewBoxSize}
+      >
+        <Rect
+          width={viewBoxSize}
+          height={viewBoxSize}
+          rx={square ? undefined : viewBoxSize * 2}
+          fill="#FFFFFF"
+        />
       </Mask>
       <G mask={`url(#${maskId})`}>
         <Rect width={viewBoxSize} height={viewBoxSize} fill={props[0].color} />
@@ -203,8 +255,20 @@ function RingAvatar({ name, colors, size, square }: VariantProps) {
 
   return (
     <Svg viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`} width={size} height={size}>
-      <Mask id={maskId} maskUnits="userSpaceOnUse" x={0} y={0} width={viewBoxSize} height={viewBoxSize}>
-        <Rect width={viewBoxSize} height={viewBoxSize} rx={square ? undefined : viewBoxSize * 2} fill="#FFFFFF" />
+      <Mask
+        id={maskId}
+        maskUnits="userSpaceOnUse"
+        x={0}
+        y={0}
+        width={viewBoxSize}
+        height={viewBoxSize}
+      >
+        <Rect
+          width={viewBoxSize}
+          height={viewBoxSize}
+          rx={square ? undefined : viewBoxSize * 2}
+          fill="#FFFFFF"
+        />
       </Mask>
       <G mask={`url(#${maskId})`}>
         {RING_PATHS.map((d, i) => (
@@ -234,12 +298,32 @@ function PixelAvatar({ name, colors, size, square }: VariantProps) {
 
   return (
     <Svg viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`} width={size} height={size}>
-      <Mask id={maskId} maskUnits="userSpaceOnUse" maskType="alpha" x={0} y={0} width={viewBoxSize} height={viewBoxSize}>
-        <Rect width={viewBoxSize} height={viewBoxSize} rx={square ? undefined : viewBoxSize * 2} fill="#FFFFFF" />
+      <Mask
+        id={maskId}
+        maskUnits="userSpaceOnUse"
+        maskType="alpha"
+        x={0}
+        y={0}
+        width={viewBoxSize}
+        height={viewBoxSize}
+      >
+        <Rect
+          width={viewBoxSize}
+          height={viewBoxSize}
+          rx={square ? undefined : viewBoxSize * 2}
+          fill="#FFFFFF"
+        />
       </Mask>
       <G mask={`url(#${maskId})`}>
         {PIXEL_POSITIONS.map((pos, i) => (
-          <Rect key={`${pos.x}-${pos.y}`} x={pos.x} y={pos.y} width={10} height={10} fill={pixelColors[i]} />
+          <Rect
+            key={`${pos.x}-${pos.y}`}
+            x={pos.x}
+            y={pos.y}
+            width={10}
+            height={10}
+            fill={pixelColors[i]}
+          />
         ))}
       </G>
     </Svg>
@@ -255,12 +339,27 @@ function SunsetAvatar({ name, colors, size, square }: VariantProps) {
 
   return (
     <Svg viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`} width={size} height={size}>
-      <Mask id={maskId} maskUnits="userSpaceOnUse" x={0} y={0} width={viewBoxSize} height={viewBoxSize}>
-        <Rect width={viewBoxSize} height={viewBoxSize} rx={square ? undefined : viewBoxSize * 2} fill="#FFFFFF" />
+      <Mask
+        id={maskId}
+        maskUnits="userSpaceOnUse"
+        x={0}
+        y={0}
+        width={viewBoxSize}
+        height={viewBoxSize}
+      >
+        <Rect
+          width={viewBoxSize}
+          height={viewBoxSize}
+          rx={square ? undefined : viewBoxSize * 2}
+          fill="#FFFFFF"
+        />
       </Mask>
       <G mask={`url(#${maskId})`}>
         <Path fill={`url(#${gradientTopId})`} d={`M0 0h${viewBoxSize}v${viewBoxSize / 2}H0z`} />
-        <Path fill={`url(#${gradientBottomId})`} d={`M0 ${viewBoxSize / 2}h${viewBoxSize}v${viewBoxSize / 2}H0z`} />
+        <Path
+          fill={`url(#${gradientBottomId})`}
+          d={`M0 ${viewBoxSize / 2}h${viewBoxSize}v${viewBoxSize / 2}H0z`}
+        />
       </G>
       <Defs>
         <LinearGradient

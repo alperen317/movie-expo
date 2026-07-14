@@ -19,10 +19,7 @@ interface ContinueWatchingItem {
 
 export function ContinueWatchingRow() {
   const entries = useEpisodeProgressStore((state) => state.entries);
-  const showIds = useMemo(
-    () => useEpisodeProgressStore.getState().showIdsInProgress(),
-    [entries],
-  );
+  const showIds = useMemo(() => useEpisodeProgressStore.getState().showIdsInProgress(), [entries]);
   const showIdsKey = showIds.join(',');
 
   const [items, setItems] = useState<ContinueWatchingItem[]>([]);

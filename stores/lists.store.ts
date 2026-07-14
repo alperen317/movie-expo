@@ -1,7 +1,12 @@
 import { create } from 'zustand';
 
 import type { MediaCardItem } from '../components/home/MovieCard';
-import { addSavedMedia, fetchSavedMedia, removeSavedMedia, SavedMediaItem } from '../lib/supabase/lists';
+import {
+  addSavedMedia,
+  fetchSavedMedia,
+  removeSavedMedia,
+  SavedMediaItem,
+} from '../lib/supabase/lists';
 import { useToastStore } from './toast.store';
 
 function keyOf(mediaType: 'movie' | 'tv', id: number): string {

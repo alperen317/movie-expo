@@ -27,11 +27,7 @@ interface EpisodeProgressState {
   fetchProgress: () => Promise<void>;
   isEpisodeWatched: (showId: number, seasonNumber: number, episodeNumber: number) => boolean;
   toggleEpisode: (showId: number, seasonNumber: number, episodeNumber: number) => Promise<void>;
-  markSeason: (
-    showId: number,
-    seasonNumber: number,
-    episodeNumbers: number[],
-  ) => Promise<void>;
+  markSeason: (showId: number, seasonNumber: number, episodeNumbers: number[]) => Promise<void>;
   unmarkSeason: (showId: number, seasonNumber: number, episodeNumbers: number[]) => Promise<void>;
   showIdsInProgress: () => number[];
   lastWatchedForShow: (showId: number) => LastWatchedEpisode | null;

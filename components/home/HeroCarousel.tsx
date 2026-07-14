@@ -16,7 +16,15 @@ import type { TMDBMovie } from '../../lib/tmdb/types';
 
 const AUTOPLAY_INTERVAL = 5000;
 
-function Dot({ index, scrollX, width }: { index: number; scrollX: SharedValue<number>; width: number }) {
+function Dot({
+  index,
+  scrollX,
+  width,
+}: {
+  index: number;
+  scrollX: SharedValue<number>;
+  width: number;
+}) {
   const style = useAnimatedStyle(() => {
     const input = [(index - 1) * width, index * width, (index + 1) * width];
     return {

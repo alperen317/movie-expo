@@ -1,9 +1,6 @@
 import { TMDB_ACCESS_TOKEN, TMDB_BASE_URL } from './config';
 
-export async function tmdbFetch<T>(
-  path: string,
-  params?: Record<string, string>,
-): Promise<T> {
+export async function tmdbFetch<T>(path: string, params?: Record<string, string>): Promise<T> {
   if (!TMDB_ACCESS_TOKEN) {
     throw new Error(
       'Missing EXPO_PUBLIC_TMDB_ACCESS_TOKEN. Add it to your .env file and restart Expo.',

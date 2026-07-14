@@ -68,10 +68,7 @@ export function HeroSection({ movie, width }: { movie: TMDBMovie; width?: number
             >
               {movie.title}
             </Text>
-            <Text
-              className="mb-6 font-sans text-body-md text-on-surface-variant"
-              numberOfLines={3}
-            >
+            <Text className="mb-6 font-sans text-body-md text-on-surface-variant" numberOfLines={3}>
               {movie.overview}
             </Text>
 

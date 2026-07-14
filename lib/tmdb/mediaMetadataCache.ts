@@ -18,7 +18,10 @@ function cacheKey(mediaType: 'movie' | 'tv', id: number): string {
 // Runtime/genres never change for a given title, so once fetched they're
 // cached indefinitely (memory + AsyncStorage) to avoid re-fetching TMDB
 // details for every title every time the stats screen loads.
-export async function getMediaMetadata(mediaType: 'movie' | 'tv', id: number): Promise<MediaMetadata> {
+export async function getMediaMetadata(
+  mediaType: 'movie' | 'tv',
+  id: number,
+): Promise<MediaMetadata> {
   const key = cacheKey(mediaType, id);
 
   const cached = memoryCache.get(key);

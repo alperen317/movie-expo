@@ -67,9 +67,20 @@ describe('getBauhausProperties', () => {
   it('matches the real boring-avatars bauhaus output', () => {
     const props = getBauhausProperties(NAME, DEFAULT_AVATAR_COLORS);
     expect(props[0].color).toBe('#901822');
-    expect(props[1]).toMatchObject({ color: '#7fd5ff', translateX: 4, translateY: 4, rotate: 12, isSquare: true });
+    expect(props[1]).toMatchObject({
+      color: '#7fd5ff',
+      translateX: 4,
+      translateY: 4,
+      rotate: 12,
+      isSquare: true,
+    });
     expect(props[2]).toMatchObject({ color: '#3a3939', translateX: 18, translateY: 18 });
-    expect(props[3]).toMatchObject({ color: '#ffb3b0', translateX: -4, translateY: -4, rotate: 24 });
+    expect(props[3]).toMatchObject({
+      color: '#ffb3b0',
+      translateX: -4,
+      translateY: -4,
+      rotate: 24,
+    });
   });
 });
 
@@ -103,14 +114,70 @@ describe('getSunsetColors', () => {
 describe('getPixelColors', () => {
   it('matches the real boring-avatars pixel output', () => {
     expect(getPixelColors(NAME, DEFAULT_AVATAR_COLORS)).toEqual([
-      '#f5c451', '#f5c451', '#f5c451', '#7fd5ff', '#901822', '#f5c451', '#901822', '#7fd5ff',
-      '#901822', '#901822', '#7fd5ff', '#901822', '#7fd5ff', '#901822', '#901822', '#7fd5ff',
-      '#901822', '#901822', '#901822', '#901822', '#901822', '#7fd5ff', '#3a3939', '#3a3939',
-      '#901822', '#f5c451', '#ffb3b0', '#901822', '#ffb3b0', '#901822', '#7fd5ff', '#7fd5ff',
-      '#ffb3b0', '#901822', '#901822', '#901822', '#7fd5ff', '#f5c451', '#3a3939', '#901822',
-      '#ffb3b0', '#901822', '#ffb3b0', '#7fd5ff', '#901822', '#901822', '#f5c451', '#3a3939',
-      '#3a3939', '#901822', '#3a3939', '#901822', '#7fd5ff', '#ffb3b0', '#901822', '#ffb3b0',
-      '#ffb3b0', '#3a3939', '#3a3939', '#901822', '#7fd5ff', '#3a3939', '#901822', '#7fd5ff',
+      '#f5c451',
+      '#f5c451',
+      '#f5c451',
+      '#7fd5ff',
+      '#901822',
+      '#f5c451',
+      '#901822',
+      '#7fd5ff',
+      '#901822',
+      '#901822',
+      '#7fd5ff',
+      '#901822',
+      '#7fd5ff',
+      '#901822',
+      '#901822',
+      '#7fd5ff',
+      '#901822',
+      '#901822',
+      '#901822',
+      '#901822',
+      '#901822',
+      '#7fd5ff',
+      '#3a3939',
+      '#3a3939',
+      '#901822',
+      '#f5c451',
+      '#ffb3b0',
+      '#901822',
+      '#ffb3b0',
+      '#901822',
+      '#7fd5ff',
+      '#7fd5ff',
+      '#ffb3b0',
+      '#901822',
+      '#901822',
+      '#901822',
+      '#7fd5ff',
+      '#f5c451',
+      '#3a3939',
+      '#901822',
+      '#ffb3b0',
+      '#901822',
+      '#ffb3b0',
+      '#7fd5ff',
+      '#901822',
+      '#901822',
+      '#f5c451',
+      '#3a3939',
+      '#3a3939',
+      '#901822',
+      '#3a3939',
+      '#901822',
+      '#7fd5ff',
+      '#ffb3b0',
+      '#901822',
+      '#ffb3b0',
+      '#ffb3b0',
+      '#3a3939',
+      '#3a3939',
+      '#901822',
+      '#7fd5ff',
+      '#3a3939',
+      '#901822',
+      '#7fd5ff',
     ]);
   });
 });

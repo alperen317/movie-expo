@@ -161,7 +161,11 @@ export default function ActorScreen() {
               onViewAll={() =>
                 router.push({
                   pathname: '/list/[source]',
-                  params: { source: 'person-credits', personId: String(person.id), title: person.name },
+                  params: {
+                    source: 'person-credits',
+                    personId: String(person.id),
+                    title: person.name,
+                  },
                 })
               }
             />

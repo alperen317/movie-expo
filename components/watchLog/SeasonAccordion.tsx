@@ -75,7 +75,11 @@ export function SeasonAccordion({ tvId, season }: SeasonAccordionProps) {
       <Pressable onPress={handleToggleExpand} className="flex-row items-center gap-3 p-3">
         <View className="h-16 w-11 overflow-hidden rounded-lg bg-surface-container-high">
           {posterUri && (
-            <Image source={{ uri: posterUri }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+            <Image
+              source={{ uri: posterUri }}
+              style={{ width: '100%', height: '100%' }}
+              contentFit="cover"
+            />
           )}
         </View>
         <View className="flex-1 gap-1">

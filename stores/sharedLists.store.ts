@@ -131,9 +131,10 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
       myLists: state.myLists[listId]
         ? { ...state.myLists, [listId]: { ...state.myLists[listId], name } }
         : state.myLists,
-      activeList: state.activeListId === listId && state.activeList
-        ? { ...state.activeList, name }
-        : state.activeList,
+      activeList:
+        state.activeListId === listId && state.activeList
+          ? { ...state.activeList, name }
+          : state.activeList,
     }));
   },
 
@@ -165,9 +166,10 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
       myLists: state.myLists[listId]
         ? { ...state.myLists, [listId]: { ...state.myLists[listId], joinCode } }
         : state.myLists,
-      activeList: state.activeListId === listId && state.activeList
-        ? { ...state.activeList, joinCode }
-        : state.activeList,
+      activeList:
+        state.activeListId === listId && state.activeList
+          ? { ...state.activeList, joinCode }
+          : state.activeList,
     }));
   },
 
@@ -210,7 +212,9 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
         activeList: list,
         members: Object.fromEntries(members.map((m) => [m.membershipId, m])),
         items: Object.fromEntries(items.map((item) => [keyOf(item.mediaType, item.id), item])),
-        _listItemsByRowId: Object.fromEntries(items.map((item) => [item.rowId, keyOf(item.mediaType, item.id)])),
+        _listItemsByRowId: Object.fromEntries(
+          items.map((item) => [item.rowId, keyOf(item.mediaType, item.id)]),
+        ),
         isDetailLoading: false,
       });
       get()._subscribeRealtime(listId);
@@ -224,7 +228,14 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
 
   closeList: () => {
     get()._unsubscribeRealtime();
-    set({ activeListId: null, activeList: null, members: {}, items: {}, _listItemsByRowId: {}, detailError: null });
+    set({
+      activeListId: null,
+      activeList: null,
+      members: {},
+      items: {},
+      _listItemsByRowId: {},
+      detailError: null,
+    });
   },
 
   inviteMember: async (listId, email) => {

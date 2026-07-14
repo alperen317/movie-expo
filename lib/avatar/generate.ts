@@ -7,7 +7,14 @@
 
 export type AvatarVariant = 'marble' | 'beam' | 'bauhaus' | 'ring' | 'pixel' | 'sunset';
 
-export const AVATAR_VARIANTS: AvatarVariant[] = ['beam', 'marble', 'bauhaus', 'ring', 'pixel', 'sunset'];
+export const AVATAR_VARIANTS: AvatarVariant[] = [
+  'beam',
+  'marble',
+  'bauhaus',
+  'ring',
+  'pixel',
+  'sunset',
+];
 
 // Drawn from tailwind.config.js theme colors (primary/secondary/tertiary
 // containers + a surface tone) instead of upstream's demo palette, so
@@ -123,10 +130,8 @@ export function getBeamProperties(name: string, colors: string[]): BeamPropertie
     eyeSpread: getUnit(hash, 5),
     mouthSpread: getUnit(hash, 3),
     faceRotate: getUnit(hash, 10, 3),
-    faceTranslateX:
-      wrapperTranslateX > BEAM_SIZE / 6 ? wrapperTranslateX / 2 : getUnit(hash, 8, 1),
-    faceTranslateY:
-      wrapperTranslateY > BEAM_SIZE / 6 ? wrapperTranslateY / 2 : getUnit(hash, 7, 2),
+    faceTranslateX: wrapperTranslateX > BEAM_SIZE / 6 ? wrapperTranslateX / 2 : getUnit(hash, 8, 1),
+    faceTranslateY: wrapperTranslateY > BEAM_SIZE / 6 ? wrapperTranslateY / 2 : getUnit(hash, 7, 2),
   };
 }
 
@@ -159,7 +164,9 @@ const RING_BASE_COLORS = 5;
 export function getRingColors(name: string, colors: string[]): string[] {
   const hash = hashCode(name);
   const range = colors.length;
-  const base = Array.from({ length: RING_BASE_COLORS }, (_, i) => getRandomColor(hash + i, colors, range));
+  const base = Array.from({ length: RING_BASE_COLORS }, (_, i) =>
+    getRandomColor(hash + i, colors, range),
+  );
   return [base[0], base[1], base[1], base[2], base[2], base[3], base[3], base[0], base[4]];
 }
 
@@ -168,7 +175,9 @@ const PIXEL_ELEMENTS = 64;
 export function getPixelColors(name: string, colors: string[]): string[] {
   const hash = hashCode(name);
   const range = colors.length;
-  return Array.from({ length: PIXEL_ELEMENTS }, (_, i) => getRandomColor(hash % (i + 1), colors, range));
+  return Array.from({ length: PIXEL_ELEMENTS }, (_, i) =>
+    getRandomColor(hash % (i + 1), colors, range),
+  );
 }
 
 const SUNSET_ELEMENTS = 4;

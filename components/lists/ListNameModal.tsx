@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
 import { AnimatedPressable } from '../ui/AnimatedPressable';
 

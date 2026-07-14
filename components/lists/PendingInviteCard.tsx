@@ -10,7 +10,12 @@ interface PendingInviteCardProps {
   onDecline: () => void;
 }
 
-export function PendingInviteCard({ invite, isResponding, onAccept, onDecline }: PendingInviteCardProps) {
+export function PendingInviteCard({
+  invite,
+  isResponding,
+  onAccept,
+  onDecline,
+}: PendingInviteCardProps) {
   return (
     <View className="gap-3 rounded-xl border border-primary-container/40 bg-primary-container/10 p-4">
       <View>
@@ -37,7 +42,9 @@ export function PendingInviteCard({ invite, isResponding, onAccept, onDecline }:
           {isResponding ? (
             <ActivityIndicator size="small" color="#3f2e00" />
           ) : (
-            <Text className="font-sans-semibold text-caption text-on-primary-container">Accept</Text>
+            <Text className="font-sans-semibold text-caption text-on-primary-container">
+              Accept
+            </Text>
           )}
         </AnimatedPressable>
       </View>

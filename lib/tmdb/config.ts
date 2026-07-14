@@ -17,18 +17,12 @@ export function getBackdropUrl(
   return `${TMDB_IMAGE_BASE_URL}/${size}${path}`;
 }
 
-export function getPosterUrl(
-  path: string | null,
-  size: TMDBPosterSize = 'w342',
-): string | null {
+export function getPosterUrl(path: string | null, size: TMDBPosterSize = 'w342'): string | null {
   if (!path) return null;
   return `${TMDB_IMAGE_BASE_URL}/${size}${path}`;
 }
 
-export function getProfileUrl(
-  path: string | null,
-  size: TMDBProfileSize = 'w185',
-): string | null {
+export function getProfileUrl(path: string | null, size: TMDBProfileSize = 'w185'): string | null {
   if (!path) return null;
   return `${TMDB_IMAGE_BASE_URL}/${size}${path}`;
 }

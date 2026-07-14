@@ -96,11 +96,17 @@ function getUSMovieCertification(release_dates: TMDBMovieDetails['release_dates'
   return us?.release_dates.find((entry) => entry.certification)?.certification || null;
 }
 
-function getWatchProviders(providers: TMDBWatchProviders | undefined): WatchProviderOffering | null {
+function getWatchProviders(
+  providers: TMDBWatchProviders | undefined,
+): WatchProviderOffering | null {
   const region: TMDBWatchProviderRegion | undefined = providers?.results[getDeviceRegion()];
   if (!region) return null;
 
-  const mapProvider = (provider: { provider_id: number; provider_name: string; logo_path: string }): WatchProviderInfo => ({
+  const mapProvider = (provider: {
+    provider_id: number;
+    provider_name: string;
+    logo_path: string;
+  }): WatchProviderInfo => ({
     id: provider.provider_id,
     name: provider.provider_name,
     logoPath: provider.logo_path,

@@ -20,7 +20,13 @@ interface ActionSheetModalProps {
 // this app) silently renders nothing on web — see the note in profile.tsx's
 // handleSignOut. This is the cross-platform replacement: a real in-app modal
 // that works identically on web and native.
-export function ActionSheetModal({ visible, title, message, actions, onClose }: ActionSheetModalProps) {
+export function ActionSheetModal({
+  visible,
+  title,
+  message,
+  actions,
+  onClose,
+}: ActionSheetModalProps) {
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View className="flex-1 items-center justify-center bg-background/80 px-margin-mobile">
@@ -32,7 +38,9 @@ export function ActionSheetModal({ visible, title, message, actions, onClose }: 
                   {title}
                 </Text>
               )}
-              {message && <Text className="font-sans text-body-md text-text-secondary">{message}</Text>}
+              {message && (
+                <Text className="font-sans text-body-md text-text-secondary">{message}</Text>
+              )}
             </View>
           )}
           {actions.map((action) => (
@@ -54,7 +62,9 @@ export function ActionSheetModal({ visible, title, message, actions, onClose }: 
             </AnimatedPressable>
           ))}
           <AnimatedPressable onPress={onClose} className="rounded-xl px-4 py-stack-md">
-            <Text className="text-center font-sans-semibold text-body-md text-text-secondary">Cancel</Text>
+            <Text className="text-center font-sans-semibold text-body-md text-text-secondary">
+              Cancel
+            </Text>
           </AnimatedPressable>
         </View>
       </View>

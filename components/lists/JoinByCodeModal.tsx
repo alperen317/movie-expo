@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
 import { AnimatedPressable } from '../ui/AnimatedPressable';
 
@@ -83,7 +91,9 @@ export function JoinByCodeModal({ visible, onClose, onSubmit }: JoinByCodeModalP
               {isSubmitting ? (
                 <ActivityIndicator color="#3f2e00" />
               ) : (
-                <Text className="font-sans-semibold text-body-md text-on-primary-container">Join</Text>
+                <Text className="font-sans-semibold text-body-md text-on-primary-container">
+                  Join
+                </Text>
               )}
             </AnimatedPressable>
           </View>
