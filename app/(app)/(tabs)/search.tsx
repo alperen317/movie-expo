@@ -2,7 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -16,7 +16,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { CARD_WIDTH, MovieCard } from '../../../components/home/MovieCard';
+import {
+  CARD_WIDTH,
+  GRID_GAP,
+  GRID_PADDING,
+  MovieCard,
+  getGridColumns,
+  padGridRow,
+} from '../../../components/home/MovieCard';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
 import { useMediaSearch } from '../../../lib/hooks/useMediaSearch';
 import {
@@ -27,8 +34,6 @@ import {
 import { getBackdropUrl } from '../../../lib/tmdb/config';
 import { discoverMoviesByGenre } from '../../../lib/tmdb/movies';
 
-const GRID_GAP = 16;
-const GRID_PADDING = 16;
 const TILE_HEIGHT = 200;
 
 interface Genre {
@@ -82,7 +87,9 @@ function GenreTile({
           {genre.name}
         </Text>
         {genre.subtitle && (
-          <Text className="mt-1 font-sans text-caption text-on-surface-variant">{genre.subtitle}</Text>
+          <Text className="mt-1 font-sans text-caption text-on-surface-variant">
+            {genre.subtitle}
+          </Text>
         )}
       </View>
     </AnimatedPressable>
@@ -128,10 +135,8 @@ export default function SearchScreen() {
     setRecentSearches([]);
   };
 
-  const numColumns = Math.max(
-    2,
-    Math.floor((windowWidth - GRID_PADDING * 2 + GRID_GAP) / (CARD_WIDTH + GRID_GAP)),
-  );
+  const numColumns = getGridColumns(windowWidth);
+  const gridData = useMemo(() => padGridRow(results, numColumns), [results, numColumns]);
 
   const isBrowsing = debouncedQuery.length === 0;
 
@@ -252,10 +257,18 @@ export default function SearchScreen() {
           {!searchError && results.length > 0 && (
             <FlatList
               key={numColumns}
-              data={results}
+              data={gridData}
               numColumns={numColumns}
-              keyExtractor={(item) => `${item.mediaType}-${item.id}`}
-              renderItem={({ item, index }) => <MovieCard item={item} index={index % numColumns} />}
+              keyExtractor={(item, index) =>
+                item ? `${item.mediaType}-${item.id}` : `filler-${index}`
+              }
+              renderItem={({ item, index }) =>
+                item ? (
+                  <MovieCard item={item} index={index % numColumns} />
+                ) : (
+                  <View style={{ width: CARD_WIDTH }} />
+                )
+              }
               columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: GRID_GAP }}
               contentContainerStyle={{ paddingHorizontal: GRID_PADDING, paddingBottom: 120 }}
               showsVerticalScrollIndicator={false}

@@ -12,6 +12,26 @@ import type { TMDBMovie, TMDBMultiSearchResult, TMDBTVShow } from '../../lib/tmd
 import { useWatchLogStore } from '../../stores/watchLog.store';
 
 export const CARD_WIDTH = 180;
+export const GRID_GAP = 16;
+export const GRID_PADDING = 16;
+
+export function getGridColumns(windowWidth: number): number {
+  return Math.max(
+    2,
+    Math.floor((windowWidth - GRID_PADDING * 2 + GRID_GAP) / (CARD_WIDTH + GRID_GAP)),
+  );
+}
+
+// FlatList's `columnWrapperStyle={{ justifyContent: 'space-between' }}` spreads a
+// short last row across the full row width -- e.g. 2 items with 6 columns (common
+// on wide web viewports) renders one card pinned to the far left and the other to
+// the far right. Padding the row out with null fillers keeps the gap fixed instead.
+export function padGridRow<T>(items: T[], numColumns: number): (T | null)[] {
+  if (items.length === 0) return items;
+  const remainder = items.length % numColumns;
+  if (remainder === 0) return items;
+  return [...items, ...Array<null>(numColumns - remainder).fill(null)];
+}
 
 export interface MediaCardItem {
   id: number;

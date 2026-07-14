@@ -1,18 +1,33 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  Text,
+  TextInput,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { CARD_WIDTH, MovieCard, toMovieCardItem, toTVCardItem, type MediaCardItem } from '../../../components/home/MovieCard';
+import {
+  CARD_WIDTH,
+  GRID_GAP,
+  GRID_PADDING,
+  MovieCard,
+  getGridColumns,
+  padGridRow,
+  toMovieCardItem,
+  toTVCardItem,
+  type MediaCardItem,
+} from '../../../components/home/MovieCard';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
 import { useMediaSearch } from '../../../lib/hooks/useMediaSearch';
 import { getTrendingMovies } from '../../../lib/tmdb/movies';
 import { getPopularTVShows } from '../../../lib/tmdb/tv';
 import { useSharedListsStore } from '../../../stores/sharedLists.store';
-
-const GRID_GAP = 16;
-const GRID_PADDING = 16;
 
 export default function AddItemsScreen() {
   const { listId } = useLocalSearchParams<{ listId: string }>();
@@ -23,10 +38,7 @@ export default function AddItemsScreen() {
   const addItem = useSharedListsStore((state) => state.addItem);
   const removeItem = useSharedListsStore((state) => state.removeItem);
 
-  const numColumns = Math.max(
-    2,
-    Math.floor((windowWidth - GRID_PADDING * 2 + GRID_GAP) / (CARD_WIDTH + GRID_GAP)),
-  );
+  const numColumns = getGridColumns(windowWidth);
 
   const isBrowsing = debouncedQuery.length === 0;
 
@@ -41,10 +53,7 @@ export default function AddItemsScreen() {
     Promise.all([getTrendingMovies('day'), getPopularTVShows()])
       .then(([movies, shows]) => {
         if (cancelled) return;
-        setPopular([
-          ...movies.results.map(toMovieCardItem),
-          ...shows.results.map(toTVCardItem),
-        ]);
+        setPopular([...movies.results.map(toMovieCardItem), ...shows.results.map(toTVCardItem)]);
       })
       .catch(() => {
         if (!cancelled) setPopular([]);
@@ -57,7 +66,11 @@ export default function AddItemsScreen() {
     };
   }, [isBrowsing]);
 
-  const renderCard = ({ item, index }: { item: MediaCardItem; index: number }) => {
+  const popularGridData = useMemo(() => padGridRow(popular, numColumns), [popular, numColumns]);
+  const resultsGridData = useMemo(() => padGridRow(results, numColumns), [results, numColumns]);
+
+  const renderCard = ({ item, index }: { item: MediaCardItem | null; index: number }) => {
+    if (!item) return <View style={{ width: CARD_WIDTH }} />;
     const key = `${item.mediaType}-${item.id}`;
     const isSelected = Boolean(items[key]);
     return (
@@ -77,7 +90,10 @@ export default function AddItemsScreen() {
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
       <View className="flex-row items-center gap-2 px-margin-mobile py-stack-md">
-        <AnimatedPressable onPress={() => router.back()} className="h-9 w-9 items-center justify-center">
+        <AnimatedPressable
+          onPress={() => router.back()}
+          className="h-9 w-9 items-center justify-center"
+        >
           <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />
         </AnimatedPressable>
         <Text className="flex-1 text-headline-lg-mobile font-sans-bold text-text-primary">
@@ -118,9 +134,11 @@ export default function AddItemsScreen() {
       {isBrowsing && !isPopularLoading && popular.length > 0 && (
         <FlatList
           key={numColumns}
-          data={popular}
+          data={popularGridData}
           numColumns={numColumns}
-          keyExtractor={(item) => `${item.mediaType}-${item.id}`}
+          keyExtractor={(item, index) =>
+            item ? `${item.mediaType}-${item.id}` : `filler-${index}`
+          }
           renderItem={renderCard}
           columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: GRID_GAP }}
           contentContainerStyle={{ paddingHorizontal: GRID_PADDING, paddingBottom: 32 }}
@@ -142,23 +160,29 @@ export default function AddItemsScreen() {
 
       {!isBrowsing && searchError && !isSearching && (
         <View className="flex-1 items-center justify-center px-margin-mobile">
-          <Text className="text-center font-sans text-body-md text-text-primary">{searchError}</Text>
+          <Text className="text-center font-sans text-body-md text-text-primary">
+            {searchError}
+          </Text>
         </View>
       )}
 
       {!isBrowsing && !searchError && !isSearching && results.length === 0 && (
         <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
           <MaterialIcons name="search-off" size={32} color="#A1A1AA" />
-          <Text className="text-title-md font-sans-semibold text-text-primary">No results found</Text>
+          <Text className="text-title-md font-sans-semibold text-text-primary">
+            No results found
+          </Text>
         </View>
       )}
 
       {!isBrowsing && !searchError && results.length > 0 && (
         <FlatList
           key={numColumns}
-          data={results}
+          data={resultsGridData}
           numColumns={numColumns}
-          keyExtractor={(item) => `${item.mediaType}-${item.id}`}
+          keyExtractor={(item, index) =>
+            item ? `${item.mediaType}-${item.id}` : `filler-${index}`
+          }
           renderItem={renderCard}
           columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: GRID_GAP }}
           contentContainerStyle={{ paddingHorizontal: GRID_PADDING, paddingBottom: 32 }}

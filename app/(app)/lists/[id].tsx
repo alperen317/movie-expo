@@ -1,10 +1,16 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Modal, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { CARD_WIDTH } from '../../../components/home/MovieCard';
+import {
+  CARD_WIDTH,
+  GRID_GAP,
+  GRID_PADDING,
+  getGridColumns,
+  padGridRow,
+} from '../../../components/home/MovieCard';
 import { InviteModal } from '../../../components/lists/InviteModal';
 import { ListItemCard } from '../../../components/lists/ListItemCard';
 import { ListNameModal } from '../../../components/lists/ListNameModal';
@@ -18,9 +24,6 @@ import { useSharedListsStore } from '../../../stores/sharedLists.store';
 // Note: this is the plural `lists/[id]` route (a shared list's detail
 // screen) -- not to be confused with the existing singular `list/[source]`
 // route, which is an unrelated generic TMDB "view all" browse template.
-
-const GRID_GAP = 16;
-const GRID_PADDING = 16;
 
 export default function SharedListDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -60,10 +63,8 @@ export default function SharedListDetailScreen() {
   const isCreator = Boolean(activeList && currentUserId && activeList.createdBy === currentUserId);
   const myMembership = memberList.find((member) => member.userId === currentUserId);
 
-  const numColumns = Math.max(
-    2,
-    Math.floor((windowWidth - GRID_PADDING * 2 + GRID_GAP) / (CARD_WIDTH + GRID_GAP)),
-  );
+  const numColumns = getGridColumns(windowWidth);
+  const itemGridData = useMemo(() => padGridRow(itemList, numColumns), [itemList, numColumns]);
 
   const handleDelete = async () => {
     if (!activeList) return;
@@ -101,7 +102,10 @@ export default function SharedListDetailScreen() {
 
       {activeList && (
         <View className="flex-row items-center justify-between px-margin-mobile pb-stack-md">
-          <AnimatedPressable onPress={() => setIsMembersOpen(true)} className="flex-row items-center gap-2">
+          <AnimatedPressable
+            onPress={() => setIsMembersOpen(true)}
+            className="flex-row items-center gap-2"
+          >
             <MemberAvatarRow members={memberList} />
             <Text className="font-sans text-caption text-text-secondary">
               {memberList.filter((m) => m.status === 'accepted').length} member
@@ -125,7 +129,9 @@ export default function SharedListDetailScreen() {
 
       {detailError && !isDetailLoading && (
         <View className="flex-1 items-center justify-center gap-stack-md px-margin-mobile">
-          <Text className="text-center font-sans text-body-md text-text-primary">{detailError}</Text>
+          <Text className="text-center font-sans text-body-md text-text-primary">
+            {detailError}
+          </Text>
           <AnimatedPressable
             onPress={() => id && openList(id)}
             className="rounded-full border border-glass-border bg-background-blur px-6 py-3"
@@ -148,16 +154,22 @@ export default function SharedListDetailScreen() {
       {!detailError && itemList.length > 0 && (
         <FlatList
           key={numColumns}
-          data={itemList}
+          data={itemGridData}
           numColumns={numColumns}
-          keyExtractor={(item) => `${item.mediaType}-${item.id}`}
-          renderItem={({ item, index }) => (
-            <ListItemCard
-              item={item}
-              index={index % numColumns}
-              onRemove={() => removeItem(item.listId, item.id, item.mediaType)}
-            />
-          )}
+          keyExtractor={(item, index) =>
+            item ? `${item.mediaType}-${item.id}` : `filler-${index}`
+          }
+          renderItem={({ item, index }) =>
+            item ? (
+              <ListItemCard
+                item={item}
+                index={index % numColumns}
+                onRemove={() => removeItem(item.listId, item.id, item.mediaType)}
+              />
+            ) : (
+              <View style={{ width: CARD_WIDTH }} />
+            )
+          }
           columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: GRID_GAP }}
           contentContainerStyle={{ paddingHorizontal: GRID_PADDING, paddingBottom: 120 }}
           showsVerticalScrollIndicator={false}
@@ -166,7 +178,9 @@ export default function SharedListDetailScreen() {
 
       {activeList && (
         <AnimatedPressable
-          onPress={() => router.push({ pathname: '/lists/add-items', params: { listId: activeList.id } })}
+          onPress={() =>
+            router.push({ pathname: '/lists/add-items', params: { listId: activeList.id } })
+          }
           className="absolute bottom-8 right-6 h-14 w-14 items-center justify-center rounded-full bg-primary-container"
           style={{ elevation: 4, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 8 }}
         >
@@ -207,8 +221,16 @@ export default function SharedListDetailScreen() {
         actions={[
           { label: 'Rename', onPress: () => setIsRenameOpen(true) },
           isCreator
-            ? { label: 'Delete List', destructive: true, onPress: () => setIsDeleteConfirmOpen(true) }
-            : { label: 'Leave List', destructive: true, onPress: () => setIsLeaveConfirmOpen(true) },
+            ? {
+                label: 'Delete List',
+                destructive: true,
+                onPress: () => setIsDeleteConfirmOpen(true),
+              }
+            : {
+                label: 'Leave List',
+                destructive: true,
+                onPress: () => setIsLeaveConfirmOpen(true),
+              },
         ]}
       />
 
@@ -246,7 +268,11 @@ export default function SharedListDetailScreen() {
               {memberList.map((member) => (
                 <View key={member.membershipId} className="flex-row items-center gap-3">
                   <View className="h-9 w-9 overflow-hidden rounded-full border border-glass-border">
-                    <BoringAvatar name={member.displayName || member.email} variant={member.avatarVariant} size={36} />
+                    <BoringAvatar
+                      name={member.displayName || member.email}
+                      variant={member.avatarVariant}
+                      size={36}
+                    />
                   </View>
                   <View className="flex-1">
                     <Text className="font-sans text-body-md text-text-primary" numberOfLines={1}>

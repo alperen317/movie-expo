@@ -5,7 +5,17 @@ import { ActivityIndicator, FlatList, Text, useWindowDimensions, View } from 're
 import { FadeIn } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { CARD_WIDTH, MediaCardItem, MovieCard, toMovieCardItem, toTVCardItem } from '../../../components/home/MovieCard';
+import {
+  CARD_WIDTH,
+  GRID_GAP,
+  GRID_PADDING,
+  MediaCardItem,
+  MovieCard,
+  getGridColumns,
+  padGridRow,
+  toMovieCardItem,
+  toTVCardItem,
+} from '../../../components/home/MovieCard';
 import { AnimatedPressable, AnimatedView } from '../../../components/ui/AnimatedPressable';
 import { toPersonDetails } from '../../../lib/tmdb/details';
 import { discoverMoviesByGenre, getTrendingMovies } from '../../../lib/tmdb/movies';
@@ -13,9 +23,6 @@ import { getPersonDetails } from '../../../lib/tmdb/person';
 import { getPopularTVShows } from '../../../lib/tmdb/tv';
 
 type Source = 'trending-movies' | 'popular-tv' | 'person-credits' | 'genre-movies';
-
-const GRID_GAP = 16;
-const GRID_PADDING = 16;
 
 interface SourcePage {
   results: MediaCardItem[];
@@ -51,7 +58,10 @@ export default function ListScreen() {
   }>();
   const { width: windowWidth } = useWindowDimensions();
 
-  const config = useMemo<{ title: string; fetchPage: (page: number) => Promise<SourcePage> }>(() => {
+  const config = useMemo<{
+    title: string;
+    fetchPage: (page: number) => Promise<SourcePage>;
+  }>(() => {
     if (source === 'person-credits' && personId) {
       return {
         title: title || 'Known For',
@@ -76,10 +86,7 @@ export default function ListScreen() {
     );
   }, [source, personId, genreId, title]);
 
-  const numColumns = Math.max(
-    2,
-    Math.floor((windowWidth - GRID_PADDING * 2 + GRID_GAP) / (CARD_WIDTH + GRID_GAP)),
-  );
+  const numColumns = getGridColumns(windowWidth);
 
   const [items, setItems] = useState<MediaCardItem[]>([]);
   const [page, setPage] = useState(1);
@@ -133,6 +140,8 @@ export default function ListScreen() {
       .finally(() => setIsLoadingMore(false));
   }, [config, isLoading, isLoadingMore, page, totalPages]);
 
+  const gridData = useMemo(() => padGridRow(items, numColumns), [items, numColumns]);
+
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
       <View className="flex-row items-center gap-3 px-margin-mobile py-stack-md">
@@ -162,10 +171,18 @@ export default function ListScreen() {
       {!isLoading && !error && (
         <FlatList
           key={numColumns}
-          data={items}
+          data={gridData}
           numColumns={numColumns}
-          keyExtractor={(item) => `${item.mediaType}-${item.id}`}
-          renderItem={({ item, index }) => <MovieCard item={item} index={index % numColumns} />}
+          keyExtractor={(item, index) =>
+            item ? `${item.mediaType}-${item.id}` : `filler-${index}`
+          }
+          renderItem={({ item, index }) =>
+            item ? (
+              <MovieCard item={item} index={index % numColumns} />
+            ) : (
+              <View style={{ width: CARD_WIDTH }} />
+            )
+          }
           columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: GRID_GAP }}
           contentContainerStyle={{ paddingHorizontal: GRID_PADDING, paddingBottom: 32 }}
           showsVerticalScrollIndicator={false}

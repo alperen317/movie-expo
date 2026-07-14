@@ -4,13 +4,18 @@ import { useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { CARD_WIDTH, MediaCardItem, MovieCard } from '../../../components/home/MovieCard';
+import {
+  CARD_WIDTH,
+  GRID_GAP,
+  GRID_PADDING,
+  MediaCardItem,
+  MovieCard,
+  getGridColumns,
+  padGridRow,
+} from '../../../components/home/MovieCard';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
 import { useListsStore } from '../../../stores/lists.store';
 import { dedupeWatchLog, useWatchLogStore } from '../../../stores/watchLog.store';
-
-const GRID_GAP = 16;
-const GRID_PADDING = 16;
 
 type Tab = 'favorites' | 'watchlist' | 'watched';
 
@@ -20,7 +25,10 @@ const TABS: { key: Tab; label: string }[] = [
   { key: 'watched', label: 'Watched' },
 ];
 
-const EMPTY_STATE: Record<Tab, { icon: React.ComponentProps<typeof MaterialIcons>['name']; title: string; subtitle: string }> = {
+const EMPTY_STATE: Record<
+  Tab,
+  { icon: React.ComponentProps<typeof MaterialIcons>['name']; title: string; subtitle: string }
+> = {
   favorites: {
     icon: 'favorite-border',
     title: 'No favorites yet',
@@ -71,14 +79,26 @@ export default function FavoritesScreen() {
   }, [activeTab, favorites, watchlist, watchLogEntries]);
 
   const isLoading =
-    activeTab === 'favorites' ? isFavoritesLoading : activeTab === 'watchlist' ? isWatchlistLoading : isWatchedLoading;
-  const error = activeTab === 'favorites' ? favoritesError : activeTab === 'watchlist' ? watchlistError : watchedError;
-  const refetch = activeTab === 'favorites' ? fetchFavorites : activeTab === 'watchlist' ? fetchWatchlist : fetchWatchLog;
+    activeTab === 'favorites'
+      ? isFavoritesLoading
+      : activeTab === 'watchlist'
+        ? isWatchlistLoading
+        : isWatchedLoading;
+  const error =
+    activeTab === 'favorites'
+      ? favoritesError
+      : activeTab === 'watchlist'
+        ? watchlistError
+        : watchedError;
+  const refetch =
+    activeTab === 'favorites'
+      ? fetchFavorites
+      : activeTab === 'watchlist'
+        ? fetchWatchlist
+        : fetchWatchLog;
 
-  const numColumns = Math.max(
-    2,
-    Math.floor((windowWidth - GRID_PADDING * 2 + GRID_GAP) / (CARD_WIDTH + GRID_GAP)),
-  );
+  const numColumns = getGridColumns(windowWidth);
+  const gridData = useMemo(() => padGridRow(items, numColumns), [items, numColumns]);
 
   const emptyState = EMPTY_STATE[activeTab];
 
@@ -142,10 +162,18 @@ export default function FavoritesScreen() {
       {!error && items.length > 0 && (
         <FlatList
           key={numColumns}
-          data={items}
+          data={gridData}
           numColumns={numColumns}
-          keyExtractor={(item) => `${item.mediaType}-${item.id}`}
-          renderItem={({ item, index }) => <MovieCard item={item} index={index % numColumns} />}
+          keyExtractor={(item, index) =>
+            item ? `${item.mediaType}-${item.id}` : `filler-${index}`
+          }
+          renderItem={({ item, index }) =>
+            item ? (
+              <MovieCard item={item} index={index % numColumns} />
+            ) : (
+              <View style={{ width: CARD_WIDTH }} />
+            )
+          }
           columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: GRID_GAP }}
           contentContainerStyle={{ paddingHorizontal: GRID_PADDING, paddingBottom: 120 }}
           showsVerticalScrollIndicator={false}
