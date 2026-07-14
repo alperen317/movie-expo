@@ -7,6 +7,7 @@ export interface Profile {
   displayName: string | null;
   avatarVariant: AvatarVariant;
   avatarSeed: string | null;
+  watchRegion: string | null;
 }
 
 interface ProfileRow {
@@ -15,6 +16,7 @@ interface ProfileRow {
   display_name: string | null;
   avatar_variant: string;
   avatar_seed: string | null;
+  watch_region: string | null;
 }
 
 function fromRow(row: ProfileRow): Profile {
@@ -24,6 +26,7 @@ function fromRow(row: ProfileRow): Profile {
     displayName: row.display_name,
     avatarVariant: row.avatar_variant as AvatarVariant,
     avatarSeed: row.avatar_seed,
+    watchRegion: row.watch_region,
   };
 }
 
@@ -35,7 +38,7 @@ export async function getOwnProfile(): Promise<Profile | null> {
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, email, display_name, avatar_variant, avatar_seed')
+    .select('id, email, display_name, avatar_variant, avatar_seed, watch_region')
     .eq('id', user.id)
     .single();
 
@@ -47,6 +50,7 @@ export async function updateOwnProfile(updates: {
   displayName?: string | null;
   avatarVariant?: AvatarVariant;
   avatarSeed?: string | null;
+  watchRegion?: string | null;
 }): Promise<Profile> {
   const {
     data: { user },
@@ -59,9 +63,10 @@ export async function updateOwnProfile(updates: {
       ...(updates.displayName !== undefined ? { display_name: updates.displayName } : {}),
       ...(updates.avatarVariant !== undefined ? { avatar_variant: updates.avatarVariant } : {}),
       ...(updates.avatarSeed !== undefined ? { avatar_seed: updates.avatarSeed } : {}),
+      ...(updates.watchRegion !== undefined ? { watch_region: updates.watchRegion } : {}),
     })
     .eq('id', user.id)
-    .select('id, email, display_name, avatar_variant, avatar_seed')
+    .select('id, email, display_name, avatar_variant, avatar_seed, watch_region')
     .single();
 
   if (error) throw error;

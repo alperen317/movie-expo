@@ -8,6 +8,7 @@ import {
   unmarkEpisodeWatched,
   unmarkSeasonWatched,
 } from '../lib/supabase/episodeProgress';
+import type { MediaSeasonSummary } from '../lib/tmdb/details';
 import { useToastStore } from './toast.store';
 
 export function episodeKey(showId: number, seasonNumber: number, episodeNumber: number): string {
@@ -28,6 +29,11 @@ interface EpisodeProgressState {
   isEpisodeWatched: (showId: number, seasonNumber: number, episodeNumber: number) => boolean;
   toggleEpisode: (showId: number, seasonNumber: number, episodeNumber: number) => Promise<void>;
   markSeason: (showId: number, seasonNumber: number, episodeNumbers: number[]) => Promise<void>;
+  markUpToSeason: (
+    showId: number,
+    seasons: MediaSeasonSummary[],
+    targetSeasonNumber: number,
+  ) => Promise<void>;
   unmarkSeason: (showId: number, seasonNumber: number, episodeNumbers: number[]) => Promise<void>;
   showIdsInProgress: () => number[];
   lastWatchedForShow: (showId: number) => LastWatchedEpisode | null;
@@ -117,6 +123,40 @@ export const useEpisodeProgressStore = create<EpisodeProgressState>((set, get) =
         episodeNumbers.map((episodeNumber) => ({ seasonNumber, episodeNumber })),
         now,
       );
+    } catch (err) {
+      set({ entries: previous });
+      useToastStore.getState().show('Something went wrong. Please try again.', 'error-outline');
+      throw err;
+    }
+  },
+
+  markUpToSeason: async (showId, seasons, targetSeasonNumber) => {
+    const seasonsUpToTarget = seasons.filter((season) => season.seasonNumber <= targetSeasonNumber);
+    const pairs = seasonsUpToTarget.flatMap((season) =>
+      Array.from({ length: season.episodeCount }, (_, index) => ({
+        seasonNumber: season.seasonNumber,
+        episodeNumber: index + 1,
+      })),
+    );
+    const now = new Date();
+    const previous = get().entries;
+
+    set((state) => {
+      const entries = { ...state.entries };
+      for (const pair of pairs) {
+        entries[episodeKey(showId, pair.seasonNumber, pair.episodeNumber)] = {
+          showId,
+          seasonNumber: pair.seasonNumber,
+          episodeNumber: pair.episodeNumber,
+          watchedAt: now.toISOString(),
+        };
+      }
+      return { entries };
+    });
+    useToastStore.getState().show(`Marked through Season ${targetSeasonNumber}`, 'check-circle');
+
+    try {
+      await markEpisodesWatchedBatch(showId, pairs, now);
     } catch (err) {
       set({ entries: previous });
       useToastStore.getState().show('Something went wrong. Please try again.', 'error-outline');

@@ -8,23 +8,27 @@ import type { MediaSeasonSummary } from '../../lib/tmdb/details';
 import { getSeasonDetails } from '../../lib/tmdb/tv';
 import type { TMDBSeasonEpisode } from '../../lib/tmdb/types';
 import { episodeKey, useEpisodeProgressStore } from '../../stores/episodeProgress.store';
+import { ActionSheetModal } from '../ui/ActionSheetModal';
 
 interface SeasonAccordionProps {
   tvId: number;
   season: MediaSeasonSummary;
+  allSeasons: MediaSeasonSummary[];
 }
 
-export function SeasonAccordion({ tvId, season }: SeasonAccordionProps) {
+export function SeasonAccordion({ tvId, season, allSeasons }: SeasonAccordionProps) {
   const [expanded, setExpanded] = useState(false);
   const [episodes, setEpisodes] = useState<TMDBSeasonEpisode[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isMarkUpToHereConfirmOpen, setIsMarkUpToHereConfirmOpen] = useState(false);
 
   // Subscribing to the raw entries map (not the isEpisodeWatched getter, whose
   // function reference never changes) is what makes this re-render on toggle.
   const entries = useEpisodeProgressStore((state) => state.entries);
   const toggleEpisode = useEpisodeProgressStore((state) => state.toggleEpisode);
   const markSeason = useEpisodeProgressStore((state) => state.markSeason);
+  const markUpToSeason = useEpisodeProgressStore((state) => state.markUpToSeason);
   const unmarkSeason = useEpisodeProgressStore((state) => state.unmarkSeason);
 
   const isWatched = (episodeNumber: number) =>
@@ -68,6 +72,13 @@ export function SeasonAccordion({ tvId, season }: SeasonAccordionProps) {
     else markSeason(tvId, season.seasonNumber, episodeNumbers);
   };
 
+  const firstSeasonNumber = allSeasons[0]?.seasonNumber ?? season.seasonNumber;
+  const isOnlySeason = allSeasons.length <= 1;
+  const markUpToHereTitle =
+    firstSeasonNumber === season.seasonNumber
+      ? `Mark Season ${season.seasonNumber}?`
+      : `Mark Seasons ${firstSeasonNumber}–${season.seasonNumber}?`;
+
   const posterUri = getPosterUrl(season.posterPath, 'w185');
 
   return (
@@ -90,6 +101,15 @@ export function SeasonAccordion({ tvId, season }: SeasonAccordionProps) {
             {watchedCount > 0 ? `${watchedCount}/${totalCount} watched` : `${totalCount} episodes`}
           </Text>
         </View>
+        {!isOnlySeason && (
+          <Pressable
+            onPress={() => setIsMarkUpToHereConfirmOpen(true)}
+            hitSlop={8}
+            className="h-9 w-9 items-center justify-center rounded-full border border-glass-border"
+          >
+            <MaterialIcons name="playlist-add-check" size={18} color="#FFFFFF" />
+          </Pressable>
+        )}
         <Pressable
           onPress={handleMarkSeason}
           disabled={!episodes}
@@ -106,6 +126,19 @@ export function SeasonAccordion({ tvId, season }: SeasonAccordionProps) {
         </Pressable>
         <MaterialIcons name={expanded ? 'expand-less' : 'expand-more'} size={22} color="#A1A1AA" />
       </Pressable>
+
+      <ActionSheetModal
+        visible={isMarkUpToHereConfirmOpen}
+        title={markUpToHereTitle}
+        message={`This marks every episode through Season ${season.seasonNumber} as watched.`}
+        onClose={() => setIsMarkUpToHereConfirmOpen(false)}
+        actions={[
+          {
+            label: 'Mark Watched',
+            onPress: () => markUpToSeason(tvId, allSeasons, season.seasonNumber),
+          },
+        ]}
+      />
 
       {expanded && (
         <View className="gap-2 border-t border-glass-border p-3">

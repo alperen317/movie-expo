@@ -13,10 +13,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ContinueWatchingRow } from '../../../components/home/ContinueWatchingRow';
 import { HeroCarousel } from '../../../components/home/HeroCarousel';
+import { ImportPromptCard } from '../../../components/home/ImportPromptCard';
 import { MediaRow } from '../../../components/home/MediaRow';
 import { toMovieCardItem, toTVCardItem } from '../../../components/home/MovieCard';
 import { useEpisodeProgressStore } from '../../../stores/episodeProgress.store';
 import { useMovieStore } from '../../../stores/movie.store';
+import { useWatchLogStore } from '../../../stores/watchLog.store';
 
 export default function HomeScreen() {
   const {
@@ -29,6 +31,11 @@ export default function HomeScreen() {
     fetchPopularTVShows,
   } = useMovieStore();
   const { height: windowHeight } = useWindowDimensions();
+
+  const hasEpisodeProgress = useEpisodeProgressStore(
+    (state) => Object.keys(state.entries).length > 0,
+  );
+  const hasWatchLog = useWatchLogStore((state) => state.entries.length > 0);
 
   useEffect(() => {
     fetchTrendingMovies();
@@ -67,7 +74,7 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
         >
           <HeroCarousel movies={heroSlides} />
-          <ContinueWatchingRow />
+          {hasEpisodeProgress || hasWatchLog ? <ContinueWatchingRow /> : <ImportPromptCard />}
           {rest.length > 0 && (
             <MediaRow
               title="Trending This Week"

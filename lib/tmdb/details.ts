@@ -1,5 +1,4 @@
 import { getPrimaryGenre, TMDB_TV_GENRE_MAP } from './genres';
-import { getDeviceRegion } from './region';
 import type {
   TMDBCastMember,
   TMDBImages,
@@ -98,9 +97,10 @@ function getUSMovieCertification(release_dates: TMDBMovieDetails['release_dates'
 
 function getWatchProviders(
   providers: TMDBWatchProviders | undefined,
+  region: string,
 ): WatchProviderOffering | null {
-  const region: TMDBWatchProviderRegion | undefined = providers?.results[getDeviceRegion()];
-  if (!region) return null;
+  const providerRegion: TMDBWatchProviderRegion | undefined = providers?.results[region];
+  if (!providerRegion) return null;
 
   const mapProvider = (provider: {
     provider_id: number;
@@ -113,10 +113,10 @@ function getWatchProviders(
   });
 
   return {
-    link: region.link,
-    flatrate: (region.flatrate ?? []).map(mapProvider),
-    rent: (region.rent ?? []).map(mapProvider),
-    buy: (region.buy ?? []).map(mapProvider),
+    link: providerRegion.link,
+    flatrate: (providerRegion.flatrate ?? []).map(mapProvider),
+    rent: (providerRegion.rent ?? []).map(mapProvider),
+    buy: (providerRegion.buy ?? []).map(mapProvider),
   };
 }
 
@@ -129,7 +129,7 @@ function getTrailerKey(videos: TMDBVideos | undefined): string | null {
   return trailer?.key ?? null;
 }
 
-export function toMovieDetails(movie: TMDBMovieDetails): MediaDetails {
+export function toMovieDetails(movie: TMDBMovieDetails, region: string): MediaDetails {
   return {
     id: movie.id,
     mediaType: 'movie',
@@ -148,11 +148,11 @@ export function toMovieDetails(movie: TMDBMovieDetails): MediaDetails {
     seasons: [],
     numberOfSeasons: null,
     nextEpisodeToAir: null,
-    watchProviders: getWatchProviders(movie['watch/providers']),
+    watchProviders: getWatchProviders(movie['watch/providers'], region),
   };
 }
 
-export function toTVDetails(show: TMDBTVShowDetails): MediaDetails {
+export function toTVDetails(show: TMDBTVShowDetails, region: string): MediaDetails {
   const usRating = show.content_ratings?.results.find((entry) => entry.iso_3166_1 === 'US');
 
   return {
@@ -189,7 +189,7 @@ export function toTVDetails(show: TMDBTVShowDetails): MediaDetails {
           airDate: show.next_episode_to_air.air_date,
         }
       : null,
-    watchProviders: getWatchProviders(show['watch/providers']),
+    watchProviders: getWatchProviders(show['watch/providers'], region),
   };
 }
 

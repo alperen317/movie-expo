@@ -12,6 +12,7 @@ interface ProfileState {
     displayName?: string | null;
     avatarVariant?: AvatarVariant;
     avatarSeed?: string | null;
+    watchRegion?: string | null;
   }) => Promise<void>;
   reset: () => void;
 }

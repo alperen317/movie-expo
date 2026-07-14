@@ -6,21 +6,18 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
   Linking,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   useWindowDimensions,
   View,
 } from 'react-native';
-import Animated, { ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { WebView } from 'react-native-webview';
 
+import { GalleryViewer } from '../../../components/details/GalleryViewer';
+import { TrailerModal } from '../../../components/details/TrailerModal';
 import type { MediaCardItem } from '../../../components/home/MovieCard';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
 import { SeasonAccordion } from '../../../components/watchLog/SeasonAccordion';
@@ -28,9 +25,11 @@ import { WatchLogSheet } from '../../../components/watchLog/WatchLogSheet';
 import { getBackdropUrl, getLogoUrl, getProfileUrl } from '../../../lib/tmdb/config';
 import { MediaDetails, toMovieDetails, toTVDetails } from '../../../lib/tmdb/details';
 import { getMovieDetails } from '../../../lib/tmdb/movies';
+import { getEffectiveRegion } from '../../../lib/tmdb/region';
 import { getTVShowDetails } from '../../../lib/tmdb/tv';
 import { useEpisodeProgressStore } from '../../../stores/episodeProgress.store';
 import { useListsStore } from '../../../stores/lists.store';
+import { useProfileStore } from '../../../stores/profile.store';
 import { useToastStore } from '../../../stores/toast.store';
 import { useWatchLogStore } from '../../../stores/watchLog.store';
 
@@ -44,12 +43,11 @@ export default function DetailsScreen() {
   const { id, type } = useLocalSearchParams<{ id: string; type?: string }>();
   const mediaType = type === 'tv' ? 'tv' : 'movie';
   const insets = useSafeAreaInsets();
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const { height: windowHeight } = useWindowDimensions();
 
   const [details, setDetails] = useState<MediaDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [isTrailerOpen, setIsTrailerOpen] = useState(false);
   const [isWatchSheetOpen, setIsWatchSheetOpen] = useState(false);
 
@@ -64,6 +62,7 @@ export default function DetailsScreen() {
   const isWatched = useWatchLogStore((state) =>
     details ? state.isWatched(details.mediaType, details.id) : false,
   );
+  const region = getEffectiveRegion(useProfileStore((state) => state.profile?.watchRegion));
 
   const cardItem: MediaCardItem | null = useMemo(() => {
     if (!details) return null;
@@ -92,8 +91,8 @@ export default function DetailsScreen() {
       try {
         const media =
           mediaType === 'tv'
-            ? toTVDetails(await getTVShowDetails(Number(id)))
-            : toMovieDetails(await getMovieDetails(Number(id)));
+            ? toTVDetails(await getTVShowDetails(Number(id)), region)
+            : toMovieDetails(await getMovieDetails(Number(id)), region);
         if (!cancelled) setDetails(media);
       } catch (err) {
         if (!cancelled) {
@@ -107,7 +106,7 @@ export default function DetailsScreen() {
     return () => {
       cancelled = true;
     };
-  }, [id, mediaType]);
+  }, [id, mediaType, region]);
 
   const backdropUri = getBackdropUrl(details?.backdropPath ?? null, 'w1280');
   const metaParts = [details?.year, details?.runtimeLabel, details?.certification].filter(
@@ -304,7 +303,12 @@ export default function DetailsScreen() {
                 <Text className="font-sans-semibold text-title-md text-text-primary">Seasons</Text>
                 <View className="gap-stack-sm">
                   {details.seasons.map((season) => (
-                    <SeasonAccordion key={season.seasonNumber} tvId={details.id} season={season} />
+                    <SeasonAccordion
+                      key={season.seasonNumber}
+                      tvId={details.id}
+                      season={season}
+                      allSeasons={details.seasons}
+                    />
                   ))}
                 </View>
               </View>
@@ -321,35 +325,7 @@ export default function DetailsScreen() {
                   </Text>
                 </View>
 
-                {details.backdrops.length > 0 && (
-                  <View className="gap-stack-sm">
-                    <Text className="font-sans-semibold text-title-md text-text-primary">
-                      Gallery
-                    </Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                      <View className="flex-row gap-stack-md">
-                        {details.backdrops.map((path, index) => {
-                          const imageUri = getBackdropUrl(path, 'w780');
-                          if (!imageUri) return null;
-                          return (
-                            <AnimatedPressable
-                              key={path}
-                              onPress={() => setViewerIndex(index)}
-                              className="overflow-hidden rounded-lg border border-glass-border"
-                              style={{ width: 220, height: 124 }}
-                            >
-                              <Image
-                                source={{ uri: imageUri }}
-                                style={{ width: '100%', height: '100%' }}
-                                contentFit="cover"
-                              />
-                            </AnimatedPressable>
-                          );
-                        })}
-                      </View>
-                    </ScrollView>
-                  </View>
-                )}
+                <GalleryViewer backdrops={details.backdrops} />
 
                 {details.cast.length > 0 && (
                   <View className="gap-stack-sm">
@@ -401,123 +377,11 @@ export default function DetailsScreen() {
         </ScrollView>
       )}
 
-      <Modal
-        visible={viewerIndex !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setViewerIndex(null)}
-      >
-        <View style={{ flex: 1, backgroundColor: '#000000' }}>
-          {viewerIndex !== null && details && (
-            <FlatList
-              data={details.backdrops}
-              horizontal
-              pagingEnabled
-              initialScrollIndex={viewerIndex}
-              getItemLayout={(_, index) => ({
-                length: windowWidth,
-                offset: windowWidth * index,
-                index,
-              })}
-              keyExtractor={(path) => path}
-              showsHorizontalScrollIndicator={false}
-              renderItem={({ item }) => {
-                const imageUri = getBackdropUrl(item, 'original');
-                return (
-                  <View
-                    style={{ width: windowWidth, height: windowHeight, justifyContent: 'center' }}
-                  >
-                    {imageUri && (
-                      <Animated.View entering={ZoomIn.duration(250)}>
-                        <Image
-                          source={{ uri: imageUri }}
-                          style={{ width: windowWidth, height: (windowWidth * 9) / 16 }}
-                          contentFit="contain"
-                        />
-                      </Animated.View>
-                    )}
-                  </View>
-                );
-              }}
-            />
-          )}
-
-          {/* Rendered after the FlatList so it stays tappable — on iOS a
-              full-bleed scroll view sibling can otherwise take touches meant
-              for a control painted "above" it only in JS z-index terms. */}
-          <View
-            style={{ paddingTop: insets.top, marginTop: 12 }}
-            className="absolute right-4 top-0 z-10"
-          >
-            <AnimatedPressable
-              onPress={() => setViewerIndex(null)}
-              className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
-            >
-              <MaterialIcons name="close" size={24} color="#FFFFFF" />
-            </AnimatedPressable>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal
+      <TrailerModal
         visible={isTrailerOpen}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setIsTrailerOpen(false)}
-      >
-        <View style={{ flex: 1, backgroundColor: '#000000' }}>
-          {isTrailerOpen && details?.trailerKey && (
-            <View style={{ flex: 1, justifyContent: 'center' }}>
-              <View style={{ width: windowWidth, height: (windowWidth * 9) / 16 }}>
-                <WebView
-                  source={{
-                    uri: `https://www.youtube.com/embed/${details.trailerKey}?autoplay=1&playsinline=1&modestbranding=1&rel=0`,
-                  }}
-                  style={{ flex: 1, backgroundColor: '#000000' }}
-                  allowsFullscreenVideo
-                  mediaPlaybackRequiresUserAction={false}
-                  startInLoadingState
-                  renderLoading={() => (
-                    <View
-                      style={StyleSheet.absoluteFill}
-                      className="items-center justify-center bg-black"
-                    >
-                      <ActivityIndicator color="#ffffff" />
-                    </View>
-                  )}
-                />
-              </View>
-            </View>
-          )}
-
-          {/* Rendered after the WebView so these stay tappable — on iOS a
-              full-bleed WebView sibling can otherwise swallow touches meant
-              for controls painted "above" it only in JS z-index terms. */}
-          <View
-            style={{ paddingTop: insets.top, marginTop: 12 }}
-            className="absolute left-4 right-4 top-0 z-10 flex-row items-center justify-between"
-          >
-            <AnimatedPressable
-              onPress={() =>
-                details?.trailerKey &&
-                openUrlSafely(`https://www.youtube.com/watch?v=${details.trailerKey}`)
-              }
-              className="h-10 flex-row items-center gap-2 rounded-full border border-glass-border bg-background-blur px-4"
-            >
-              <MaterialIcons name="open-in-new" size={16} color="#FFFFFF" />
-              <Text className="font-sans-semibold text-caption text-text-primary">
-                Open in YouTube
-              </Text>
-            </AnimatedPressable>
-            <AnimatedPressable
-              onPress={() => setIsTrailerOpen(false)}
-              className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
-            >
-              <MaterialIcons name="close" size={24} color="#FFFFFF" />
-            </AnimatedPressable>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setIsTrailerOpen(false)}
+        trailerKey={details?.trailerKey ?? null}
+      />
 
       {cardItem && (
         <WatchLogSheet
