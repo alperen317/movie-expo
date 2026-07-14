@@ -35,7 +35,7 @@ export function parseTVTimeExport(files: Record<string, string>): ImportRecord[]
       records.push({
         source: 'tvtime',
         mediaType: 'movie',
-        title: row.movie_name,
+        title: row.movie_name ?? '',
         year: row.release_date ? row.release_date.slice(0, 4) : null,
         listType: row.type === 'watch' ? 'watched' : 'watchlist',
         watchedAt: row.type === 'watch' ? parseWatchDate(row) : null,
@@ -47,12 +47,12 @@ export function parseTVTimeExport(files: Record<string, string>): ImportRecord[]
   const followed = files['tracking-prod-records-v2.csv'];
   if (followed) {
     for (const row of parseCSVRecords(followed)) {
-      if (row.is_followed !== 'true' || row.series_name.trim().length === 0) continue;
+      if (row.is_followed !== 'true' || (row.series_name ?? '').trim().length === 0) continue;
 
       records.push({
         source: 'tvtime',
         mediaType: 'tv',
-        title: row.series_name,
+        title: row.series_name ?? '',
         year: null,
         listType: 'watchlist',
         watchedAt: null,

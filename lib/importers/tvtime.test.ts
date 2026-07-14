@@ -73,7 +73,9 @@ describe('parseTVTimeExport', () => {
 
   it('imports followed series from the v2 file as tv watchlist entries', () => {
     const files = {
-      'tracking-prod-records-v2.csv': [V2_HEADER, FOLLOWED_SERIES_ROW, TRACKING_STATS_ROW].join('\n'),
+      'tracking-prod-records-v2.csv': [V2_HEADER, FOLLOWED_SERIES_ROW, TRACKING_STATS_ROW].join(
+        '\n',
+      ),
     };
     const records = parseTVTimeExport(files);
 
@@ -92,5 +94,26 @@ describe('parseTVTimeExport', () => {
 
   it('returns an empty array when neither known file is present', () => {
     expect(parseTVTimeExport({})).toEqual([]);
+  });
+
+  it('does not throw when a variant export is missing the movie_name column', () => {
+    const files = {
+      'tracking-prod-records.csv': [
+        'entity_type,type,updated_at,release_date',
+        'movie,watch,2026-07-13 12:17:38,1998-01-16',
+      ].join('\n'),
+    };
+    expect(() => parseTVTimeExport(files)).not.toThrow();
+    expect(parseTVTimeExport(files)).toEqual([]);
+  });
+
+  it('does not throw when a variant export is missing the series_name column', () => {
+    const files = {
+      'tracking-prod-records-v2.csv': ['is_followed,updated_at', 'true,2026-07-13 12:17:38'].join(
+        '\n',
+      ),
+    };
+    expect(() => parseTVTimeExport(files)).not.toThrow();
+    expect(parseTVTimeExport(files)).toEqual([]);
   });
 });
