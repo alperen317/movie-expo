@@ -9,12 +9,15 @@ import {
 } from '@expo-google-fonts/inter';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { supabase } from '../lib/supabase/client';
 import { useAuthStore } from '../stores/auth.store';
+
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -24,6 +27,7 @@ export default function RootLayout() {
     Inter_700Bold,
   });
   const isAuthLoading = useAuthStore((state) => state.isLoading);
+  const isReady = fontsLoaded && !isAuthLoading;
 
   useEffect(() => {
     useAuthStore.getState().initialize();
@@ -39,7 +43,13 @@ export default function RootLayout() {
     return () => subscription.remove();
   }, []);
 
-  if (!fontsLoaded || isAuthLoading) {
+  useEffect(() => {
+    if (isReady) {
+      SplashScreen.hideAsync();
+    }
+  }, [isReady]);
+
+  if (!isReady) {
     return null;
   }
 
