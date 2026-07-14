@@ -38,6 +38,8 @@ export default function AppLayout() {
         <Stack.Screen name="stats" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="import" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="edit-profile" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="legal/privacy" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="legal/terms" options={{ animation: 'slide_from_right' }} />
       </Stack>
       <Toast />
     </>

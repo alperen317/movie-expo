@@ -54,6 +54,7 @@ export class SharedListsError extends Error {
     | 'already_invited_or_member'
     | 'invalid_code'
     | 'not_owner'
+    | 'rate_limited'
     | 'unknown';
 
   constructor(code: SharedListsError['code'], message: string) {
@@ -86,6 +87,9 @@ function fromJoinCodeRpcError(err: unknown): never {
   }
   if (message.includes('not_owner')) {
     throw new SharedListsError('not_owner', 'Only the list owner can do that.');
+  }
+  if (message.includes('rate_limited')) {
+    throw new SharedListsError('rate_limited', 'Too many attempts. Try again in a few minutes.');
   }
   throw new SharedListsError('unknown', message);
 }

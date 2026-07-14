@@ -15,6 +15,7 @@ import { AppState } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { supabase } from '../lib/supabase/client';
+import { initSentry } from '../lib/telemetry/sentry';
 import { useAuthStore } from '../stores/auth.store';
 
 SplashScreen.preventAutoHideAsync();
@@ -31,6 +32,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     useAuthStore.getState().initialize();
+    initSentry();
 
     const subscription = AppState.addEventListener('change', (state) => {
       if (state === 'active') {

@@ -43,6 +43,7 @@ Auth and data live in Supabase (Postgres + Row Level Security); see `supabase/mi
    | `EXPO_PUBLIC_TMDB_ACCESS_TOKEN` | TMDB API Read Access Token ([themoviedb.org/settings/api](https://www.themoviedb.org/settings/api)) |
    | `EXPO_PUBLIC_SUPABASE_URL`      | Your Supabase project URL                                                                           |
    | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase project's anon/public key                                                             |
+   | `EXPO_PUBLIC_SENTRY_DSN`        | Optional — crash reporting is a no-op until this is set (see `lib/telemetry/sentry.ts`)             |
 
 3. **Apply Supabase migrations** — run the files in `supabase/migrations/` in order (`0001_...sql` through the latest) against your Supabase project, e.g. via the SQL editor or the [Supabase CLI](https://supabase.com/docs/guides/cli):
 
@@ -56,6 +57,8 @@ Auth and data live in Supabase (Postgres + Row Level Security); see `supabase/mi
    npm run start   # Expo dev server; press i / a / w, or scan the QR code
    npm run web     # web only
    ```
+
+5. **(Store builds only)** `eas.json` defines `development`/`preview`/`production` build profiles, but isn't yet linked to an Expo account/project. Run `npx eas login` then `eas init` once to link one — this writes `extra.eas.projectId` into `app.json`.
 
 ## Development
 

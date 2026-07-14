@@ -5,11 +5,13 @@ import { useEffect, useState } from 'react';
 import { Linking, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { DeleteAccountModal } from '../../../components/settings/DeleteAccountModal';
 import { RegionPickerModal } from '../../../components/settings/RegionPickerModal';
 import { ActionSheetModal } from '../../../components/ui/ActionSheetModal';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
 import { BoringAvatar } from '../../../components/ui/BoringAvatar';
 import { clearRecentSearches } from '../../../lib/storage/recentSearches';
+import { isCrashReportingEnabled, setCrashReportingEnabled } from '../../../lib/telemetry/sentry';
 import { WATCH_REGIONS } from '../../../lib/tmdb/regions';
 import { useAuthStore } from '../../../stores/auth.store';
 import { useListsStore } from '../../../stores/lists.store';
@@ -46,6 +48,20 @@ export default function ProfileScreen() {
     fetchProfile();
   }, [fetchFavorites, fetchWatchlist, fetchWatchLog, fetchProfile]);
 
+  const [crashReportingEnabled, setCrashReportingEnabledState] = useState(true);
+  useEffect(() => {
+    isCrashReportingEnabled().then(setCrashReportingEnabledState);
+  }, []);
+
+  const handleToggleCrashReporting = async () => {
+    const next = !crashReportingEnabled;
+    setCrashReportingEnabledState(next);
+    await setCrashReportingEnabled(next);
+    if (next) {
+      useToastStore.getState().show('Restart the app for this to take effect', 'info-outline');
+    }
+  };
+
   const email = session?.user?.email ?? '';
   const avatarSeed = profile?.avatarSeed || profile?.displayName || email;
   const memberSince = formatMemberSince(session?.user?.created_at);
@@ -55,6 +71,7 @@ export default function ProfileScreen() {
 
   const [isClearHistoryConfirmOpen, setIsClearHistoryConfirmOpen] = useState(false);
   const [isRegionPickerOpen, setIsRegionPickerOpen] = useState(false);
+  const [isDeleteAccountOpen, setIsDeleteAccountOpen] = useState(false);
   const watchRegionLabel = profile?.watchRegion
     ? (WATCH_REGIONS.find((region) => region.code === profile.watchRegion)?.name ??
       profile.watchRegion)
@@ -169,6 +186,17 @@ export default function ProfileScreen() {
             </AnimatedPressable>
             <View className="h-px bg-glass-border" />
             <AnimatedPressable
+              onPress={handleToggleCrashReporting}
+              className="flex-row items-center gap-3 px-4 py-stack-md"
+            >
+              <MaterialIcons name="bug-report" size={20} color="#A1A1AA" />
+              <Text className="flex-1 font-sans text-body-md text-text-primary">
+                Share Crash Reports
+              </Text>
+              {crashReportingEnabled && <MaterialIcons name="check" size={20} color="#f5c451" />}
+            </AnimatedPressable>
+            <View className="h-px bg-glass-border" />
+            <AnimatedPressable
               onPress={() => setIsClearHistoryConfirmOpen(true)}
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >
@@ -180,11 +208,39 @@ export default function ProfileScreen() {
             </AnimatedPressable>
             <View className="h-px bg-glass-border" />
             <AnimatedPressable
+              onPress={() => router.push('/legal/privacy')}
+              className="flex-row items-center gap-3 px-4 py-stack-md"
+            >
+              <MaterialIcons name="privacy-tip" size={20} color="#A1A1AA" />
+              <Text className="flex-1 font-sans text-body-md text-text-primary">
+                Privacy Policy
+              </Text>
+              <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
+            </AnimatedPressable>
+            <View className="h-px bg-glass-border" />
+            <AnimatedPressable
+              onPress={() => router.push('/legal/terms')}
+              className="flex-row items-center gap-3 px-4 py-stack-md"
+            >
+              <MaterialIcons name="description" size={20} color="#A1A1AA" />
+              <Text className="flex-1 font-sans text-body-md text-text-primary">Terms of Use</Text>
+              <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
+            </AnimatedPressable>
+            <View className="h-px bg-glass-border" />
+            <AnimatedPressable
               onPress={handleSignOut}
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >
               <MaterialIcons name="logout" size={20} color="#ffb4ab" />
               <Text className="flex-1 font-sans text-body-md text-error">Sign Out</Text>
+            </AnimatedPressable>
+            <View className="h-px bg-glass-border" />
+            <AnimatedPressable
+              onPress={() => setIsDeleteAccountOpen(true)}
+              className="flex-row items-center gap-3 px-4 py-stack-md"
+            >
+              <MaterialIcons name="delete-forever" size={20} color="#ffb4ab" />
+              <Text className="flex-1 font-sans text-body-md text-error">Delete Account</Text>
             </AnimatedPressable>
           </View>
         </View>
@@ -225,6 +281,11 @@ export default function ProfileScreen() {
       <RegionPickerModal
         visible={isRegionPickerOpen}
         onClose={() => setIsRegionPickerOpen(false)}
+      />
+
+      <DeleteAccountModal
+        visible={isDeleteAccountOpen}
+        onClose={() => setIsDeleteAccountOpen(false)}
       />
     </SafeAreaView>
   );
