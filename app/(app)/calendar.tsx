@@ -6,6 +6,7 @@ import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AnimatedPressable } from '../../components/ui/AnimatedPressable';
+import { requestEpisodeReminderPermission } from '../../lib/notifications/episodeReminders';
 import { getPosterUrl } from '../../lib/tmdb/config';
 import { getTVShowDetails } from '../../lib/tmdb/tv';
 import { useEpisodeProgressStore } from '../../stores/episodeProgress.store';
@@ -37,6 +38,10 @@ export default function CalendarScreen() {
 
   const [episodes, setEpisodes] = useState<UpcomingEpisode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    requestEpisodeReminderPermission();
+  }, []);
 
   useEffect(() => {
     if (!showIdsKey) {
@@ -86,7 +91,11 @@ export default function CalendarScreen() {
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
       <View className="flex-row items-center gap-3 px-margin-mobile py-stack-md">
-        <AnimatedPressable onPress={() => router.back()} hitSlop={8} className="h-8 w-8 items-center justify-center">
+        <AnimatedPressable
+          onPress={() => router.back()}
+          hitSlop={8}
+          className="h-8 w-8 items-center justify-center"
+        >
           <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />
         </AnimatedPressable>
         <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">Calendar</Text>
@@ -105,7 +114,7 @@ export default function CalendarScreen() {
             No upcoming episodes
           </Text>
           <Text className="text-center font-sans text-body-md text-text-secondary">
-            Shows you're tracking will show their next episode here.
+            Shows you&apos;re tracking will show their next episode here.
           </Text>
         </View>
       )}
@@ -119,19 +128,32 @@ export default function CalendarScreen() {
           renderItem={({ item }) => (
             <AnimatedPressable
               onPress={() =>
-                router.push({ pathname: '/details/[id]', params: { id: String(item.showId), type: 'tv' } })
+                router.push({
+                  pathname: '/details/[id]',
+                  params: { id: String(item.showId), type: 'tv' },
+                })
               }
               className="flex-row items-center gap-3 rounded-2xl border border-glass-border bg-surface-container-low p-3"
             >
-              <View style={{ width: 56, aspectRatio: 2 / 3 }} className="overflow-hidden rounded-lg">
+              <View
+                style={{ width: 56, aspectRatio: 2 / 3 }}
+                className="overflow-hidden rounded-lg"
+              >
                 <Image
-                  source={getPosterUrl(item.posterPath, 'w185') ? { uri: getPosterUrl(item.posterPath, 'w185')! } : undefined}
+                  source={
+                    getPosterUrl(item.posterPath, 'w185')
+                      ? { uri: getPosterUrl(item.posterPath, 'w185')! }
+                      : undefined
+                  }
                   style={{ width: '100%', height: '100%' }}
                   contentFit="cover"
                 />
               </View>
               <View className="flex-1 gap-1">
-                <Text className="font-sans-semibold text-title-md text-text-primary" numberOfLines={1}>
+                <Text
+                  className="font-sans-semibold text-title-md text-text-primary"
+                  numberOfLines={1}
+                >
                   {item.title}
                 </Text>
                 <Text className="font-sans text-caption text-text-secondary">

@@ -27,6 +27,10 @@ function reminderDate(airDate: string): Date {
   return date;
 }
 
+// Schedules reminders using the current permission state only -- never prompts.
+// Call requestEpisodeReminderPermission() at a contextual moment (e.g. the
+// Calendar screen) to ask for permission for the first time; this function is
+// safe to call unconditionally on app launch since it's a no-op until granted.
 export async function scheduleUpcomingEpisodeReminders(): Promise<void> {
   // expo-notifications' local scheduling APIs (getAllScheduledNotificationsAsync,
   // scheduleNotificationAsync, etc.) aren't implemented on web at all -- calling
@@ -34,7 +38,7 @@ export async function scheduleUpcomingEpisodeReminders(): Promise<void> {
   // Expo modules provide. Skip the whole flow there.
   if (Platform.OS === 'web') return;
 
-  const { status } = await Notifications.requestPermissionsAsync();
+  const { status } = await Notifications.getPermissionsAsync();
   if (status !== 'granted') return;
 
   const showIds = useEpisodeProgressStore.getState().showIdsInProgress();
@@ -68,7 +72,9 @@ export async function scheduleUpcomingEpisodeReminders(): Promise<void> {
   await Promise.all(
     scheduled
       .filter((notification) => notification.identifier.startsWith(REMINDER_PREFIX))
-      .map((notification) => Notifications.cancelScheduledNotificationAsync(notification.identifier)),
+      .map((notification) =>
+        Notifications.cancelScheduledNotificationAsync(notification.identifier),
+      ),
   );
 
   for (const candidate of candidates) {
@@ -85,4 +91,15 @@ export async function scheduleUpcomingEpisodeReminders(): Promise<void> {
       },
     });
   }
+}
+
+// Prompts for notification permission if not already decided, then schedules
+// immediately if granted. Call this from a contextual entry point (the
+// Calendar screen) rather than at app launch -- an out-of-context permission
+// prompt on first open has a much higher decline rate.
+export async function requestEpisodeReminderPermission(): Promise<void> {
+  if (Platform.OS === 'web') return;
+
+  const { status } = await Notifications.requestPermissionsAsync();
+  if (status === 'granted') await scheduleUpcomingEpisodeReminders();
 }
