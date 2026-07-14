@@ -276,7 +276,7 @@ export default function SharedListDetailScreen() {
                   </View>
                   <View className="flex-1">
                     <Text className="font-sans text-body-md text-text-primary" numberOfLines={1}>
-                      {member.email}
+                      {member.displayName || member.email}
                     </Text>
                     {member.status === 'pending' && (
                       <Text className="font-sans text-caption text-text-secondary">Pending</Text>
