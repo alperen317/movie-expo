@@ -10,6 +10,7 @@ import { RegionPickerModal } from '../../../components/settings/RegionPickerModa
 import { ActionSheetModal } from '../../../components/ui/ActionSheetModal';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
 import { BoringAvatar } from '../../../components/ui/BoringAvatar';
+import { TmdbLogo } from '../../../components/ui/TmdbLogo';
 import { clearRecentSearches } from '../../../lib/storage/recentSearches';
 import { isCrashReportingEnabled, setCrashReportingEnabled } from '../../../lib/telemetry/sentry';
 import { WATCH_REGIONS } from '../../../lib/tmdb/regions';
@@ -256,9 +257,10 @@ export default function ProfileScreen() {
               useToastStore.getState().show('Could not open link', 'error-outline');
             })
           }
-          className="mt-stack-sm px-margin-mobile"
+          className="mt-stack-sm items-center px-margin-mobile"
         >
-          <Text className="text-center font-sans text-caption text-text-secondary">
+          <TmdbLogo width={80} />
+          <Text className="mt-1 text-center font-sans text-caption text-text-secondary">
             This product uses the TMDB API but is not endorsed or certified by TMDB.
           </Text>
           <Text

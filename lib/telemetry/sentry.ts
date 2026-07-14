@@ -19,8 +19,7 @@ export async function setCrashReportingEnabled(enabled: boolean): Promise<void> 
   }
 }
 
-// No-ops entirely until EXPO_PUBLIC_SENTRY_DSN is configured (see
-// .env.example) -- there is no Sentry project set up yet.
+// No-ops entirely if EXPO_PUBLIC_SENTRY_DSN isn't set (see .env.example).
 export async function initSentry(): Promise<void> {
   const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
   if (!dsn) return;

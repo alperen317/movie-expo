@@ -41,6 +41,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "af2c2003-19a8-491c-9fb0-41cc807474dd"
+      }
+    },
+    "owner": "alperen317"
   }
 }
