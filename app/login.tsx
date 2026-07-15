@@ -72,7 +72,9 @@ export default function LoginScreen() {
           <Text className="font-sans text-caption text-text-secondary">Beni hatırla</Text>
         </Pressable>
 
-        <Text className="font-sans text-caption text-primary-container">Şifremi unuttum</Text>
+        <Pressable onPress={() => router.push('/forgot-password')}>
+          <Text className="font-sans text-caption text-primary-container">Şifremi unuttum</Text>
+        </Pressable>
       </View>
 
       {error && (
@@ -86,7 +88,7 @@ export default function LoginScreen() {
       )}
 
       <AnimatedPressable
-        onPress={() => signIn(email, password)}
+        onPress={() => signIn(email, password, rememberMe)}
         disabled={!canSubmit}
         style={{
           shadowColor: '#F5C451',
