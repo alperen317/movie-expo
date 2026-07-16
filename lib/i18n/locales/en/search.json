@@ -1,0 +1,19 @@
+{
+  "search": {
+    "heading": "Find your next masterpiece",
+    "placeholder": "Search movies, directors, or genres...",
+    "recentSearches": "Recent Searches",
+    "clearRecent": "CLEAR",
+    "popularGenres": "Popular Genres",
+    "noResultsTitle": "No results found",
+    "noResultsSubtitle": "Try a different title, actor, or genre.",
+    "genres": {
+      "horror": "Horror",
+      "horrorSubtitle": "Shadows & Suspense",
+      "sciFi": "Sci-Fi",
+      "drama": "Drama",
+      "comedy": "Comedy",
+      "action": "Action"
+    }
+  }
+}

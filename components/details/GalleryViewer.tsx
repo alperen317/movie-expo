@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FlatList, Modal, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,6 +14,7 @@ interface GalleryViewerProps {
 }
 
 export function GalleryViewer({ backdrops }: GalleryViewerProps) {
+  const { t } = useTranslation();
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const insets = useSafeAreaInsets();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
@@ -22,7 +24,9 @@ export function GalleryViewer({ backdrops }: GalleryViewerProps) {
   return (
     <>
       <View className="gap-stack-sm">
-        <Text className="font-sans-semibold text-title-md text-text-primary">Gallery</Text>
+        <Text className="font-sans-semibold text-title-md text-text-primary">
+          {t('components.gallery.title')}
+        </Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View className="flex-row gap-stack-md">
             {backdrops.map((path, index) => {

@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { FadeIn, FadeOut } from 'react-native-reanimated';
 
@@ -10,6 +11,7 @@ import { AnimatedPressable, AnimatedView } from '../components/ui/AnimatedPressa
 import { useAuthStore } from '../stores/auth.store';
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const session = useAuthStore((state) => state.session);
   const { signIn, isSubmitting, error } = useAuthStore();
   const [email, setEmail] = useState('');
@@ -28,10 +30,10 @@ export default function LoginScreen() {
 
       <View className="mt-stack-lg w-full items-center">
         <Text className="text-headline-lg-mobile font-sans-semibold text-text-primary">
-          Tekrar hoş geldin
+          {t('auth.login.welcome')}
         </Text>
         <Text className="mt-stack-sm text-center font-sans text-body-md text-text-secondary">
-          Sinematik dünyana giriş yap.
+          {t('auth.login.subtitle')}
         </Text>
       </View>
 
@@ -40,7 +42,7 @@ export default function LoginScreen() {
           icon="email"
           value={email}
           onChangeText={setEmail}
-          placeholder="E-posta"
+          placeholder={t('auth.email')}
           autoCapitalize="none"
           autoComplete="email"
           keyboardType="email-address"
@@ -50,7 +52,7 @@ export default function LoginScreen() {
           isPassword
           value={password}
           onChangeText={setPassword}
-          placeholder="Şifre"
+          placeholder={t('auth.password')}
           autoComplete="password"
         />
       </View>
@@ -69,11 +71,15 @@ export default function LoginScreen() {
           >
             {rememberMe && <MaterialIcons name="check" size={16} color="#3f2e00" />}
           </View>
-          <Text className="font-sans text-caption text-text-secondary">Beni hatırla</Text>
+          <Text className="font-sans text-caption text-text-secondary">
+            {t('auth.login.rememberMe')}
+          </Text>
         </Pressable>
 
         <Pressable onPress={() => router.push('/forgot-password')}>
-          <Text className="font-sans text-caption text-primary-container">Şifremi unuttum</Text>
+          <Text className="font-sans text-caption text-primary-container">
+            {t('auth.login.forgotPassword')}
+          </Text>
         </Pressable>
       </View>
 
@@ -106,7 +112,7 @@ export default function LoginScreen() {
         ) : (
           <>
             <Text className="font-sans-bold uppercase tracking-wide text-on-primary-container">
-              Giriş Yap
+              {t('auth.login.submit')}
             </Text>
             <MaterialIcons name="arrow-forward" size={18} color="#3f2e00" />
           </>
@@ -115,7 +121,8 @@ export default function LoginScreen() {
 
       <AnimatedPressable onPress={() => router.push('/sign-up')} className="mt-stack-lg">
         <Text className="font-sans text-caption text-text-secondary">
-          Hesabın yok mu? <Text className="font-sans-bold text-text-primary">Kayıt Ol</Text>
+          {t('auth.login.noAccount')}{' '}
+          <Text className="font-sans-bold text-text-primary">{t('auth.login.signUpLink')}</Text>
         </Text>
       </AnimatedPressable>
     </AuthBackground>

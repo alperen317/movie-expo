@@ -1,0 +1,37 @@
+{
+  "legal": {
+    "lastUpdated": "Son güncelleme: Temmuz 2026",
+    "privacy": {
+      "title": "Gizlilik Politikası",
+      "collectTitle": "Neleri topluyoruz",
+      "collectBody": "Bir hesap oluşturduğunda e-posta adresini ve profiline eklemeyi seçtiğin bilgileri (görünen ad ve avatar stili) saklarız. Uygulamada takip ettiklerini saklarız: izleme kaydın (puan ve notlar dahil), bölüm ilerlemen, favorilerin ve izleme listen.",
+      "sharedTitle": "Paylaşılan listeler",
+      "sharedBody": "Bir paylaşılan liste oluşturur veya bir listeye katılırsan diğer üyeler listenin içeriğini, her öğeyi kimin eklediğini ve profilinin görünen adını/avatarını/e-postasını görebilir. Liste katılım kodları yalnızca paylaştığın kişiler tarafından kullanılabilir.",
+      "deviceTitle": "Cihazında kalanlar",
+      "deviceBody": "Son arama geçmişin yalnızca cihazında yerel olarak saklanır — sunucularımıza asla gönderilmez ve istediğin zaman Profil'den temizleyebilirsin.",
+      "permissionsTitle": "Cihaz izinleri",
+      "permissionsBody": "Bölüm hatırlatıcılarını etkinleştirirsen, yaklaşan bölümler için yerel hatırlatıcılar planlamak üzere bildirim izni isteriz. Bu, cihazından hiçbir veri göndermez.",
+      "thirdPartiesTitle": "Üçüncü taraflar",
+      "thirdPartiesBody": "Veritabanımızı barındırmak ve kimlik doğrulamayı yürütmek için Supabase kullanırız — verilerin, işleyicimiz olarak onların altyapısında saklanır. Film/dizi meta verileri (afişler, başlıklar, puanlar) için TMDB kullanırız; TMDB'ye hiçbir kişisel veri gönderilmez. Profil'de çökme raporlamayı açık tutarsan, hataları düzeltmemize yardımcı olmak için anonim çökme raporları Sentry'ye gönderilebilir — bunu istediğin zaman kapatabilirsin.",
+      "deleteTitle": "Verilerini silme",
+      "deleteBody": "Hesabını ve ilişkili tüm verileri istediğin zaman Profil → Hesabı Sil'den kalıcı olarak silebilirsin. Bu, sahibi olduğun paylaşılan listeleri tüm üyeler için de siler.",
+      "contactTitle": "İletişim",
+      "contactBody": "Bu politika veya verilerinle ilgili sorular mı var? alialperena@gmail.com adresine e-posta gönder."
+    },
+    "terms": {
+      "title": "Kullanım Koşulları",
+      "usingTitle": "Previously'i kullanmak",
+      "usingBody": "Previously, film ve diziler için ücretsiz, kişisel bir izleme takip uygulamasıdır. Oluşturduğun hesaplardan ve paylaşılan listelere eklediğin içerikten sen sorumlusun. Uygulamayı, paylaşma hakkına sahip olmadığın içeriği yüklemek veya diğer kullanıcıları taciz etmek için kullanma.",
+      "accountsTitle": "Paylaşılan listeler ve hesaplar",
+      "accountsBody": "Bir listenin katılım koduna sahip olan herkes o listeye katılabilir. Kodu kiminle paylaştığından sen sorumlusun. Liste sahipleri, sahibi oldukları listelerden üyeleri çıkarabilir; ayrılman veya hesabını silmen, sahibi olmadığın listelerden seni çıkarır.",
+      "attributionTitle": "İçerik ve atıf",
+      "attributionBody": "This product uses the TMDB API but is not endorsed or certified by TMDB. Yayın bulunabilirliği dahil film ve dizi verileri TMDB ve JustWatch tarafından sağlanır ve her zaman doğru veya güncel olmayabilir.",
+      "warrantyTitle": "Garanti yok",
+      "warrantyBody": "Previously \"olduğu gibi\" sunulur, hiçbir garanti verilmez. Uygulamanın kesintisiz veya hatasız olacağını ya da verilerinin asla kaybolmayacağını garanti etmeyiz — yeri doldurulamaz olan her şeyi yedekle (ör. uygulamadaki dışa aktarma seçenekleriyle).",
+      "changesTitle": "Değişiklikler",
+      "changesBody": "Uygulama değiştikçe bu koşulları güncelleyebiliriz. Bir güncellemeden sonra uygulamayı kullanmaya devam etmen, gözden geçirilmiş koşulları kabul ettiğin anlamına gelir.",
+      "contactTitle": "İletişim",
+      "contactBody": "Bu koşullarla ilgili sorular mı var? alialperena@gmail.com adresine e-posta gönder."
+    }
+  }
+}

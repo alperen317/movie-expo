@@ -1,0 +1,98 @@
+{
+  "components": {
+    "invite": {
+      "title": "Invite a Friend",
+      "shareCodeHint": "Or share this code — anyone with it joins instantly.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "share": "Share",
+      "regenerate": "Regenerate code",
+      "regenerating": "Regenerating…",
+      "orByEmail": "or invite by email",
+      "needAccount": "They need an existing Previously account to be added.",
+      "enterEmail": "Enter an email address.",
+      "sendFailed": "Failed to send invite.",
+      "sendInvite": "Send Invite",
+      "shareMessage": "Join my list on Previously — use code {{code}}"
+    },
+    "joinCode": {
+      "title": "Join a List",
+      "subtitle": "Enter the code someone shared with you.",
+      "enterCode": "Enter a list code.",
+      "joinFailed": "Failed to join list.",
+      "join": "Join"
+    },
+    "listName": {
+      "placeholder": "e.g. Movies to watch together",
+      "enterName": "Give your list a name."
+    },
+    "pendingInvite": {
+      "invitedBy": "Invited by {{email}}",
+      "invitedYou": "Invited you",
+      "decline": "Decline",
+      "accept": "Accept"
+    },
+    "listCard": {
+      "updatedJustNow": "Updated just now",
+      "updatedMinutes": "Updated {{count}}m ago",
+      "updatedHours": "Updated {{count}}h ago",
+      "updatedDays": "Updated {{count}}d ago"
+    },
+    "deleteAccount": {
+      "title": "Delete Account",
+      "body": "This permanently deletes your profile, watch history, episode progress, favorites, and watchlist. Any shared lists you own are deleted too — including for other members. This can't be undone.",
+      "confirmPrompt": "Type {{word}} to confirm.",
+      "confirmButton": "Delete My Account"
+    },
+    "regionPicker": {
+      "subtitle": "Controls which streaming availability shows on movie and show pages.",
+      "useDeviceRegion": "Use Device Region (currently {{region}})",
+      "updated": "Watch region updated"
+    },
+    "statsCard": {
+      "recap": "{{period}} Recap",
+      "ofWatching": "of watching, together",
+      "topGenres": "Top Genres",
+      "byMonth": "{{year}} by month",
+      "dataFromTmdb": "Data from TMDB"
+    },
+    "watchLog": {
+      "editTitle": "Edit your log for \"{{title}}\"",
+      "markTitle": "Mark \"{{title}}\" as watched",
+      "when": "When?",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "custom": "Custom",
+      "ratingOptional": "Rating (optional)",
+      "noteOptional": "Note (optional)",
+      "notePlaceholder": "Any thoughts?",
+      "markEveryEpisode": "Mark every episode as watched too",
+      "markEveryEpisodeHint": "Only watched some seasons? Uncheck this and use the Seasons list below instead.",
+      "removeFromWatchlist": "Remove from Watchlist",
+      "invalidDate": "Enter a valid date (YYYY-MM-DD).",
+      "saveChanges": "Save Changes"
+    },
+    "seasonAccordion": {
+      "loadError": "Failed to load episodes.",
+      "watchedCount": "{{watched}}/{{total}} watched",
+      "episodeCount_one": "{{count}} episode",
+      "episodeCount_other": "{{count}} episodes",
+      "markSeasonTitle": "Mark Season {{season}}?",
+      "markSeasonsTitle": "Mark Seasons {{from}}–{{to}}?",
+      "markUpToMessage": "This marks every episode through Season {{season}} as watched.",
+      "markWatched": "Mark Watched"
+    },
+    "continueWatching": {
+      "title": "Continue Watching",
+      "upcoming": "Upcoming",
+      "coming": "Coming {{ep}}",
+      "next": "Next: {{ep}}"
+    },
+    "trailer": {
+      "openInYoutube": "Open in YouTube"
+    },
+    "gallery": {
+      "title": "Gallery"
+    }
+  }
+}

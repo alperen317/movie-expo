@@ -1,0 +1,9 @@
+{
+  "actor": {
+    "loadError": "Oyuncu yüklenemedi.",
+    "biography": "Biyografi",
+    "noBiography": "Biyografi bulunmuyor.",
+    "born": "Doğum: {{date}}",
+    "knownFor": "Öne Çıkanlar"
+  }
+}

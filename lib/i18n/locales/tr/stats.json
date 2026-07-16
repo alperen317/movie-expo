@@ -1,0 +1,22 @@
+{
+  "stats": {
+    "title": "İstatistikler",
+    "emptyTitle": "Henüz istatistik yok",
+    "emptySubtitle": "İstatistiklerini görmek için film ve bölümleri izlendi olarak işaretle.",
+    "yearWrapped": "Yıl Özetin hazır",
+    "allTime": "Tüm Zamanlar",
+    "thisYear": "Bu Yıl",
+    "heroYear": "{{year}} yılında harcadığın süre",
+    "heroLife": "Hayatın boyunca harcadığın süre",
+    "heroSuffix": "film ve dizi izleyerek",
+    "daysHours": "{{days}}g {{hours}}s",
+    "movies": "Filmler",
+    "episodes": "Bölümler",
+    "shows": "Diziler",
+    "genres": "Türler",
+    "activity": "{{year}} Etkinliği",
+    "peakIn": "Zirve: {{month}}",
+    "shareRecap": "Özetini paylaş",
+    "share": "Paylaş"
+  }
+}

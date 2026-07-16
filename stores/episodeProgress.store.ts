@@ -8,6 +8,7 @@ import {
   unmarkEpisodeWatched,
   unmarkSeasonWatched,
 } from '../lib/supabase/episodeProgress';
+import i18n from '../lib/i18n';
 import type { MediaSeasonSummary } from '../lib/tmdb/details';
 import { useToastStore } from './toast.store';
 
@@ -94,7 +95,7 @@ export const useEpisodeProgressStore = create<EpisodeProgressState>((set, get) =
         }
         return { entries };
       });
-      useToastStore.getState().show('Something went wrong. Please try again.', 'error-outline');
+      useToastStore.getState().show(i18n.t('toasts.genericError'), 'error-outline');
       throw err;
     }
   },
@@ -115,7 +116,9 @@ export const useEpisodeProgressStore = create<EpisodeProgressState>((set, get) =
       }
       return { entries };
     });
-    useToastStore.getState().show(`Season ${seasonNumber} marked as watched`, 'check-circle');
+    useToastStore
+      .getState()
+      .show(i18n.t('toasts.seasonMarkedWatched', { season: seasonNumber }), 'check-circle');
 
     try {
       await markEpisodesWatchedBatch(
@@ -125,7 +128,7 @@ export const useEpisodeProgressStore = create<EpisodeProgressState>((set, get) =
       );
     } catch (err) {
       set({ entries: previous });
-      useToastStore.getState().show('Something went wrong. Please try again.', 'error-outline');
+      useToastStore.getState().show(i18n.t('toasts.genericError'), 'error-outline');
       throw err;
     }
   },
@@ -153,13 +156,15 @@ export const useEpisodeProgressStore = create<EpisodeProgressState>((set, get) =
       }
       return { entries };
     });
-    useToastStore.getState().show(`Marked through Season ${targetSeasonNumber}`, 'check-circle');
+    useToastStore
+      .getState()
+      .show(i18n.t('toasts.markedThroughSeason', { season: targetSeasonNumber }), 'check-circle');
 
     try {
       await markEpisodesWatchedBatch(showId, pairs, now);
     } catch (err) {
       set({ entries: previous });
-      useToastStore.getState().show('Something went wrong. Please try again.', 'error-outline');
+      useToastStore.getState().show(i18n.t('toasts.genericError'), 'error-outline');
       throw err;
     }
   },
@@ -179,7 +184,7 @@ export const useEpisodeProgressStore = create<EpisodeProgressState>((set, get) =
       await unmarkSeasonWatched(showId, seasonNumber);
     } catch (err) {
       set({ entries: previous });
-      useToastStore.getState().show('Something went wrong. Please try again.', 'error-outline');
+      useToastStore.getState().show(i18n.t('toasts.genericError'), 'error-outline');
       throw err;
     }
   },

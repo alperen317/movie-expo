@@ -1,0 +1,98 @@
+{
+  "components": {
+    "invite": {
+      "title": "Bir Arkadaş Davet Et",
+      "shareCodeHint": "Ya da bu kodu paylaş — koda sahip olan herkes anında katılır.",
+      "copy": "Kopyala",
+      "copied": "Kopyalandı",
+      "share": "Paylaş",
+      "regenerate": "Kodu yenile",
+      "regenerating": "Yenileniyor…",
+      "orByEmail": "veya e-postayla davet et",
+      "needAccount": "Eklenebilmesi için mevcut bir Previously hesabına sahip olmaları gerekir.",
+      "enterEmail": "Bir e-posta adresi gir.",
+      "sendFailed": "Davet gönderilemedi.",
+      "sendInvite": "Davet Gönder",
+      "shareMessage": "Previously'de listeme katıl — kod: {{code}}"
+    },
+    "joinCode": {
+      "title": "Bir Listeye Katıl",
+      "subtitle": "Birinin seninle paylaştığı kodu gir.",
+      "enterCode": "Bir liste kodu gir.",
+      "joinFailed": "Listeye katılınamadı.",
+      "join": "Katıl"
+    },
+    "listName": {
+      "placeholder": "ör. Birlikte izlenecek filmler",
+      "enterName": "Listene bir ad ver."
+    },
+    "pendingInvite": {
+      "invitedBy": "{{email}} tarafından davet edildin",
+      "invitedYou": "Seni davet etti",
+      "decline": "Reddet",
+      "accept": "Kabul Et"
+    },
+    "listCard": {
+      "updatedJustNow": "Az önce güncellendi",
+      "updatedMinutes": "{{count}} dk önce güncellendi",
+      "updatedHours": "{{count}} sa önce güncellendi",
+      "updatedDays": "{{count}} gün önce güncellendi"
+    },
+    "deleteAccount": {
+      "title": "Hesabı Sil",
+      "body": "Bu, profilini, izleme geçmişini, bölüm ilerlemeni, favorilerini ve izleme listeni kalıcı olarak siler. Sahibi olduğun paylaşılan listeler de — diğer üyeler için dahil — silinir. Bu geri alınamaz.",
+      "confirmPrompt": "Onaylamak için {{word}} yaz.",
+      "confirmButton": "Hesabımı Sil"
+    },
+    "regionPicker": {
+      "subtitle": "Film ve dizi sayfalarında hangi yayın bulunabilirliğinin gösterileceğini belirler.",
+      "useDeviceRegion": "Cihaz Bölgesini Kullan (şu an {{region}})",
+      "updated": "İzleme bölgesi güncellendi"
+    },
+    "statsCard": {
+      "recap": "{{period}} Özeti",
+      "ofWatching": "izleme, birlikte",
+      "topGenres": "En Çok İzlenen Türler",
+      "byMonth": "{{year}} aya göre",
+      "dataFromTmdb": "Veriler TMDB'den"
+    },
+    "watchLog": {
+      "editTitle": "\"{{title}}\" kaydını düzenle",
+      "markTitle": "\"{{title}}\" izlendi olarak işaretle",
+      "when": "Ne zaman?",
+      "today": "Bugün",
+      "yesterday": "Dün",
+      "custom": "Özel",
+      "ratingOptional": "Puan (isteğe bağlı)",
+      "noteOptional": "Not (isteğe bağlı)",
+      "notePlaceholder": "Düşüncelerin?",
+      "markEveryEpisode": "Her bölümü de izlendi olarak işaretle",
+      "markEveryEpisodeHint": "Yalnızca bazı sezonları mı izledin? Bunu kaldırıp aşağıdaki Sezonlar listesini kullan.",
+      "removeFromWatchlist": "İzleme Listesinden Çıkar",
+      "invalidDate": "Geçerli bir tarih gir (YYYY-AA-GG).",
+      "saveChanges": "Değişiklikleri Kaydet"
+    },
+    "seasonAccordion": {
+      "loadError": "Bölümler yüklenemedi.",
+      "watchedCount": "{{watched}}/{{total}} izlendi",
+      "episodeCount_one": "{{count}} bölüm",
+      "episodeCount_other": "{{count}} bölüm",
+      "markSeasonTitle": "{{season}}. sezon işaretlensin mi?",
+      "markSeasonsTitle": "{{from}}–{{to}}. sezonlar işaretlensin mi?",
+      "markUpToMessage": "Bu, {{season}}. sezona kadar tüm bölümleri izlendi olarak işaretler.",
+      "markWatched": "İzlendi İşaretle"
+    },
+    "continueWatching": {
+      "title": "İzlemeye Devam Et",
+      "upcoming": "Yakında",
+      "coming": "Yakında {{ep}}",
+      "next": "Sıradaki: {{ep}}"
+    },
+    "trailer": {
+      "openInYoutube": "YouTube'da Aç"
+    },
+    "gallery": {
+      "title": "Galeri"
+    }
+  }
+}

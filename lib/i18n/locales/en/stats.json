@@ -1,0 +1,22 @@
+{
+  "stats": {
+    "title": "Statistics",
+    "emptyTitle": "No stats yet",
+    "emptySubtitle": "Mark movies and episodes as watched to see your stats here.",
+    "yearWrapped": "Your Year Wrapped is ready",
+    "allTime": "All Time",
+    "thisYear": "This Year",
+    "heroYear": "In {{year}}, you've spent",
+    "heroLife": "Across your life, you've spent",
+    "heroSuffix": "watching movies and TV",
+    "daysHours": "{{days}}d {{hours}}h",
+    "movies": "Movies",
+    "episodes": "Episodes",
+    "shows": "Shows",
+    "genres": "Genres",
+    "activity": "{{year}} Activity",
+    "peakIn": "Peak in {{month}}",
+    "shareRecap": "Share your recap",
+    "share": "Share"
+  }
+}

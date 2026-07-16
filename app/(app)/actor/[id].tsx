@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -13,14 +14,16 @@ import { getProfileUrl } from '../../../lib/tmdb/config';
 import { PersonDetails, toPersonDetails } from '../../../lib/tmdb/details';
 import { getPersonDetails } from '../../../lib/tmdb/person';
 
-function formatDate(dateString: string | null): string | null {
+function formatDate(dateString: string | null, language: string): string | null {
   if (!dateString) return null;
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return null;
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const locale = language === 'tr' ? 'tr-TR' : 'en-US';
+  return date.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
 export default function ActorScreen() {
+  const { t, i18n } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
@@ -40,7 +43,7 @@ export default function ActorScreen() {
         if (!cancelled) setPerson(data);
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load actor.');
+          setError(err instanceof Error ? err.message : t('actor.loadError'));
         }
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -54,8 +57,8 @@ export default function ActorScreen() {
 
   const profileUri = getProfileUrl(person?.profilePath ?? null, 'h632');
   const heroHeight = windowHeight * 0.55;
-  const birthDate = formatDate(person?.birthday ?? null);
-  const deathDate = formatDate(person?.deathday ?? null);
+  const birthDate = formatDate(person?.birthday ?? null, i18n.language);
+  const deathDate = formatDate(person?.deathday ?? null, i18n.language);
 
   return (
     <View className="flex-1 bg-background">
@@ -127,17 +130,19 @@ export default function ActorScreen() {
             <BlurView intensity={30} tint="dark" style={{ borderRadius: 24, overflow: 'hidden' }}>
               <View className="gap-stack-md border border-glass-border bg-background-blur p-stack-md">
                 <Text className="border-b border-glass-border pb-2 font-sans-semibold text-title-md text-text-primary">
-                  Biography
+                  {t('actor.biography')}
                 </Text>
                 <Text className="font-sans text-body-md leading-relaxed text-on-surface-variant">
-                  {person.biography || 'No biography available.'}
+                  {person.biography || t('actor.noBiography')}
                 </Text>
                 {(birthDate || person.placeOfBirth) && (
                   <View className="flex-row flex-wrap gap-2">
                     {birthDate && (
                       <View className="rounded-full border border-glass-border bg-surface-container px-3 py-1">
                         <Text className="font-sans text-caption text-text-primary">
-                          {deathDate ? `${birthDate} – ${deathDate}` : `Born: ${birthDate}`}
+                          {deathDate
+                            ? `${birthDate} – ${deathDate}`
+                            : t('actor.born', { date: birthDate })}
                         </Text>
                       </View>
                     )}
@@ -156,7 +161,7 @@ export default function ActorScreen() {
 
           {person.knownFor.length > 0 && (
             <MediaRow
-              title="Known For"
+              title={t('actor.knownFor')}
               items={person.knownFor.slice(0, 12)}
               onViewAll={() =>
                 router.push({

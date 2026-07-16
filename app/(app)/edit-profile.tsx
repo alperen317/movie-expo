@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -12,6 +13,7 @@ import { useProfileStore } from '../../stores/profile.store';
 import { useToastStore } from '../../stores/toast.store';
 
 export default function EditProfileScreen() {
+  const { t } = useTranslation();
   const email = useAuthStore((state) => state.session?.user?.email ?? '');
   const profile = useProfileStore((state) => state.profile);
   const updateProfile = useProfileStore((state) => state.updateProfile);
@@ -37,10 +39,10 @@ export default function EditProfileScreen() {
         avatarVariant: variant,
         avatarSeed,
       });
-      useToastStore.getState().show('Profile updated', 'check-circle');
+      useToastStore.getState().show(t('editProfile.updated'), 'check-circle');
       router.back();
     } catch {
-      useToastStore.getState().show('Something went wrong. Please try again.', 'error-outline');
+      useToastStore.getState().show(t('toasts.genericError'), 'error-outline');
     } finally {
       setIsSaving(false);
     }
@@ -57,7 +59,7 @@ export default function EditProfileScreen() {
           <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />
         </AnimatedPressable>
         <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
-          Edit Profile
+          {t('editProfile.title')}
         </Text>
       </View>
 
@@ -81,7 +83,9 @@ export default function EditProfileScreen() {
         </View>
 
         <View className="gap-stack-sm pt-section-gap">
-          <Text className="font-sans-semibold text-body-md text-text-primary">Name</Text>
+          <Text className="font-sans-semibold text-body-md text-text-primary">
+            {t('editProfile.name')}
+          </Text>
           <TextInput
             value={name}
             onChangeText={setName}
@@ -93,7 +97,9 @@ export default function EditProfileScreen() {
         </View>
 
         <View className="gap-stack-sm pt-section-gap">
-          <Text className="font-sans-semibold text-body-md text-text-primary">Style</Text>
+          <Text className="font-sans-semibold text-body-md text-text-primary">
+            {t('editProfile.style')}
+          </Text>
           <View className="flex-row flex-wrap gap-stack-sm">
             {AVATAR_VARIANTS.map((variantOption) => {
               const isSelected = variantOption === variant;
@@ -120,7 +126,7 @@ export default function EditProfileScreen() {
           className="items-center justify-center rounded-xl bg-primary-container py-stack-md"
         >
           <Text className="font-sans-semibold text-body-md text-on-primary-container">
-            {isSaving ? 'Saving…' : 'Save'}
+            {isSaving ? t('editProfile.saving') : t('common.save')}
           </Text>
         </AnimatedPressable>
       </View>

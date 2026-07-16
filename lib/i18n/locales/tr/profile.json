@@ -1,0 +1,20 @@
+{
+  "profile": {
+    "title": "Profil",
+    "memberSince": "{{date}} tarihinden beri üye",
+    "statistics": "İstatistikler",
+    "upcomingEpisodes": "Yaklaşan Bölümler",
+    "importFrom": "TV Time / Letterboxd'dan içe aktar",
+    "watchRegion": "İzleme Bölgesi",
+    "deviceDefault": "Cihaz Varsayılanı",
+    "shareCrashReports": "Çökme Raporlarını Paylaş",
+    "clearSearchHistory": "Arama Geçmişini Temizle",
+    "clearHistoryMessage": "Bu, tüm son aramalarını kaldıracak.",
+    "privacyPolicy": "Gizlilik Politikası",
+    "termsOfUse": "Kullanım Koşulları",
+    "signOut": "Çıkış Yap",
+    "deleteAccount": "Hesabı Sil",
+    "crashRestart": "Bunun etkili olması için uygulamayı yeniden başlat",
+    "tmdbAttribution": "This product uses the TMDB API but is not endorsed or certified by TMDB."
+  }
+}

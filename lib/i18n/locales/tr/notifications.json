@@ -1,0 +1,5 @@
+{
+  "notifications": {
+    "episodeAiringBody": "S{{season}} B{{episode}} bugün yayında."
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "notifications": {
+    "episodeAiringBody": "S{{season}} E{{episode}} is airing today."
+  }
+}
