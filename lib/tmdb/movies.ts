@@ -8,6 +8,9 @@ export function getTrendingMovies(window: 'day' | 'week' = 'day', page = 1) {
 export function getMovieDetails(id: number) {
   return tmdbFetch<TMDBMovieDetails>(`/movie/${id}`, {
     append_to_response: 'credits,release_dates,images,videos,watch/providers',
+    // Keep the gallery rich regardless of UI language: the localized `language`
+    // filter would otherwise drop backdrops that aren't tagged for that locale.
+    include_image_language: 'en,null',
   });
 }
 

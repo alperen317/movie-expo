@@ -1,4 +1,4 @@
-import { getPrimaryGenre, TMDB_TV_GENRE_MAP } from './genres';
+import { getPrimaryGenre } from './genres';
 import type {
   TMDBCastMember,
   TMDBImages,
@@ -223,7 +223,7 @@ function toPersonKnownForItem(credit: TMDBPersonCombinedCastCredit): PersonKnown
     year: (isTV ? credit.first_air_date : credit.release_date)?.slice(0, 4) || null,
     posterPath: credit.poster_path,
     voteAverage: credit.vote_average,
-    genre: getPrimaryGenre(credit.genre_ids, isTV ? TMDB_TV_GENRE_MAP : undefined),
+    genre: getPrimaryGenre(credit.genre_ids, isTV ? 'tv' : 'movie'),
     mediaType: isTV ? 'tv' : 'movie',
   };
 }

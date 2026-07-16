@@ -10,6 +10,7 @@ import enCommon from './locales/en/common.json';
 import enComponents from './locales/en/components.json';
 import enDetails from './locales/en/details.json';
 import enEditProfile from './locales/en/editProfile.json';
+import enGenres from './locales/en/genres.json';
 import enHome from './locales/en/home.json';
 import enImport from './locales/en/import.json';
 import enLegal from './locales/en/legal.json';
@@ -29,6 +30,7 @@ import trCommon from './locales/tr/common.json';
 import trComponents from './locales/tr/components.json';
 import trDetails from './locales/tr/details.json';
 import trEditProfile from './locales/tr/editProfile.json';
+import trGenres from './locales/tr/genres.json';
 import trHome from './locales/tr/home.json';
 import trImport from './locales/tr/import.json';
 import trLegal from './locales/tr/legal.json';
@@ -66,6 +68,7 @@ const resources = {
       ...enComponents,
       ...enNotifications,
       ...enToasts,
+      ...enGenres,
     },
   },
   tr: {
@@ -89,6 +92,7 @@ const resources = {
       ...trComponents,
       ...trNotifications,
       ...trToasts,
+      ...trGenres,
     },
   },
 };
