@@ -25,6 +25,8 @@ export default function TermsOfUseScreen() {
         <AnimatedPressable
           onPress={() => router.back()}
           hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t('a11y.back')}
           className="h-8 w-8 items-center justify-center"
         >
           <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />

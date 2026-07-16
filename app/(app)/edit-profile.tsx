@@ -54,6 +54,8 @@ export default function EditProfileScreen() {
         <AnimatedPressable
           onPress={() => router.back()}
           hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t('a11y.back')}
           className="h-8 w-8 items-center justify-center"
         >
           <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />
@@ -74,6 +76,8 @@ export default function EditProfileScreen() {
             <AnimatedPressable
               onPress={handleRandomizeVariant}
               hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={t('a11y.randomizeAvatar')}
               className="absolute -bottom-1 -right-1 h-10 w-10 items-center justify-center rounded-full border-2 border-background bg-primary-container"
               style={{ elevation: 4, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 8 }}
             >
@@ -107,6 +111,9 @@ export default function EditProfileScreen() {
                 <AnimatedPressable
                   key={variantOption}
                   onPress={() => setVariant(variantOption)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
+                  accessibilityLabel={t('a11y.selectAvatarStyle', { style: variantOption })}
                   className={`items-center justify-center rounded-full border-2 p-1 ${
                     isSelected ? 'border-primary' : 'border-transparent'
                   }`}

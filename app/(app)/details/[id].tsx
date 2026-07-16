@@ -150,12 +150,19 @@ export default function DetailsScreen() {
       >
         <AnimatedPressable
           onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel={t('a11y.back')}
           className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
         >
           <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />
         </AnimatedPressable>
         <AnimatedPressable
           onPress={() => cardItem && toggleFavorite(cardItem)}
+          accessibilityRole="button"
+          accessibilityState={{ selected: isFavorite }}
+          accessibilityLabel={t(isFavorite ? 'a11y.removeFromFavorites' : 'a11y.addToFavorites', {
+            title: details?.title ?? '',
+          })}
           className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
         >
           <MaterialIcons
@@ -350,6 +357,8 @@ export default function DetailsScreen() {
                                   params: { id: String(member.id) },
                                 })
                               }
+                              accessibilityRole="button"
+                              accessibilityLabel={t('a11y.openActor', { name: member.name })}
                               className="w-20 items-center gap-2"
                             >
                               <View className="h-16 w-16 overflow-hidden rounded-full border border-glass-border">
