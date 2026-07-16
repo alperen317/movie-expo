@@ -7,6 +7,7 @@
     "importFrom": "TV Time / Letterboxd'dan içe aktar",
     "watchRegion": "İzleme Bölgesi",
     "deviceDefault": "Cihaz Varsayılanı",
+    "language": "Dil",
     "shareCrashReports": "Çökme Raporlarını Paylaş",
     "clearSearchHistory": "Arama Geçmişini Temizle",
     "clearHistoryMessage": "Bu, tüm son aramalarını kaldıracak.",

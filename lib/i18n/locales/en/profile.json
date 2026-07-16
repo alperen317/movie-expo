@@ -7,6 +7,7 @@
     "importFrom": "Import from TV Time / Letterboxd",
     "watchRegion": "Watch Region",
     "deviceDefault": "Device Default",
+    "language": "Language",
     "shareCrashReports": "Share Crash Reports",
     "clearSearchHistory": "Clear Search History",
     "clearHistoryMessage": "This will remove all your recent searches.",

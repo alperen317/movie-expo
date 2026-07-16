@@ -1,5 +1,4 @@
 import '../global.css';
-import '../lib/i18n';
 
 import {
   Inter_400Regular,
@@ -11,10 +10,11 @@ import {
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { applyStoredLanguagePreference } from '../lib/i18n';
 import { supabase } from '../lib/supabase/client';
 import { initSentry } from '../lib/telemetry/sentry';
 import { useAuthStore } from '../stores/auth.store';
@@ -29,11 +29,15 @@ export default function RootLayout() {
     Inter_700Bold,
   });
   const isAuthLoading = useAuthStore((state) => state.isLoading);
-  const isReady = fontsLoaded && !isAuthLoading;
+  const [isLanguageReady, setIsLanguageReady] = useState(false);
+  const isReady = fontsLoaded && !isAuthLoading && isLanguageReady;
 
   useEffect(() => {
     useAuthStore.getState().initialize();
     initSentry();
+    // Apply the saved language override before revealing the UI so a stored
+    // choice that differs from the device locale doesn't flash the wrong one.
+    applyStoredLanguagePreference().finally(() => setIsLanguageReady(true));
 
     const subscription = AppState.addEventListener('change', (state) => {
       if (state === 'active') {

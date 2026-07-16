@@ -93,6 +93,13 @@
     },
     "gallery": {
       "title": "Gallery"
+    },
+    "languagePicker": {
+      "title": "Language",
+      "subtitle": "Choose the language used throughout the app.",
+      "system": "System default",
+      "systemHint": "Follow your device language",
+      "updated": "Language updated"
     }
   }
 }

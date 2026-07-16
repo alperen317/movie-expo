@@ -7,11 +7,16 @@ import { Linking, Pressable, ScrollView, Text, useWindowDimensions, View } from 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DeleteAccountModal } from '../../../components/settings/DeleteAccountModal';
+import { LanguagePickerModal } from '../../../components/settings/LanguagePickerModal';
 import { RegionPickerModal } from '../../../components/settings/RegionPickerModal';
 import { ActionSheetModal } from '../../../components/ui/ActionSheetModal';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
 import { BoringAvatar } from '../../../components/ui/BoringAvatar';
 import { TmdbLogo } from '../../../components/ui/TmdbLogo';
+import {
+  getStoredLanguagePreference,
+  type LanguagePreference,
+} from '../../../lib/i18n/languagePreference';
 import { clearRecentSearches } from '../../../lib/storage/recentSearches';
 import { isCrashReportingEnabled, setCrashReportingEnabled } from '../../../lib/telemetry/sentry';
 import { WATCH_REGIONS } from '../../../lib/tmdb/regions';
@@ -75,7 +80,19 @@ export default function ProfileScreen() {
 
   const [isClearHistoryConfirmOpen, setIsClearHistoryConfirmOpen] = useState(false);
   const [isRegionPickerOpen, setIsRegionPickerOpen] = useState(false);
+  const [isLanguagePickerOpen, setIsLanguagePickerOpen] = useState(false);
   const [isDeleteAccountOpen, setIsDeleteAccountOpen] = useState(false);
+
+  const [languagePreference, setLanguagePreference] = useState<LanguagePreference>('system');
+  useEffect(() => {
+    getStoredLanguagePreference().then(setLanguagePreference);
+  }, []);
+  const languageLabel =
+    languagePreference === 'system'
+      ? t('components.languagePicker.system')
+      : languagePreference === 'tr'
+        ? 'Türkçe'
+        : 'English';
   const watchRegionLabel = profile?.watchRegion
     ? (WATCH_REGIONS.find((region) => region.code === profile.watchRegion)?.name ??
       profile.watchRegion)
@@ -202,6 +219,18 @@ export default function ProfileScreen() {
             </AnimatedPressable>
             <View className="h-px bg-glass-border" />
             <AnimatedPressable
+              onPress={() => setIsLanguagePickerOpen(true)}
+              className="flex-row items-center gap-3 px-4 py-stack-md"
+            >
+              <MaterialIcons name="language" size={20} color="#A1A1AA" />
+              <Text className="flex-1 font-sans text-body-md text-text-primary">
+                {t('profile.language')}
+              </Text>
+              <Text className="font-sans text-caption text-text-secondary">{languageLabel}</Text>
+              <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
+            </AnimatedPressable>
+            <View className="h-px bg-glass-border" />
+            <AnimatedPressable
               onPress={handleToggleCrashReporting}
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >
@@ -306,6 +335,13 @@ export default function ProfileScreen() {
       <RegionPickerModal
         visible={isRegionPickerOpen}
         onClose={() => setIsRegionPickerOpen(false)}
+      />
+
+      <LanguagePickerModal
+        visible={isLanguagePickerOpen}
+        current={languagePreference}
+        onChange={setLanguagePreference}
+        onClose={() => setIsLanguagePickerOpen(false)}
       />
 
       <DeleteAccountModal
