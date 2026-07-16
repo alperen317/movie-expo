@@ -18,6 +18,10 @@ interface AuthState {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  verifySignUpOtp: (email: string, token: string) => Promise<boolean>;
+  resendSignUpOtp: (email: string) => Promise<boolean>;
+  requestPasswordReset: (email: string) => Promise<boolean>;
+  verifyPasswordResetOtp: (email: string, token: string, newPassword: string) => Promise<boolean>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -62,6 +66,72 @@ export const useAuthStore = create<AuthState>((set) => ({
         error: err instanceof Error ? err.message : 'Failed to sign up.',
         isSubmitting: false,
       });
+    }
+  },
+
+  verifySignUpOtp: async (email, token) => {
+    set({ isSubmitting: true, error: null });
+    try {
+      const { error } = await supabase.auth.verifyOtp({ email, token, type: 'signup' });
+      if (error) throw error;
+      set({ isSubmitting: false, needsEmailConfirmation: false });
+      return true;
+    } catch (err) {
+      set({
+        error: err instanceof Error ? err.message : 'Kod doğrulanamadı.',
+        isSubmitting: false,
+      });
+      return false;
+    }
+  },
+
+  resendSignUpOtp: async (email) => {
+    set({ error: null });
+    try {
+      const { error } = await supabase.auth.resend({ type: 'signup', email });
+      if (error) throw error;
+      return true;
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : 'Kod tekrar gönderilemedi.' });
+      return false;
+    }
+  },
+
+  requestPasswordReset: async (email) => {
+    set({ isSubmitting: true, error: null });
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) throw error;
+      set({ isSubmitting: false });
+      return true;
+    } catch (err) {
+      set({
+        error: err instanceof Error ? err.message : 'İstek gönderilemedi.',
+        isSubmitting: false,
+      });
+      return false;
+    }
+  },
+
+  verifyPasswordResetOtp: async (email, token, newPassword) => {
+    set({ isSubmitting: true, error: null });
+    try {
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'recovery',
+      });
+      if (verifyError) throw verifyError;
+      const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+      if (updateError) throw updateError;
+      set({ isSubmitting: false });
+      return true;
+    } catch (err) {
+      set({
+        error: err instanceof Error ? err.message : 'Şifre güncellenemedi.',
+        isSubmitting: false,
+      });
+      return false;
     }
   },
 

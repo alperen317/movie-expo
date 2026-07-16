@@ -51,14 +51,25 @@ Auth and data live in Supabase (Postgres + Row Level Security); see `supabase/mi
    supabase db push
    ```
 
-4. **Run the app**
+4. **Set up the auth email Edge Function** — signup confirmation and password reset codes are sent by a custom Supabase Edge Function (`supabase/functions/send-auth-email`) via [Brevo](https://www.brevo.com/), not Supabase's built-in email provider:
+
+   ```bash
+   cp supabase/functions/.env.example supabase/functions/.env   # fill in Brevo + hook secret values
+   supabase link --project-ref <your-project-ref>
+   supabase secrets set --env-file supabase/functions/.env
+   supabase functions deploy send-auth-email
+   ```
+
+   Then in the Supabase Dashboard: **Authentication → Hooks** → add a "Send Email" hook pointing at the deployed function URL, copy the generated `v1,whsec_...` secret back into `SEND_EMAIL_HOOK_SECRET` and re-run `supabase secrets set`, and confirm "Enforce JWT Verification" is off for the function (Edge Functions → send-auth-email → Settings).
+
+5. **Run the app**
 
    ```bash
    npm run start   # Expo dev server; press i / a / w, or scan the QR code
    npm run web     # web only
    ```
 
-5. **(Store builds only)** `eas.json` defines `development`/`preview`/`production` build profiles, but isn't yet linked to an Expo account/project. Run `npx eas login` then `eas init` once to link one — this writes `extra.eas.projectId` into `app.json`.
+6. **(Store builds only)** `eas.json` defines `development`/`preview`/`production` build profiles, but isn't yet linked to an Expo account/project. Run `npx eas login` then `eas init` once to link one — this writes `extra.eas.projectId` into `app.json`.
 
 ## Development
 
@@ -82,6 +93,8 @@ Expo SDK 54 (React Native 0.81, React 19) · expo-router · TypeScript · Native
 **Privilege-escalation triggers alongside RLS `UPDATE` policies.** RLS `USING`/`WITH CHECK` clauses constrain which _rows_ an `UPDATE` can touch, not which _columns_ change. On `lists`, the update policy only checks `created_by = auth.uid()`, so without an extra guard any member could rename a list _and_ silently rewrite `created_by` to themselves in the same statement — hijacking ownership. Same class of bug on `list_members`: a user could flip an unrelated row's `status` to `'accepted'`, manufacturing membership in a list they were never invited to. Both tables carry a `BEFORE UPDATE` trigger (`prevent_list_reassignment`, `prevent_list_member_tampering`) that rejects any column change RLS itself can't express — a good reminder that Postgres RLS is row-scoped, not column-scoped.
 
 **Realtime DELETE payloads need `REPLICA IDENTITY FULL`.** Postgres tables default to `REPLICA IDENTITY DEFAULT`, which writes only the primary key to the WAL on `DELETE`. Supabase Realtime relays that as-is, so a `DELETE` event's `payload.old` normally contains just the row's `id` — not `media_id`/`media_type`, which is what the client needs to locate the item to remove (`stores/sharedLists.store.ts` → `onItemsChange`). This meant adding an item synced live to other members but removing one silently didn't. `supabase/migrations/0005_replica_identity_full.sql` sets `REPLICA IDENTITY FULL` on the shared-list tables so `payload.old` carries the full row on delete too.
+
+**Auth emails route through a custom Edge Function, not Supabase's built-in provider.** Supabase's default email provider is capped at 2 emails/hour and offers little control over content or deliverability. `supabase/functions/send-auth-email` is registered as the project's [Send Email Hook](https://supabase.com/docs/guides/auth/auth-hooks/send-email-hook), so GoTrue calls it (over a signed webhook, verified with `standardwebhooks`) instead of sending mail itself, and it forwards the message to Brevo's transactional email API. The UX is OTP-code-based rather than link-based on purpose — `lib/supabase/client.ts` sets `detectSessionInUrl: false`, so a magic-link/deep-link flow would need extra plumbing (universal links, an in-app URL handler) that a 6-digit code typed into `app/verify-otp.tsx` avoids entirely.
 
 **TV Time import matches by title + year, not by ID.** TV Time's GDPR self-service export has no TMDB/TVDB id on any row — only title and (sometimes) a release date. `lib/importers/match.ts` re-resolves every imported title against the TMDB search API, normalizing titles (lowercase, strip a leading "the", collapse punctuation) and preferring a result within one year of the export's year over a same-title/different-year one. Unmatched or ambiguous titles are surfaced to the user for manual disambiguation rather than silently guessing.
 

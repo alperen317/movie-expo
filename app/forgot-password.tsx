@@ -1,7 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { FadeIn, FadeOut } from 'react-native-reanimated';
 
 import { AuthBackground } from '../components/auth/AuthBackground';
@@ -9,29 +9,36 @@ import { AuthTextInput } from '../components/auth/AuthTextInput';
 import { AnimatedPressable, AnimatedView } from '../components/ui/AnimatedPressable';
 import { useAuthStore } from '../stores/auth.store';
 
-export default function LoginScreen() {
+export default function ForgotPasswordScreen() {
   const session = useAuthStore((state) => state.session);
-  const { signIn, isSubmitting, error } = useAuthStore();
+  const { requestPasswordReset, isSubmitting, error } = useAuthStore();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
 
-  const canSubmit = email.length > 0 && password.length > 0 && !isSubmitting;
+  const canSubmit = email.length > 0 && !isSubmitting;
 
   if (session) {
     return <Redirect href="/" />;
   }
 
+  const handleSubmit = async () => {
+    const ok = await requestPasswordReset(email);
+    if (ok) {
+      router.push({ pathname: '/verify-otp', params: { purpose: 'recovery', email } });
+    }
+  };
+
   return (
     <AuthBackground>
-      <Text className="text-display-xl-mobile uppercase text-primary-container">Previously</Text>
+      <View className="h-14 w-14 items-center justify-center rounded-full bg-primary-container">
+        <MaterialIcons name="lock-reset" size={28} color="#3f2e00" />
+      </View>
 
       <View className="mt-stack-lg w-full items-center">
         <Text className="text-headline-lg-mobile font-sans-semibold text-text-primary">
-          Tekrar hoş geldin
+          Şifreni sıfırla
         </Text>
         <Text className="mt-stack-sm text-center font-sans text-body-md text-text-secondary">
-          Sinematik dünyana giriş yap.
+          E-posta adresini gir, sana bir doğrulama kodu gönderelim.
         </Text>
       </View>
 
@@ -45,36 +52,6 @@ export default function LoginScreen() {
           autoComplete="email"
           keyboardType="email-address"
         />
-        <AuthTextInput
-          icon="lock"
-          isPassword
-          value={password}
-          onChangeText={setPassword}
-          placeholder="Şifre"
-          autoComplete="password"
-        />
-      </View>
-
-      <View className="mt-stack-md w-full flex-row items-center justify-between">
-        <Pressable
-          onPress={() => setRememberMe((value) => !value)}
-          className="flex-row items-center gap-2"
-        >
-          <View
-            className={`h-5 w-5 items-center justify-center rounded border ${
-              rememberMe
-                ? 'border-primary-container bg-primary-container'
-                : 'border-glass-border bg-surface'
-            }`}
-          >
-            {rememberMe && <MaterialIcons name="check" size={16} color="#3f2e00" />}
-          </View>
-          <Text className="font-sans text-caption text-text-secondary">Beni hatırla</Text>
-        </Pressable>
-
-        <Pressable onPress={() => router.push('/forgot-password')}>
-          <Text className="font-sans text-caption text-primary-container">Şifremi unuttum</Text>
-        </Pressable>
       </View>
 
       {error && (
@@ -88,7 +65,7 @@ export default function LoginScreen() {
       )}
 
       <AnimatedPressable
-        onPress={() => signIn(email, password)}
+        onPress={handleSubmit}
         disabled={!canSubmit}
         style={{
           shadowColor: '#F5C451',
@@ -106,16 +83,16 @@ export default function LoginScreen() {
         ) : (
           <>
             <Text className="font-sans-bold uppercase tracking-wide text-on-primary-container">
-              Giriş Yap
+              Kod Gönder
             </Text>
             <MaterialIcons name="arrow-forward" size={18} color="#3f2e00" />
           </>
         )}
       </AnimatedPressable>
 
-      <AnimatedPressable onPress={() => router.push('/sign-up')} className="mt-stack-lg">
+      <AnimatedPressable onPress={() => router.back()} className="mt-stack-lg">
         <Text className="font-sans text-caption text-text-secondary">
-          Hesabın yok mu? <Text className="font-sans-bold text-text-primary">Kayıt Ol</Text>
+          <Text className="font-sans-bold text-text-primary">Giriş ekranına dön</Text>
         </Text>
       </AnimatedPressable>
     </AuthBackground>

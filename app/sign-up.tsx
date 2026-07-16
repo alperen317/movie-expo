@@ -1,6 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { FadeIn, FadeOut } from 'react-native-reanimated';
 
@@ -28,26 +28,11 @@ export default function SignUpScreen() {
     signUp(email, password);
   };
 
-  if (needsEmailConfirmation) {
-    return (
-      <AuthBackground>
-        <View className="h-14 w-14 items-center justify-center rounded-full bg-primary-container">
-          <MaterialIcons name="mark-email-read" size={28} color="#3f2e00" />
-        </View>
-        <Text className="mt-stack-lg text-headline-lg-mobile font-sans-semibold text-text-primary">
-          E-postanı kontrol et
-        </Text>
-        <Text className="mt-stack-sm text-center font-sans text-body-md text-text-secondary">
-          {email} adresine bir doğrulama bağlantısı gönderdik. Hesabını onayladıktan sonra giriş
-          yapabilirsin.
-        </Text>
-
-        <AnimatedPressable onPress={() => router.replace('/login')} className="mt-stack-lg">
-          <Text className="font-sans-bold text-primary-container">Giriş ekranına dön</Text>
-        </AnimatedPressable>
-      </AuthBackground>
-    );
-  }
+  useEffect(() => {
+    if (needsEmailConfirmation) {
+      router.push({ pathname: '/verify-otp', params: { purpose: 'signup', email } });
+    }
+  }, [needsEmailConfirmation, email]);
 
   return (
     <AuthBackground>

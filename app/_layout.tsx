@@ -61,6 +61,8 @@ export default function RootLayout() {
         <Stack.Screen name="(app)" />
         <Stack.Screen name="login" />
         <Stack.Screen name="sign-up" />
+        <Stack.Screen name="forgot-password" />
+        <Stack.Screen name="verify-otp" />
       </Stack>
       <StatusBar style="light" />
     </SafeAreaProvider>
