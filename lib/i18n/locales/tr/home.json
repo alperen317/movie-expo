@@ -1,6 +1,15 @@
 {
   "home": {
     "trendingThisWeek": "Bu Hafta Trend",
-    "popularTvShows": "Popüler Diziler"
+    "popularTvShows": "Popüler Diziler",
+    "viewAll": "Tümünü Gör",
+    "discoverNow": "Şimdi Keşfet",
+    "mediaTypeTv": "Dizi",
+    "mediaTypeMovie": "Film",
+    "importPrompt": {
+      "title": "Yeni misin?",
+      "body": "TV Time veya Letterboxd geçmişini içe aktar, kaldığın yerden devam et.",
+      "cta": "Şimdi İçe Aktar"
+    }
   }
 }
