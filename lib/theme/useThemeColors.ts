@@ -24,10 +24,10 @@ const dark: ThemeColors = {
 };
 
 const light: ThemeColors = {
-  textPrimary: '#1a1a1a',
-  textSecondary: '#6b6b70',
-  icon: '#6b6b70',
-  gold: '#8a6400',
+  textPrimary: '#1a1814',
+  textSecondary: '#6f6759',
+  icon: '#6f6759',
+  gold: '#8c6000',
   onGold: '#3d2d00',
   error: '#ba1a1a',
 };

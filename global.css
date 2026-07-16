@@ -11,23 +11,23 @@
  */
 @layer base {
   :root {
-    --color-surface: 254 250 243;
-    --color-surface-dim: 223 217 205;
-    --color-surface-bright: 255 251 244;
+    --color-surface: 249 244 235;
+    --color-surface-dim: 231 224 210;
+    --color-surface-bright: 255 253 248;
     --color-surface-container-lowest: 255 255 255;
-    --color-surface-container-low: 250 244 233;
-    --color-surface-container: 245 238 225;
-    --color-surface-container-high: 239 232 217;
-    --color-surface-container-highest: 233 226 210;
-    --color-surface-variant: 239 225 200;
+    --color-surface-container-low: 255 252 246;
+    --color-surface-container: 250 245 236;
+    --color-surface-container-high: 244 238 227;
+    --color-surface-container-highest: 237 230 218;
+    --color-surface-variant: 236 224 202;
     --color-on-surface: 30 27 22;
-    --color-on-surface-variant: 77 70 57;
+    --color-on-surface-variant: 74 67 55;
     --color-inverse-surface: 51 48 39;
     --color-inverse-on-surface: 247 240 226;
-    --color-outline: 127 118 103;
-    --color-outline-variant: 209 197 180;
-    --color-surface-tint: 122 89 0;
-    --color-primary: 122 89 0;
+    --color-outline: 124 114 99;
+    --color-outline-variant: 205 194 176;
+    --color-surface-tint: 140 96 0;
+    --color-primary: 140 96 0;
     --color-on-primary: 255 255 255;
     --color-primary-container: 245 196 81;
     --color-on-primary-container: 61 45 0;
@@ -56,12 +56,12 @@
     --color-tertiary-fixed-dim: 123 209 251;
     --color-on-tertiary-fixed: 0 30 43;
     --color-on-tertiary-fixed-variant: 0 77 102;
-    --color-background: 254 250 243;
+    --color-background: 244 238 227;
     --color-on-background: 30 27 22;
-    --color-text-primary: 26 26 26;
-    --color-text-secondary: 107 107 112;
-    --color-glass-border: rgba(0, 0, 0, 0.1);
-    --color-background-blur: rgba(255, 251, 244, 0.72);
+    --color-text-primary: 26 24 20;
+    --color-text-secondary: 111 103 89;
+    --color-glass-border: rgba(60, 48, 24, 0.14);
+    --color-background-blur: rgba(249, 244, 235, 0.75);
   }
 
   .dark:root {
