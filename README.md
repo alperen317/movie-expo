@@ -45,31 +45,38 @@ Auth and data live in Supabase (Postgres + Row Level Security); see `supabase/mi
    | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase project's anon/public key                                                             |
    | `EXPO_PUBLIC_SENTRY_DSN`        | Optional — crash reporting is a no-op until this is set (see `lib/telemetry/sentry.ts`)             |
 
-3. **Apply Supabase migrations** — run the files in `supabase/migrations/` in order (`0001_...sql` through the latest) against your Supabase project, e.g. via the SQL editor or the [Supabase CLI](https://supabase.com/docs/guides/cli):
+3. **Install the Supabase CLI as a dev dependency** — don't use `npm install -g supabase`; Supabase no longer supports installing it as a global npm module (it produces a broken shim on some platforms). Install it locally and invoke it via `npx` instead:
 
    ```bash
-   supabase db push
+   npm install supabase --save-dev
    ```
 
-4. **Set up the auth email Edge Function** — signup confirmation and password reset codes are sent by a custom Supabase Edge Function (`supabase/functions/send-auth-email`) via [Brevo](https://www.brevo.com/), not Supabase's built-in email provider:
+4. **Apply Supabase migrations** — run the files in `supabase/migrations/` in order (`0001_...sql` through the latest) against your Supabase project, e.g. via the SQL editor or the [Supabase CLI](https://supabase.com/docs/guides/cli):
+
+   ```bash
+   npx supabase db push
+   ```
+
+5. **Set up the auth email Edge Function** — signup confirmation and password reset codes are sent by a custom Supabase Edge Function (`supabase/functions/send-auth-email`) via [Brevo](https://www.brevo.com/), not Supabase's built-in email provider:
 
    ```bash
    cp supabase/functions/.env.example supabase/functions/.env   # fill in Brevo + hook secret values
-   supabase link --project-ref <your-project-ref>
-   supabase secrets set --env-file supabase/functions/.env
-   supabase functions deploy send-auth-email
+   npx supabase login
+   npx supabase link --project-ref <your-project-ref>
+   npx supabase secrets set --env-file supabase/functions/.env
+   npx supabase functions deploy send-auth-email
    ```
 
-   Then in the Supabase Dashboard: **Authentication → Hooks** → add a "Send Email" hook pointing at the deployed function URL, copy the generated `v1,whsec_...` secret back into `SEND_EMAIL_HOOK_SECRET` and re-run `supabase secrets set`, and confirm "Enforce JWT Verification" is off for the function (Edge Functions → send-auth-email → Settings).
+   Then in the Supabase Dashboard: **Authentication → Hooks** → add a "Send Email" hook pointing at the deployed function URL, copy the generated `v1,whsec_...` secret back into `SEND_EMAIL_HOOK_SECRET` and re-run `npx supabase secrets set --env-file supabase/functions/.env`, and confirm "Enforce JWT Verification" is off for the function (Edge Functions → send-auth-email → Settings).
 
-5. **Run the app**
+6. **Run the app**
 
    ```bash
    npm run start   # Expo dev server; press i / a / w, or scan the QR code
    npm run web     # web only
    ```
 
-6. **(Store builds only)** `eas.json` defines `development`/`preview`/`production` build profiles, but isn't yet linked to an Expo account/project. Run `npx eas login` then `eas init` once to link one — this writes `extra.eas.projectId` into `app.json`.
+7. **(Store builds only)** `eas.json` defines `development`/`preview`/`production` build profiles, but isn't yet linked to an Expo account/project. Run `npx eas login` then `eas init` once to link one — this writes `extra.eas.projectId` into `app.json`.
 
 ## Development
 
