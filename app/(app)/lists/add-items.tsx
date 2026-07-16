@@ -25,6 +25,7 @@ import {
   type MediaCardItem,
 } from '../../../components/home/MovieCard';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
+import { useThemeColors } from '../../../lib/theme/useThemeColors';
 import { useMediaSearch } from '../../../lib/hooks/useMediaSearch';
 import { getTrendingMovies } from '../../../lib/tmdb/movies';
 import { getPopularTVShows } from '../../../lib/tmdb/tv';
@@ -32,6 +33,7 @@ import { useSharedListsStore } from '../../../stores/sharedLists.store';
 
 export default function AddItemsScreen() {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const { listId } = useLocalSearchParams<{ listId: string }>();
   const { width: windowWidth } = useWindowDimensions();
 
@@ -96,7 +98,7 @@ export default function AddItemsScreen() {
           onPress={() => router.back()}
           className="h-9 w-9 items-center justify-center"
         >
-          <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />
+          <MaterialIcons name="arrow-back" size={22} color={colors.textPrimary} />
         </AnimatedPressable>
         <Text className="flex-1 text-headline-lg-mobile font-sans-bold text-text-primary">
           {t('listDetail.addToList')}
@@ -110,7 +112,7 @@ export default function AddItemsScreen() {
 
       <View className="px-margin-mobile pb-stack-md">
         <View className="flex-row items-center rounded-xl border border-glass-border bg-surface px-4">
-          <MaterialIcons name="search" size={20} color="#A1A1AA" />
+          <MaterialIcons name="search" size={20} color={colors.icon} />
           <TextInput
             value={query}
             onChangeText={setQuery}
@@ -123,7 +125,7 @@ export default function AddItemsScreen() {
           />
           {query.length > 0 && (
             <Pressable onPress={() => setQuery('')} hitSlop={8}>
-              <MaterialIcons name="close" size={18} color="#A1A1AA" />
+              <MaterialIcons name="close" size={18} color={colors.icon} />
             </Pressable>
           )}
         </View>
@@ -131,7 +133,7 @@ export default function AddItemsScreen() {
 
       {isBrowsing && isPopularLoading && (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#ffffff" />
+          <ActivityIndicator color={colors.textPrimary} />
         </View>
       )}
 
@@ -158,7 +160,7 @@ export default function AddItemsScreen() {
 
       {!isBrowsing && isSearching && results.length === 0 && (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#ffffff" />
+          <ActivityIndicator color={colors.textPrimary} />
         </View>
       )}
 
@@ -172,7 +174,7 @@ export default function AddItemsScreen() {
 
       {!isBrowsing && !searchError && !isSearching && results.length === 0 && (
         <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
-          <MaterialIcons name="search-off" size={32} color="#A1A1AA" />
+          <MaterialIcons name="search-off" size={32} color={colors.icon} />
           <Text className="text-title-md font-sans-semibold text-text-primary">
             {t('search.noResultsTitle')}
           </Text>

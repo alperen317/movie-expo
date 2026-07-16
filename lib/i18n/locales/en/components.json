@@ -100,6 +100,15 @@
       "system": "System default",
       "systemHint": "Follow your device language",
       "updated": "Language updated"
+    },
+    "themePicker": {
+      "title": "Theme",
+      "subtitle": "Choose how the app looks.",
+      "system": "System default",
+      "systemHint": "Follow your device appearance",
+      "light": "Light",
+      "dark": "Dark",
+      "updated": "Theme updated"
     }
   }
 }

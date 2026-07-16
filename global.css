@@ -1,3 +1,120 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * Theme tokens. Solid colors are stored as "R G B" channels so Tailwind's
+ * alpha modifier (e.g. bg-surface/50) keeps working via rgb(var() / <alpha>).
+ * `:root` is the light theme (default); `.dark:root` overrides for dark, whose
+ * values are the app's original palette so dark mode is byte-for-byte unchanged.
+ * Colors with baked-in alpha (glass-border, background-blur) are full values.
+ */
+@layer base {
+  :root {
+    --color-surface: 254 250 243;
+    --color-surface-dim: 223 217 205;
+    --color-surface-bright: 255 251 244;
+    --color-surface-container-lowest: 255 255 255;
+    --color-surface-container-low: 250 244 233;
+    --color-surface-container: 245 238 225;
+    --color-surface-container-high: 239 232 217;
+    --color-surface-container-highest: 233 226 210;
+    --color-surface-variant: 239 225 200;
+    --color-on-surface: 30 27 22;
+    --color-on-surface-variant: 77 70 57;
+    --color-inverse-surface: 51 48 39;
+    --color-inverse-on-surface: 247 240 226;
+    --color-outline: 127 118 103;
+    --color-outline-variant: 209 197 180;
+    --color-surface-tint: 122 89 0;
+    --color-primary: 122 89 0;
+    --color-on-primary: 255 255 255;
+    --color-primary-container: 245 196 81;
+    --color-on-primary-container: 61 45 0;
+    --color-inverse-primary: 240 192 77;
+    --color-secondary: 144 24 34;
+    --color-on-secondary: 255 255 255;
+    --color-secondary-container: 255 218 216;
+    --color-on-secondary-container: 59 8 6;
+    --color-tertiary: 0 92 122;
+    --color-on-tertiary: 255 255 255;
+    --color-tertiary-container: 190 232 255;
+    --color-on-tertiary-container: 0 30 43;
+    --color-error: 186 26 26;
+    --color-on-error: 255 255 255;
+    --color-error-container: 255 218 214;
+    --color-on-error-container: 65 0 2;
+    --color-primary-fixed: 255 223 157;
+    --color-primary-fixed-dim: 240 192 77;
+    --color-on-primary-fixed: 37 26 0;
+    --color-on-primary-fixed-variant: 91 67 0;
+    --color-secondary-fixed: 255 218 216;
+    --color-secondary-fixed-dim: 255 179 176;
+    --color-on-secondary-fixed: 65 0 6;
+    --color-on-secondary-fixed-variant: 140 21 32;
+    --color-tertiary-fixed: 192 232 255;
+    --color-tertiary-fixed-dim: 123 209 251;
+    --color-on-tertiary-fixed: 0 30 43;
+    --color-on-tertiary-fixed-variant: 0 77 102;
+    --color-background: 254 250 243;
+    --color-on-background: 30 27 22;
+    --color-text-primary: 26 26 26;
+    --color-text-secondary: 107 107 112;
+    --color-glass-border: rgba(0, 0, 0, 0.1);
+    --color-background-blur: rgba(255, 251, 244, 0.72);
+  }
+
+  .dark:root {
+    --color-surface: 22 22 22;
+    --color-surface-dim: 19 19 19;
+    --color-surface-bright: 58 57 57;
+    --color-surface-container-lowest: 14 14 14;
+    --color-surface-container-low: 28 27 27;
+    --color-surface-container: 32 31 31;
+    --color-surface-container-high: 42 42 42;
+    --color-surface-container-highest: 53 53 52;
+    --color-surface-variant: 53 53 52;
+    --color-on-surface: 229 226 225;
+    --color-on-surface-variant: 210 197 176;
+    --color-inverse-surface: 229 226 225;
+    --color-inverse-on-surface: 49 48 48;
+    --color-outline: 155 143 124;
+    --color-outline-variant: 78 70 53;
+    --color-surface-tint: 240 192 77;
+    --color-primary: 255 228 175;
+    --color-on-primary: 63 46 0;
+    --color-primary-container: 245 196 81;
+    --color-on-primary-container: 109 81 0;
+    --color-inverse-primary: 120 90 0;
+    --color-secondary: 255 179 176;
+    --color-on-secondary: 104 0 15;
+    --color-secondary-container: 144 24 34;
+    --color-on-secondary-container: 255 158 155;
+    --color-tertiary: 203 236 255;
+    --color-on-tertiary: 0 53 71;
+    --color-tertiary-container: 127 213 255;
+    --color-on-tertiary-container: 0 92 122;
+    --color-error: 255 180 171;
+    --color-on-error: 105 0 5;
+    --color-error-container: 147 0 10;
+    --color-on-error-container: 255 218 214;
+    --color-primary-fixed: 255 223 157;
+    --color-primary-fixed-dim: 240 192 77;
+    --color-on-primary-fixed: 37 26 0;
+    --color-on-primary-fixed-variant: 91 67 0;
+    --color-secondary-fixed: 255 218 216;
+    --color-secondary-fixed-dim: 255 179 176;
+    --color-on-secondary-fixed: 65 0 6;
+    --color-on-secondary-fixed-variant: 140 21 32;
+    --color-tertiary-fixed: 192 232 255;
+    --color-tertiary-fixed-dim: 123 209 251;
+    --color-on-tertiary-fixed: 0 30 43;
+    --color-on-tertiary-fixed-variant: 0 77 102;
+    --color-background: 19 19 19;
+    --color-on-background: 229 226 225;
+    --color-text-primary: 255 255 255;
+    --color-text-secondary: 161 161 170;
+    --color-glass-border: rgba(255, 255, 255, 0.12);
+    --color-background-blur: rgba(9, 9, 9, 0.7);
+  }
+}

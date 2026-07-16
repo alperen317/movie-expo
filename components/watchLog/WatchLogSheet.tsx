@@ -19,6 +19,7 @@ import { useEpisodeProgressStore } from '../../stores/episodeProgress.store';
 import { useListsStore } from '../../stores/lists.store';
 import { useWatchLogStore } from '../../stores/watchLog.store';
 import { AnimatedPressable } from '../ui/AnimatedPressable';
+import { useThemeColors } from '../../lib/theme/useThemeColors';
 
 interface WatchLogSheetProps {
   visible: boolean;
@@ -36,6 +37,7 @@ function toDateInput(date: Date): string {
 
 export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheetProps) {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const logWatch = useWatchLogStore((state) => state.logWatch);
   const updateWatch = useWatchLogStore((state) => state.updateWatch);
   const existingEntry = useWatchLogStore((state) => state.latestEntryFor(item.mediaType, item.id));
@@ -225,7 +227,7 @@ export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheet
                   <MaterialIcons
                     name={star <= starCount ? 'star' : 'star-border'}
                     size={32}
-                    color={star <= starCount ? '#f5c451' : '#A1A1AA'}
+                    color={star <= starCount ? colors.gold : colors.icon}
                   />
                 </Pressable>
               ))}

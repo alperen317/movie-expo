@@ -18,6 +18,7 @@ import { ListNameModal } from '../../../components/lists/ListNameModal';
 import { MemberAvatarRow } from '../../../components/lists/MemberAvatarRow';
 import { ActionSheetModal } from '../../../components/ui/ActionSheetModal';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
+import { useThemeColors } from '../../../lib/theme/useThemeColors';
 import { BoringAvatar } from '../../../components/ui/BoringAvatar';
 import { useAuthStore } from '../../../stores/auth.store';
 import { useSharedListsStore } from '../../../stores/sharedLists.store';
@@ -28,6 +29,7 @@ import { useSharedListsStore } from '../../../stores/sharedLists.store';
 
 export default function SharedListDetailScreen() {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { width: windowWidth } = useWindowDimensions();
   const currentUserId = useAuthStore((state) => state.session?.user?.id);
@@ -86,7 +88,7 @@ export default function SharedListDetailScreen() {
           onPress={() => router.back()}
           className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
         >
-          <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />
+          <MaterialIcons name="arrow-back" size={22} color={colors.textPrimary} />
         </AnimatedPressable>
         <Text
           className="flex-1 text-headline-lg-mobile font-sans-bold text-text-primary"
@@ -98,7 +100,7 @@ export default function SharedListDetailScreen() {
           onPress={() => setIsOverflowOpen(true)}
           className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
         >
-          <MaterialIcons name="more-vert" size={22} color="#FFFFFF" />
+          <MaterialIcons name="more-vert" size={22} color={colors.textPrimary} />
         </AnimatedPressable>
       </View>
 
@@ -119,14 +121,14 @@ export default function SharedListDetailScreen() {
             onPress={() => setIsInviteOpen(true)}
             className="h-9 w-9 items-center justify-center rounded-full border border-glass-border bg-background-blur"
           >
-            <MaterialIcons name="person-add" size={18} color="#f5c451" />
+            <MaterialIcons name="person-add" size={18} color={colors.gold} />
           </AnimatedPressable>
         </View>
       )}
 
       {isDetailLoading && itemList.length === 0 && (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#ffffff" />
+          <ActivityIndicator color={colors.textPrimary} />
         </View>
       )}
 
@@ -148,7 +150,7 @@ export default function SharedListDetailScreen() {
 
       {!isDetailLoading && !detailError && itemList.length === 0 && (
         <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
-          <MaterialIcons name="movie-filter" size={32} color="#A1A1AA" />
+          <MaterialIcons name="movie-filter" size={32} color={colors.icon} />
           <Text className="text-title-md font-sans-semibold text-text-primary">
             {t('listDetail.emptyTitle')}
           </Text>
@@ -270,7 +272,7 @@ export default function SharedListDetailScreen() {
                 {t('listDetail.members')}
               </Text>
               <AnimatedPressable onPress={() => setIsMembersOpen(false)}>
-                <MaterialIcons name="close" size={22} color="#A1A1AA" />
+                <MaterialIcons name="close" size={22} color={colors.icon} />
               </AnimatedPressable>
             </View>
             <View className="gap-3">
@@ -295,7 +297,7 @@ export default function SharedListDetailScreen() {
                   </View>
                   {isCreator && member.userId !== currentUserId && (
                     <AnimatedPressable onPress={() => removeMember(member.membershipId)}>
-                      <MaterialIcons name="close" size={18} color="#ffb4ab" />
+                      <MaterialIcons name="close" size={18} color={colors.error} />
                     </AnimatedPressable>
                   )}
                 </View>

@@ -32,6 +32,7 @@ import {
   clearRecentSearches,
   getRecentSearches,
 } from '../../../lib/storage/recentSearches';
+import { useThemeColors } from '../../../lib/theme/useThemeColors';
 import { getBackdropUrl } from '../../../lib/tmdb/config';
 import { discoverMoviesByGenre } from '../../../lib/tmdb/movies';
 
@@ -106,6 +107,7 @@ function GenreTile({
 
 export default function SearchScreen() {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -161,7 +163,11 @@ export default function SearchScreen() {
             isInputFocused ? 'border-primary-container' : 'border-glass-border'
           }`}
         >
-          <MaterialIcons name="search" size={20} color={isInputFocused ? '#f5c451' : '#A1A1AA'} />
+          <MaterialIcons
+            name="search"
+            size={20}
+            color={isInputFocused ? colors.gold : colors.icon}
+          />
           <TextInput
             value={query}
             onChangeText={setQuery}
@@ -175,7 +181,7 @@ export default function SearchScreen() {
           />
           {query.length > 0 && (
             <Pressable onPress={() => setQuery('')} hitSlop={8}>
-              <MaterialIcons name="close" size={18} color="#A1A1AA" />
+              <MaterialIcons name="close" size={18} color={colors.icon} />
             </Pressable>
           )}
         </View>
@@ -206,7 +212,7 @@ export default function SearchScreen() {
                     onPress={() => setQuery(entry)}
                     className="flex-row items-center gap-2 rounded-full border border-glass-border bg-background-blur px-4 py-2"
                   >
-                    <MaterialIcons name="history" size={16} color="#A1A1AA" />
+                    <MaterialIcons name="history" size={16} color={colors.icon} />
                     <Text className="font-sans text-body-md text-text-primary">{entry}</Text>
                   </AnimatedPressable>
                 ))}
@@ -241,7 +247,7 @@ export default function SearchScreen() {
         <>
           {isSearching && results.length === 0 && (
             <View className="flex-1 items-center justify-center">
-              <ActivityIndicator color="#ffffff" />
+              <ActivityIndicator color={colors.textPrimary} />
             </View>
           )}
 
@@ -255,7 +261,7 @@ export default function SearchScreen() {
 
           {!isSearching && !searchError && results.length === 0 && (
             <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
-              <MaterialIcons name="search-off" size={32} color="#A1A1AA" />
+              <MaterialIcons name="search-off" size={32} color={colors.icon} />
               <Text className="text-title-md font-sans-semibold text-text-primary">
                 {t('search.noResultsTitle')}
               </Text>

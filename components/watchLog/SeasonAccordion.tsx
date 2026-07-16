@@ -10,6 +10,7 @@ import { getSeasonDetails } from '../../lib/tmdb/tv';
 import type { TMDBSeasonEpisode } from '../../lib/tmdb/types';
 import { episodeKey, useEpisodeProgressStore } from '../../stores/episodeProgress.store';
 import { ActionSheetModal } from '../ui/ActionSheetModal';
+import { useThemeColors } from '../../lib/theme/useThemeColors';
 
 interface SeasonAccordionProps {
   tvId: number;
@@ -19,6 +20,7 @@ interface SeasonAccordionProps {
 
 export function SeasonAccordion({ tvId, season, allSeasons }: SeasonAccordionProps) {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const [expanded, setExpanded] = useState(false);
   const [episodes, setEpisodes] = useState<TMDBSeasonEpisode[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -117,7 +119,7 @@ export function SeasonAccordion({ tvId, season, allSeasons }: SeasonAccordionPro
             hitSlop={8}
             className="h-9 w-9 items-center justify-center rounded-full border border-glass-border"
           >
-            <MaterialIcons name="playlist-add-check" size={18} color="#FFFFFF" />
+            <MaterialIcons name="playlist-add-check" size={18} color={colors.textPrimary} />
           </Pressable>
         )}
         <Pressable
@@ -131,10 +133,14 @@ export function SeasonAccordion({ tvId, season, allSeasons }: SeasonAccordionPro
           <MaterialIcons
             name={isFullyWatched ? 'check-circle' : 'done-all'}
             size={18}
-            color={isFullyWatched ? '#3f2e00' : '#FFFFFF'}
+            color={isFullyWatched ? '#3f2e00' : colors.textPrimary}
           />
         </Pressable>
-        <MaterialIcons name={expanded ? 'expand-less' : 'expand-more'} size={22} color="#A1A1AA" />
+        <MaterialIcons
+          name={expanded ? 'expand-less' : 'expand-more'}
+          size={22}
+          color={colors.icon}
+        />
       </Pressable>
 
       <ActionSheetModal
@@ -152,7 +158,7 @@ export function SeasonAccordion({ tvId, season, allSeasons }: SeasonAccordionPro
 
       {expanded && (
         <View className="gap-2 border-t border-glass-border p-3">
-          {isLoading && <ActivityIndicator color="#ffffff" />}
+          {isLoading && <ActivityIndicator color={colors.textPrimary} />}
           {error && <Text className="font-sans text-caption text-error">{error}</Text>}
           {episodes?.map((episode) => {
             const watched = isWatched(episode.episode_number);
@@ -188,7 +194,7 @@ export function SeasonAccordion({ tvId, season, allSeasons }: SeasonAccordionPro
                 <MaterialIcons
                   name={watched ? 'check-circle' : 'radio-button-unchecked'}
                   size={22}
-                  color={watched ? '#f5c451' : '#A1A1AA'}
+                  color={watched ? colors.gold : colors.icon}
                 />
               </Pressable>
             );

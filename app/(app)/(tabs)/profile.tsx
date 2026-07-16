@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { DeleteAccountModal } from '../../../components/settings/DeleteAccountModal';
 import { LanguagePickerModal } from '../../../components/settings/LanguagePickerModal';
 import { RegionPickerModal } from '../../../components/settings/RegionPickerModal';
+import { ThemePickerModal } from '../../../components/settings/ThemePickerModal';
 import { ActionSheetModal } from '../../../components/ui/ActionSheetModal';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
 import { BoringAvatar } from '../../../components/ui/BoringAvatar';
@@ -18,6 +19,8 @@ import {
   type LanguagePreference,
 } from '../../../lib/i18n/languagePreference';
 import { clearRecentSearches } from '../../../lib/storage/recentSearches';
+import { getStoredThemePreference, type ThemePreference } from '../../../lib/theme/themePreference';
+import { useThemeColors } from '../../../lib/theme/useThemeColors';
 import { isCrashReportingEnabled, setCrashReportingEnabled } from '../../../lib/telemetry/sentry';
 import { WATCH_REGIONS } from '../../../lib/tmdb/regions';
 import { useAuthStore } from '../../../stores/auth.store';
@@ -35,6 +38,7 @@ function formatMemberSince(dateString: string | undefined, language: string): st
 export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
   const { height: windowHeight } = useWindowDimensions();
+  const colors = useThemeColors();
 
   const session = useAuthStore((state) => state.session);
   const signOut = useAuthStore((state) => state.signOut);
@@ -81,6 +85,7 @@ export default function ProfileScreen() {
   const [isClearHistoryConfirmOpen, setIsClearHistoryConfirmOpen] = useState(false);
   const [isRegionPickerOpen, setIsRegionPickerOpen] = useState(false);
   const [isLanguagePickerOpen, setIsLanguagePickerOpen] = useState(false);
+  const [isThemePickerOpen, setIsThemePickerOpen] = useState(false);
   const [isDeleteAccountOpen, setIsDeleteAccountOpen] = useState(false);
 
   const [languagePreference, setLanguagePreference] = useState<LanguagePreference>('system');
@@ -93,6 +98,17 @@ export default function ProfileScreen() {
       : languagePreference === 'tr'
         ? 'Türkçe'
         : 'English';
+
+  const [themePreference, setThemePreference] = useState<ThemePreference>('system');
+  useEffect(() => {
+    getStoredThemePreference().then(setThemePreference);
+  }, []);
+  const themeLabel =
+    themePreference === 'light'
+      ? t('components.themePicker.light')
+      : themePreference === 'dark'
+        ? t('components.themePicker.dark')
+        : t('components.themePicker.system');
   const watchRegionLabel = profile?.watchRegion
     ? (WATCH_REGIONS.find((region) => region.code === profile.watchRegion)?.name ??
       profile.watchRegion)
@@ -177,108 +193,122 @@ export default function ProfileScreen() {
               onPress={() => router.push('/stats')}
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >
-              <MaterialIcons name="bar-chart" size={20} color="#A1A1AA" />
+              <MaterialIcons name="bar-chart" size={20} color={colors.icon} />
               <Text className="flex-1 font-sans text-body-md text-text-primary">
                 {t('profile.statistics')}
               </Text>
-              <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
+              <MaterialIcons name="chevron-right" size={20} color={colors.icon} />
             </AnimatedPressable>
             <View className="h-px bg-glass-border" />
             <AnimatedPressable
               onPress={() => router.push('/calendar')}
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >
-              <MaterialIcons name="calendar-today" size={20} color="#A1A1AA" />
+              <MaterialIcons name="calendar-today" size={20} color={colors.icon} />
               <Text className="flex-1 font-sans text-body-md text-text-primary">
                 {t('profile.upcomingEpisodes')}
               </Text>
-              <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
+              <MaterialIcons name="chevron-right" size={20} color={colors.icon} />
             </AnimatedPressable>
             <View className="h-px bg-glass-border" />
             <AnimatedPressable
               onPress={() => router.push('/import')}
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >
-              <MaterialIcons name="file-upload" size={20} color="#A1A1AA" />
+              <MaterialIcons name="file-upload" size={20} color={colors.icon} />
               <Text className="flex-1 font-sans text-body-md text-text-primary">
                 {t('profile.importFrom')}
               </Text>
-              <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
+              <MaterialIcons name="chevron-right" size={20} color={colors.icon} />
             </AnimatedPressable>
             <View className="h-px bg-glass-border" />
             <AnimatedPressable
               onPress={() => setIsRegionPickerOpen(true)}
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >
-              <MaterialIcons name="public" size={20} color="#A1A1AA" />
+              <MaterialIcons name="public" size={20} color={colors.icon} />
               <Text className="flex-1 font-sans text-body-md text-text-primary">
                 {t('profile.watchRegion')}
               </Text>
               <Text className="font-sans text-caption text-text-secondary">{watchRegionLabel}</Text>
-              <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
+              <MaterialIcons name="chevron-right" size={20} color={colors.icon} />
             </AnimatedPressable>
             <View className="h-px bg-glass-border" />
             <AnimatedPressable
               onPress={() => setIsLanguagePickerOpen(true)}
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >
-              <MaterialIcons name="language" size={20} color="#A1A1AA" />
+              <MaterialIcons name="language" size={20} color={colors.icon} />
               <Text className="flex-1 font-sans text-body-md text-text-primary">
                 {t('profile.language')}
               </Text>
               <Text className="font-sans text-caption text-text-secondary">{languageLabel}</Text>
-              <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
+              <MaterialIcons name="chevron-right" size={20} color={colors.icon} />
+            </AnimatedPressable>
+            <View className="h-px bg-glass-border" />
+            <AnimatedPressable
+              onPress={() => setIsThemePickerOpen(true)}
+              className="flex-row items-center gap-3 px-4 py-stack-md"
+            >
+              <MaterialIcons name="brightness-6" size={20} color={colors.icon} />
+              <Text className="flex-1 font-sans text-body-md text-text-primary">
+                {t('profile.theme')}
+              </Text>
+              <Text className="font-sans text-caption text-text-secondary">{themeLabel}</Text>
+              <MaterialIcons name="chevron-right" size={20} color={colors.icon} />
             </AnimatedPressable>
             <View className="h-px bg-glass-border" />
             <AnimatedPressable
               onPress={handleToggleCrashReporting}
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >
-              <MaterialIcons name="bug-report" size={20} color="#A1A1AA" />
+              <MaterialIcons name="bug-report" size={20} color={colors.icon} />
               <Text className="flex-1 font-sans text-body-md text-text-primary">
                 {t('profile.shareCrashReports')}
               </Text>
-              {crashReportingEnabled && <MaterialIcons name="check" size={20} color="#f5c451" />}
+              {crashReportingEnabled && (
+                <MaterialIcons name="check" size={20} color={colors.gold} />
+              )}
             </AnimatedPressable>
             <View className="h-px bg-glass-border" />
             <AnimatedPressable
               onPress={() => setIsClearHistoryConfirmOpen(true)}
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >
-              <MaterialIcons name="history" size={20} color="#A1A1AA" />
+              <MaterialIcons name="history" size={20} color={colors.icon} />
               <Text className="flex-1 font-sans text-body-md text-text-primary">
                 {t('profile.clearSearchHistory')}
               </Text>
-              <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
+              <MaterialIcons name="chevron-right" size={20} color={colors.icon} />
             </AnimatedPressable>
             <View className="h-px bg-glass-border" />
             <AnimatedPressable
               onPress={() => router.push('/legal/privacy')}
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >
-              <MaterialIcons name="privacy-tip" size={20} color="#A1A1AA" />
+              <MaterialIcons name="privacy-tip" size={20} color={colors.icon} />
               <Text className="flex-1 font-sans text-body-md text-text-primary">
                 {t('profile.privacyPolicy')}
               </Text>
-              <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
+              <MaterialIcons name="chevron-right" size={20} color={colors.icon} />
             </AnimatedPressable>
             <View className="h-px bg-glass-border" />
             <AnimatedPressable
               onPress={() => router.push('/legal/terms')}
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >
-              <MaterialIcons name="description" size={20} color="#A1A1AA" />
+              <MaterialIcons name="description" size={20} color={colors.icon} />
               <Text className="flex-1 font-sans text-body-md text-text-primary">
                 {t('profile.termsOfUse')}
               </Text>
-              <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
+              <MaterialIcons name="chevron-right" size={20} color={colors.icon} />
             </AnimatedPressable>
             <View className="h-px bg-glass-border" />
             <AnimatedPressable
               onPress={handleSignOut}
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >
-              <MaterialIcons name="logout" size={20} color="#ffb4ab" />
+              <MaterialIcons name="logout" size={20} color={colors.error} />
               <Text className="flex-1 font-sans text-body-md text-error">
                 {t('profile.signOut')}
               </Text>
@@ -288,7 +318,7 @@ export default function ProfileScreen() {
               onPress={() => setIsDeleteAccountOpen(true)}
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >
-              <MaterialIcons name="delete-forever" size={20} color="#ffb4ab" />
+              <MaterialIcons name="delete-forever" size={20} color={colors.error} />
               <Text className="flex-1 font-sans text-body-md text-error">
                 {t('profile.deleteAccount')}
               </Text>
@@ -342,6 +372,13 @@ export default function ProfileScreen() {
         current={languagePreference}
         onChange={setLanguagePreference}
         onClose={() => setIsLanguagePickerOpen(false)}
+      />
+
+      <ThemePickerModal
+        visible={isThemePickerOpen}
+        current={themePreference}
+        onChange={setThemePreference}
+        onClose={() => setIsThemePickerOpen(false)}
       />
 
       <DeleteAccountModal

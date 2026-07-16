@@ -3,10 +3,12 @@ import { router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 import { BoringAvatar } from '../ui/BoringAvatar';
+import { useThemeColors } from '../../lib/theme/useThemeColors';
 import { useAuthStore } from '../../stores/auth.store';
 import { useProfileStore } from '../../stores/profile.store';
 
 export function TopAppBar() {
+  const colors = useThemeColors();
   const email = useAuthStore((state) => state.session?.user?.email ?? '');
   const profile = useProfileStore((state) => state.profile);
   const avatarSeed = profile?.avatarSeed || profile?.displayName || email;
@@ -14,7 +16,7 @@ export function TopAppBar() {
   return (
     <View className="h-20 flex-row items-center justify-between border-b border-glass-border bg-background-blur px-margin-mobile">
       <Pressable hitSlop={8}>
-        <MaterialIcons name="menu" size={28} color="#ffe4af" />
+        <MaterialIcons name="menu" size={28} color={colors.gold} />
       </Pressable>
 
       <Text className="text-display-xl-mobile uppercase text-primary">Previously</Text>

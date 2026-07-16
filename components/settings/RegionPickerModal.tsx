@@ -4,6 +4,7 @@ import { FlatList, Modal, Text, View } from 'react-native';
 
 import { getDeviceRegion } from '../../lib/tmdb/region';
 import { WATCH_REGIONS } from '../../lib/tmdb/regions';
+import { useThemeColors } from '../../lib/theme/useThemeColors';
 import { useProfileStore } from '../../stores/profile.store';
 import { useToastStore } from '../../stores/toast.store';
 import { AnimatedPressable } from '../ui/AnimatedPressable';
@@ -85,6 +86,7 @@ function RegionRow({
   selected: boolean;
   onPress: () => void;
 }) {
+  const colors = useThemeColors();
   return (
     <AnimatedPressable
       onPress={onPress}
@@ -93,7 +95,7 @@ function RegionRow({
       <Text className="flex-1 font-sans text-body-md text-text-primary" numberOfLines={1}>
         {label}
       </Text>
-      {selected && <MaterialIcons name="check" size={20} color="#f5c451" />}
+      {selected && <MaterialIcons name="check" size={20} color={colors.gold} />}
     </AnimatedPressable>
   );
 }

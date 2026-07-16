@@ -5,6 +5,7 @@ import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
+import { useThemeColors } from '../../../lib/theme/useThemeColors';
 
 function Section({ title, children }: { title: string; children: string }) {
   return (
@@ -20,6 +21,7 @@ function Section({ title, children }: { title: string; children: string }) {
 // and shouldn't be taken as final from this draft).
 export default function PrivacyPolicyScreen() {
   const { t } = useTranslation();
+  const colors = useThemeColors();
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
@@ -29,7 +31,7 @@ export default function PrivacyPolicyScreen() {
           hitSlop={8}
           className="h-8 w-8 items-center justify-center"
         >
-          <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />
+          <MaterialIcons name="arrow-back" size={22} color={colors.textPrimary} />
         </AnimatedPressable>
         <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
           {t('legal.privacy.title')}
