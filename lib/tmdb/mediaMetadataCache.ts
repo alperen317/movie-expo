@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import i18n from '../i18n';
 import { getMovieDetails } from './movies';
 import { getTVShowDetails } from './tv';
 
@@ -11,8 +12,11 @@ export interface MediaMetadata {
 const STORAGE_PREFIX = 'media-meta-';
 const memoryCache = new Map<string, MediaMetadata>();
 
+// Genres are stored localized (they come from the TMDB detail payload, which is
+// now language-aware), so the cache is scoped by language -- otherwise switching
+// languages would surface stale genre names on the stats screen.
 function cacheKey(mediaType: 'movie' | 'tv', id: number): string {
-  return `${mediaType}-${id}`;
+  return `${i18n.language}-${mediaType}-${id}`;
 }
 
 // Runtime/genres never change for a given title, so once fetched they're

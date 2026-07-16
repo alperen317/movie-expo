@@ -7,7 +7,7 @@ import { FadeInDown } from 'react-native-reanimated';
 
 import { AnimatedPressable, AnimatedView } from '../ui/AnimatedPressable';
 import { getPosterUrl } from '../../lib/tmdb/config';
-import { getPrimaryGenre, TMDB_GENRE_MAP, TMDB_TV_GENRE_MAP } from '../../lib/tmdb/genres';
+import { getPrimaryGenre } from '../../lib/tmdb/genres';
 import type { TMDBMovie, TMDBMultiSearchResult, TMDBTVShow } from '../../lib/tmdb/types';
 import { useWatchLogStore } from '../../stores/watchLog.store';
 
@@ -62,7 +62,7 @@ export function toTVCardItem(show: TMDBTVShow): MediaCardItem {
     year: show.first_air_date?.slice(0, 4) || null,
     posterPath: show.poster_path,
     voteAverage: show.vote_average,
-    genre: getPrimaryGenre(show.genre_ids, TMDB_TV_GENRE_MAP),
+    genre: getPrimaryGenre(show.genre_ids, 'tv'),
     mediaType: 'tv',
   };
 }
@@ -77,7 +77,7 @@ export function toSearchCardItem(result: TMDBMultiSearchResult): MediaCardItem |
     year: (isMovie ? result.release_date : result.first_air_date)?.slice(0, 4) || null,
     posterPath: result.poster_path,
     voteAverage: result.vote_average ?? 0,
-    genre: getPrimaryGenre(result.genre_ids ?? [], isMovie ? TMDB_GENRE_MAP : TMDB_TV_GENRE_MAP),
+    genre: getPrimaryGenre(result.genre_ids ?? [], isMovie ? 'movie' : 'tv'),
     mediaType: result.media_type,
   };
 }

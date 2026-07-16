@@ -1,3 +1,5 @@
+import i18n from '../i18n';
+
 export const TMDB_GENRE_MAP: Record<number, string> = {
   28: 'Action',
   12: 'Adventure',
@@ -39,10 +41,17 @@ export const TMDB_TV_GENRE_MAP: Record<number, string> = {
   37: 'Western',
 };
 
+// List/search/trending responses only carry `genre_ids`, so names are resolved
+// from these maps rather than the (localized) detail payload. Translate the
+// resolved name through i18n, keyed by TMDB genre id, with the English map as
+// the fallback for any id that lacks a translation.
 export function getPrimaryGenre(
   genreIds: number[],
-  map: Record<number, string> = TMDB_GENRE_MAP,
+  scope: 'movie' | 'tv' = 'movie',
 ): string | null {
   const [first] = genreIds;
-  return first !== undefined ? (map[first] ?? null) : null;
+  if (first === undefined) return null;
+  const fallback = (scope === 'tv' ? TMDB_TV_GENRE_MAP : TMDB_GENRE_MAP)[first];
+  if (!fallback) return null;
+  return i18n.t(`genres.${scope}.${first}`, { defaultValue: fallback });
 }

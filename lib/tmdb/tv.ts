@@ -8,6 +8,9 @@ export function getPopularTVShows(page = 1) {
 export function getTVShowDetails(id: number) {
   return tmdbFetch<TMDBTVShowDetails>(`/tv/${id}`, {
     append_to_response: 'credits,content_ratings,images,videos,watch/providers',
+    // Keep the gallery rich regardless of UI language: the localized `language`
+    // filter would otherwise drop backdrops that aren't tagged for that locale.
+    include_image_language: 'en,null',
   });
 }
 
