@@ -1,0 +1,15 @@
+{
+  "details": {
+    "loadError": "Failed to load details.",
+    "watchTrailer": "Watch Trailer",
+    "watched": "Watched",
+    "markAsWatched": "Mark as Watched",
+    "inWatchlist": "In Watchlist",
+    "addToWatchlist": "Add to Watchlist",
+    "whereToWatch": "Where to Watch",
+    "justWatchAttribution": "Streaming data provided by JustWatch",
+    "seasons": "Seasons",
+    "synopsis": "Synopsis",
+    "cast": "Cast"
+  }
+}

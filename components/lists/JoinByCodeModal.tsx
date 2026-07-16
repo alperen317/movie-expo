@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -18,6 +19,7 @@ interface JoinByCodeModalProps {
 }
 
 export function JoinByCodeModal({ visible, onClose, onSubmit }: JoinByCodeModalProps) {
+  const { t } = useTranslation();
   const [code, setCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +33,7 @@ export function JoinByCodeModal({ visible, onClose, onSubmit }: JoinByCodeModalP
   const handleSubmit = async () => {
     const trimmed = code.trim();
     if (trimmed.length === 0) {
-      setError('Enter a list code.');
+      setError(t('components.joinCode.enterCode'));
       return;
     }
     setIsSubmitting(true);
@@ -41,7 +43,7 @@ export function JoinByCodeModal({ visible, onClose, onSubmit }: JoinByCodeModalP
       setCode('');
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to join list.');
+      setError(err instanceof Error ? err.message : t('components.joinCode.joinFailed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -55,9 +57,11 @@ export function JoinByCodeModal({ visible, onClose, onSubmit }: JoinByCodeModalP
         className="items-center justify-center bg-background/80 px-margin-mobile"
       >
         <View className="w-full max-w-md gap-stack-md rounded-2xl border border-glass-border bg-surface-container-low p-6">
-          <Text className="font-sans-bold text-title-md text-text-primary">Join a List</Text>
+          <Text className="font-sans-bold text-title-md text-text-primary">
+            {t('components.joinCode.title')}
+          </Text>
           <Text className="font-sans text-caption text-text-secondary">
-            Enter the code someone shared with you.
+            {t('components.joinCode.subtitle')}
           </Text>
           <TextInput
             autoFocus
@@ -81,7 +85,9 @@ export function JoinByCodeModal({ visible, onClose, onSubmit }: JoinByCodeModalP
               onPress={handleClose}
               className="flex-1 items-center rounded-full border border-glass-border py-3"
             >
-              <Text className="font-sans-semibold text-body-md text-text-secondary">Cancel</Text>
+              <Text className="font-sans-semibold text-body-md text-text-secondary">
+                {t('common.cancel')}
+              </Text>
             </AnimatedPressable>
             <AnimatedPressable
               onPress={handleSubmit}
@@ -92,7 +98,7 @@ export function JoinByCodeModal({ visible, onClose, onSubmit }: JoinByCodeModalP
                 <ActivityIndicator color="#3f2e00" />
               ) : (
                 <Text className="font-sans-semibold text-body-md text-on-primary-container">
-                  Join
+                  {t('components.joinCode.join')}
                 </Text>
               )}
             </AnimatedPressable>

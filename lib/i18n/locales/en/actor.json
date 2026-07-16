@@ -1,0 +1,9 @@
+{
+  "actor": {
+    "loadError": "Failed to load actor.",
+    "biography": "Biography",
+    "noBiography": "No biography available.",
+    "born": "Born: {{date}}",
+    "knownFor": "Known For"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "listDetail": {
+    "fallbackTitle": "Liste",
+    "memberCount_one": "{{count}} üye",
+    "memberCount_other": "{{count}} üye",
+    "emptyTitle": "Henüz yapım yok",
+    "emptySubtitle": "Bu listeyi başlatmak için bir film veya dizi ekle.",
+    "renameTitle": "Listeyi Yeniden Adlandır",
+    "rename": "Yeniden Adlandır",
+    "deleteList": "Listeyi Sil",
+    "leaveList": "Listeden Ayrıl",
+    "deleteMessage": "Bu, listeyi herkes için kaldırır. Geri alınamaz.",
+    "delete": "Sil",
+    "leaveMessage": "Yeniden katılmak için yeni bir davete ihtiyacın olur.",
+    "leave": "Ayrıl",
+    "members": "Üyeler",
+    "pending": "Bekliyor",
+    "addToList": "Listeye Ekle",
+    "searchPlaceholder": "Film veya dizi ara...",
+    "popularNow": "Şu an popüler"
+  }
+}

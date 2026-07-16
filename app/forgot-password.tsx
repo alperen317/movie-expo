@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { FadeIn, FadeOut } from 'react-native-reanimated';
 
@@ -10,35 +11,152 @@ import { AnimatedPressable, AnimatedView } from '../components/ui/AnimatedPressa
 import { useAuthStore } from '../stores/auth.store';
 
 export default function ForgotPasswordScreen() {
+  const { t } = useTranslation();
   const session = useAuthStore((state) => state.session);
-  const { requestPasswordReset, isSubmitting, error } = useAuthStore();
+  const { requestPasswordReset, resetPassword, isSubmitting, error } = useAuthStore();
+
+  const [step, setStep] = useState<'request' | 'reset'>('request');
   const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [mismatch, setMismatch] = useState(false);
 
-  const canSubmit = email.length > 0 && !isSubmitting;
-
+  // Verifying the recovery code signs the user in, so once a session exists the
+  // reset has succeeded — send them straight into the app.
   if (session) {
     return <Redirect href="/" />;
   }
 
-  const handleSubmit = async () => {
-    const ok = await requestPasswordReset(email);
-    if (ok) {
-      router.push({ pathname: '/verify-otp', params: { purpose: 'recovery', email } });
-    }
+  const handleRequest = async () => {
+    const ok = await requestPasswordReset(email.trim());
+    if (ok) setStep('reset');
   };
+
+  const handleReset = async () => {
+    if (password !== confirmPassword) {
+      setMismatch(true);
+      return;
+    }
+    setMismatch(false);
+    await resetPassword(email.trim(), code.trim(), password);
+  };
+
+  if (step === 'reset') {
+    const canSubmit =
+      code.length > 0 && password.length > 0 && confirmPassword.length > 0 && !isSubmitting;
+
+    return (
+      <AuthBackground>
+        <Text className="text-display-xl-mobile uppercase text-primary-container">Previously</Text>
+
+        <View className="mt-stack-lg w-full items-center">
+          <Text className="text-headline-lg-mobile font-sans-semibold text-text-primary">
+            {t('auth.forgotPassword.resetTitle')}
+          </Text>
+          <Text className="mt-stack-sm text-center font-sans text-body-md text-text-secondary">
+            {t('auth.forgotPassword.resetSubtitle', { email })}
+          </Text>
+        </View>
+
+        <View className="mt-stack-lg w-full gap-stack-md">
+          <AuthTextInput
+            icon="dialpad"
+            value={code}
+            onChangeText={setCode}
+            placeholder={t('auth.forgotPassword.code')}
+            autoCapitalize="none"
+            keyboardType="number-pad"
+          />
+          <AuthTextInput
+            icon="lock"
+            isPassword
+            value={password}
+            onChangeText={setPassword}
+            placeholder={t('auth.forgotPassword.newPassword')}
+            autoComplete="new-password"
+          />
+          <AuthTextInput
+            icon="lock"
+            isPassword
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            placeholder={t('auth.forgotPassword.confirmNewPassword')}
+            autoComplete="new-password"
+          />
+        </View>
+
+        {mismatch && (
+          <AnimatedView
+            entering={FadeIn.duration(200)}
+            exiting={FadeOut.duration(150)}
+            style={{ width: '100%' }}
+          >
+            <Text className="mt-stack-sm font-sans text-sm text-error">
+              {t('auth.signUp.passwordMismatch')}
+            </Text>
+          </AnimatedView>
+        )}
+        {error && (
+          <AnimatedView
+            entering={FadeIn.duration(200)}
+            exiting={FadeOut.duration(150)}
+            style={{ width: '100%' }}
+          >
+            <Text className="mt-stack-sm font-sans text-sm text-error">{error}</Text>
+          </AnimatedView>
+        )}
+
+        <AnimatedPressable
+          onPress={handleReset}
+          disabled={!canSubmit}
+          style={{
+            shadowColor: '#F5C451',
+            shadowOpacity: 0.35,
+            shadowRadius: 20,
+            shadowOffset: { width: 0, height: 0 },
+            elevation: 8,
+          }}
+          className={`mt-stack-lg w-full flex-row items-center justify-center gap-2 rounded-full bg-primary-container py-4 ${
+            canSubmit ? '' : 'opacity-50'
+          }`}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color="#3f2e00" />
+          ) : (
+            <>
+              <Text className="font-sans-bold uppercase tracking-wide text-on-primary-container">
+                {t('auth.forgotPassword.submit')}
+              </Text>
+              <MaterialIcons name="arrow-forward" size={18} color="#3f2e00" />
+            </>
+          )}
+        </AnimatedPressable>
+
+        <AnimatedPressable onPress={() => setStep('request')} className="mt-stack-lg">
+          <Text className="font-sans text-caption text-text-secondary">
+            {t('auth.forgotPassword.noCode')}{' '}
+            <Text className="font-sans-bold text-text-primary">
+              {t('auth.forgotPassword.retry')}
+            </Text>
+          </Text>
+        </AnimatedPressable>
+      </AuthBackground>
+    );
+  }
+
+  const canSubmit = email.length > 0 && !isSubmitting;
 
   return (
     <AuthBackground>
-      <View className="h-14 w-14 items-center justify-center rounded-full bg-primary-container">
-        <MaterialIcons name="lock-reset" size={28} color="#3f2e00" />
-      </View>
+      <Text className="text-display-xl-mobile uppercase text-primary-container">Previously</Text>
 
       <View className="mt-stack-lg w-full items-center">
         <Text className="text-headline-lg-mobile font-sans-semibold text-text-primary">
-          Şifreni sıfırla
+          {t('auth.forgotPassword.requestTitle')}
         </Text>
         <Text className="mt-stack-sm text-center font-sans text-body-md text-text-secondary">
-          E-posta adresini gir, sana bir doğrulama kodu gönderelim.
+          {t('auth.forgotPassword.requestSubtitle')}
         </Text>
       </View>
 
@@ -47,7 +165,7 @@ export default function ForgotPasswordScreen() {
           icon="email"
           value={email}
           onChangeText={setEmail}
-          placeholder="E-posta"
+          placeholder={t('auth.email')}
           autoCapitalize="none"
           autoComplete="email"
           keyboardType="email-address"
@@ -65,7 +183,7 @@ export default function ForgotPasswordScreen() {
       )}
 
       <AnimatedPressable
-        onPress={handleSubmit}
+        onPress={handleRequest}
         disabled={!canSubmit}
         style={{
           shadowColor: '#F5C451',
@@ -83,16 +201,19 @@ export default function ForgotPasswordScreen() {
         ) : (
           <>
             <Text className="font-sans-bold uppercase tracking-wide text-on-primary-container">
-              Kod Gönder
+              {t('auth.forgotPassword.sendCode')}
             </Text>
             <MaterialIcons name="arrow-forward" size={18} color="#3f2e00" />
           </>
         )}
       </AnimatedPressable>
 
-      <AnimatedPressable onPress={() => router.back()} className="mt-stack-lg">
+      <AnimatedPressable onPress={() => router.replace('/login')} className="mt-stack-lg">
         <Text className="font-sans text-caption text-text-secondary">
-          <Text className="font-sans-bold text-text-primary">Giriş ekranına dön</Text>
+          {t('auth.forgotPassword.rememberedPassword')}{' '}
+          <Text className="font-sans-bold text-text-primary">
+            {t('auth.forgotPassword.signInLink')}
+          </Text>
         </Text>
       </AnimatedPressable>
     </AuthBackground>

@@ -2,6 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Linking, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -20,12 +21,14 @@ import { useProfileStore } from '../../../stores/profile.store';
 import { useToastStore } from '../../../stores/toast.store';
 import { dedupeWatchLog, useWatchLogStore } from '../../../stores/watchLog.store';
 
-function formatMemberSince(dateString?: string): string {
+function formatMemberSince(dateString: string | undefined, language: string): string {
   if (!dateString) return '';
-  return new Date(dateString).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const locale = language === 'tr' ? 'tr-TR' : 'en-US';
+  return new Date(dateString).toLocaleDateString(locale, { month: 'long', year: 'numeric' });
 }
 
 export default function ProfileScreen() {
+  const { t, i18n } = useTranslation();
   const { height: windowHeight } = useWindowDimensions();
 
   const session = useAuthStore((state) => state.session);
@@ -59,13 +62,13 @@ export default function ProfileScreen() {
     setCrashReportingEnabledState(next);
     await setCrashReportingEnabled(next);
     if (next) {
-      useToastStore.getState().show('Restart the app for this to take effect', 'info-outline');
+      useToastStore.getState().show(t('profile.crashRestart'), 'info-outline');
     }
   };
 
   const email = session?.user?.email ?? '';
   const avatarSeed = profile?.avatarSeed || profile?.displayName || email;
-  const memberSince = formatMemberSince(session?.user?.created_at);
+  const memberSince = formatMemberSince(session?.user?.created_at, i18n.language);
   const favoritesCount = Object.keys(favorites).length;
   const watchlistCount = Object.keys(watchlist).length;
   const watchedCount = dedupeWatchLog(watchLogEntries).length;
@@ -76,7 +79,7 @@ export default function ProfileScreen() {
   const watchRegionLabel = profile?.watchRegion
     ? (WATCH_REGIONS.find((region) => region.code === profile.watchRegion)?.name ??
       profile.watchRegion)
-    : 'Device Default';
+    : t('profile.deviceDefault');
 
   const handleSignOut = () => {
     // NOTE: React Native's Alert.alert is unsupported on web (renders nothing),
@@ -93,7 +96,9 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View className="px-margin-mobile pb-stack-md pt-stack-sm">
-          <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">Profile</Text>
+          <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
+            {t('profile.title')}
+          </Text>
         </View>
 
         <View className="items-center gap-stack-sm px-margin-mobile pb-section-gap">
@@ -108,7 +113,7 @@ export default function ProfileScreen() {
           </Text>
           {memberSince.length > 0 && (
             <Text className="font-sans text-body-md text-text-secondary">
-              Member since {memberSince}
+              {t('profile.memberSince', { date: memberSince })}
             </Text>
           )}
         </View>
@@ -121,7 +126,9 @@ export default function ProfileScreen() {
             <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
               {favoritesCount}
             </Text>
-            <Text className="font-sans text-caption text-text-secondary">Favorites</Text>
+            <Text className="font-sans text-caption text-text-secondary">
+              {t('common.favorites')}
+            </Text>
           </AnimatedPressable>
           <AnimatedPressable
             onPress={() => router.push({ pathname: '/favorites', params: { tab: 'watchlist' } })}
@@ -130,7 +137,9 @@ export default function ProfileScreen() {
             <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
               {watchlistCount}
             </Text>
-            <Text className="font-sans text-caption text-text-secondary">Watchlist</Text>
+            <Text className="font-sans text-caption text-text-secondary">
+              {t('common.watchlist')}
+            </Text>
           </AnimatedPressable>
           <AnimatedPressable
             onPress={() => router.push({ pathname: '/favorites', params: { tab: 'watched' } })}
@@ -139,7 +148,9 @@ export default function ProfileScreen() {
             <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
               {watchedCount}
             </Text>
-            <Text className="font-sans text-caption text-text-secondary">Watched</Text>
+            <Text className="font-sans text-caption text-text-secondary">
+              {t('common.watched')}
+            </Text>
           </AnimatedPressable>
         </View>
 
@@ -150,7 +161,9 @@ export default function ProfileScreen() {
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >
               <MaterialIcons name="bar-chart" size={20} color="#A1A1AA" />
-              <Text className="flex-1 font-sans text-body-md text-text-primary">Statistics</Text>
+              <Text className="flex-1 font-sans text-body-md text-text-primary">
+                {t('profile.statistics')}
+              </Text>
               <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
             </AnimatedPressable>
             <View className="h-px bg-glass-border" />
@@ -160,7 +173,7 @@ export default function ProfileScreen() {
             >
               <MaterialIcons name="calendar-today" size={20} color="#A1A1AA" />
               <Text className="flex-1 font-sans text-body-md text-text-primary">
-                Upcoming Episodes
+                {t('profile.upcomingEpisodes')}
               </Text>
               <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
             </AnimatedPressable>
@@ -171,7 +184,7 @@ export default function ProfileScreen() {
             >
               <MaterialIcons name="file-upload" size={20} color="#A1A1AA" />
               <Text className="flex-1 font-sans text-body-md text-text-primary">
-                Import from TV Time / Letterboxd
+                {t('profile.importFrom')}
               </Text>
               <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
             </AnimatedPressable>
@@ -181,7 +194,9 @@ export default function ProfileScreen() {
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >
               <MaterialIcons name="public" size={20} color="#A1A1AA" />
-              <Text className="flex-1 font-sans text-body-md text-text-primary">Watch Region</Text>
+              <Text className="flex-1 font-sans text-body-md text-text-primary">
+                {t('profile.watchRegion')}
+              </Text>
               <Text className="font-sans text-caption text-text-secondary">{watchRegionLabel}</Text>
               <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
             </AnimatedPressable>
@@ -192,7 +207,7 @@ export default function ProfileScreen() {
             >
               <MaterialIcons name="bug-report" size={20} color="#A1A1AA" />
               <Text className="flex-1 font-sans text-body-md text-text-primary">
-                Share Crash Reports
+                {t('profile.shareCrashReports')}
               </Text>
               {crashReportingEnabled && <MaterialIcons name="check" size={20} color="#f5c451" />}
             </AnimatedPressable>
@@ -203,7 +218,7 @@ export default function ProfileScreen() {
             >
               <MaterialIcons name="history" size={20} color="#A1A1AA" />
               <Text className="flex-1 font-sans text-body-md text-text-primary">
-                Clear Search History
+                {t('profile.clearSearchHistory')}
               </Text>
               <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
             </AnimatedPressable>
@@ -214,7 +229,7 @@ export default function ProfileScreen() {
             >
               <MaterialIcons name="privacy-tip" size={20} color="#A1A1AA" />
               <Text className="flex-1 font-sans text-body-md text-text-primary">
-                Privacy Policy
+                {t('profile.privacyPolicy')}
               </Text>
               <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
             </AnimatedPressable>
@@ -224,7 +239,9 @@ export default function ProfileScreen() {
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >
               <MaterialIcons name="description" size={20} color="#A1A1AA" />
-              <Text className="flex-1 font-sans text-body-md text-text-primary">Terms of Use</Text>
+              <Text className="flex-1 font-sans text-body-md text-text-primary">
+                {t('profile.termsOfUse')}
+              </Text>
               <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
             </AnimatedPressable>
             <View className="h-px bg-glass-border" />
@@ -233,7 +250,9 @@ export default function ProfileScreen() {
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >
               <MaterialIcons name="logout" size={20} color="#ffb4ab" />
-              <Text className="flex-1 font-sans text-body-md text-error">Sign Out</Text>
+              <Text className="flex-1 font-sans text-body-md text-error">
+                {t('profile.signOut')}
+              </Text>
             </AnimatedPressable>
             <View className="h-px bg-glass-border" />
             <AnimatedPressable
@@ -241,7 +260,9 @@ export default function ProfileScreen() {
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >
               <MaterialIcons name="delete-forever" size={20} color="#ffb4ab" />
-              <Text className="flex-1 font-sans text-body-md text-error">Delete Account</Text>
+              <Text className="flex-1 font-sans text-body-md text-error">
+                {t('profile.deleteAccount')}
+              </Text>
             </AnimatedPressable>
           </View>
         </View>
@@ -254,14 +275,14 @@ export default function ProfileScreen() {
         <Pressable
           onPress={() =>
             Linking.openURL('https://www.themoviedb.org/').catch(() => {
-              useToastStore.getState().show('Could not open link', 'error-outline');
+              useToastStore.getState().show(t('toasts.couldNotOpenLink'), 'error-outline');
             })
           }
           className="mt-stack-sm items-center px-margin-mobile"
         >
           <TmdbLogo width={80} />
           <Text className="mt-1 text-center font-sans text-caption text-text-secondary">
-            This product uses the TMDB API but is not endorsed or certified by TMDB.
+            {t('profile.tmdbAttribution')}
           </Text>
           <Text
             className="mt-1 text-center font-sans-semibold text-caption"
@@ -274,10 +295,12 @@ export default function ProfileScreen() {
 
       <ActionSheetModal
         visible={isClearHistoryConfirmOpen}
-        title="Clear Search History"
-        message="This will remove all your recent searches."
+        title={t('profile.clearSearchHistory')}
+        message={t('profile.clearHistoryMessage')}
         onClose={() => setIsClearHistoryConfirmOpen(false)}
-        actions={[{ label: 'Clear', destructive: true, onPress: () => clearRecentSearches() }]}
+        actions={[
+          { label: t('common.clear'), destructive: true, onPress: () => clearRecentSearches() },
+        ]}
       />
 
       <RegionPickerModal

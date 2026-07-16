@@ -1,0 +1,9 @@
+{
+  "calendar": {
+    "title": "Calendar",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "emptyTitle": "No upcoming episodes",
+    "emptySubtitle": "Shows you're tracking will show their next episode here."
+  }
+}

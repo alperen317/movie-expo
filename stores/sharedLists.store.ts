@@ -2,6 +2,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import { create } from 'zustand';
 
 import type { MediaCardItem } from '../components/home/MovieCard';
+import i18n from '../lib/i18n';
 import {
   addListItem,
   createSharedList,
@@ -246,7 +247,7 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
           ? { members: { ...state.members, [member.membershipId]: member } }
           : {},
       );
-      useToastStore.getState().show(`Invite sent to ${email}`, 'person-add');
+      useToastStore.getState().show(i18n.t('toasts.inviteSent', { email }), 'person-add');
     } catch (err) {
       const message =
         err instanceof SharedListsError ? err.message : 'Something went wrong. Please try again.';
@@ -286,7 +287,9 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
         [key]: { ...item, listId, addedBy: '', addedAt: new Date().toISOString(), rowId: '' },
       },
     }));
-    useToastStore.getState().show(`${item.title} added to list`, 'playlist-add-check');
+    useToastStore
+      .getState()
+      .show(i18n.t('toasts.addedToSharedList', { title: item.title }), 'playlist-add-check');
 
     try {
       await addListItem(listId, item);
@@ -296,7 +299,7 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
         delete items[key];
         return { items };
       });
-      useToastStore.getState().show('Something went wrong. Please try again.', 'error-outline');
+      useToastStore.getState().show(i18n.t('toasts.genericError'), 'error-outline');
       throw err;
     }
   },
@@ -311,13 +314,15 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
       delete items[key];
       return { items };
     });
-    useToastStore.getState().show(`${previous.title} removed from list`, 'playlist-remove');
+    useToastStore
+      .getState()
+      .show(i18n.t('toasts.removedFromSharedList', { title: previous.title }), 'playlist-remove');
 
     try {
       await removeListItem(listId, mediaId, mediaType);
     } catch (err) {
       set((state) => ({ items: { ...state.items, [key]: previous } }));
-      useToastStore.getState().show('Something went wrong. Please try again.', 'error-outline');
+      useToastStore.getState().show(i18n.t('toasts.genericError'), 'error-outline');
       throw err;
     }
   },

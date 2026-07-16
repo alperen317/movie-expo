@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { FadeIn, FadeOut } from 'react-native-reanimated';
 
@@ -10,14 +11,19 @@ import { AnimatedPressable, AnimatedView } from '../components/ui/AnimatedPressa
 import { useAuthStore } from '../stores/auth.store';
 
 export default function SignUpScreen() {
+  const { t } = useTranslation();
+  const [step, setStep] = useState<'form' | 'otp'>('form');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [code, setCode] = useState('');
   const [mismatch, setMismatch] = useState(false);
-  const { signUp, isSubmitting, error, needsEmailConfirmation } = useAuthStore();
+  const { signUp, verifySignUpOtp, resendSignUpOtp, isSubmitting, error, needsEmailConfirmation } =
+    useAuthStore();
 
-  const canSubmit =
-    email.length > 0 && password.length > 0 && confirmPassword.length > 0 && !isSubmitting;
+  useEffect(() => {
+    if (needsEmailConfirmation) setStep('otp');
+  }, [needsEmailConfirmation]);
 
   const handleSubmit = () => {
     if (password !== confirmPassword) {
@@ -28,11 +34,94 @@ export default function SignUpScreen() {
     signUp(email, password);
   };
 
-  useEffect(() => {
-    if (needsEmailConfirmation) {
-      router.push({ pathname: '/verify-otp', params: { purpose: 'signup', email } });
-    }
-  }, [needsEmailConfirmation, email]);
+  const handleVerify = async () => {
+    const ok = await verifySignUpOtp(email, code);
+    if (ok) router.replace('/');
+  };
+
+  const handleResend = () => {
+    resendSignUpOtp(email);
+  };
+
+  if (step === 'otp') {
+    const canVerify = code.length > 0 && !isSubmitting;
+
+    return (
+      <AuthBackground>
+        <View className="h-14 w-14 items-center justify-center rounded-full bg-primary-container">
+          <MaterialIcons name="mark-email-read" size={28} color="#3f2e00" />
+        </View>
+
+        <View className="mt-stack-lg w-full items-center">
+          <Text className="text-headline-lg-mobile font-sans-semibold text-text-primary">
+            {t('auth.signUp.otpTitle')}
+          </Text>
+          <Text className="mt-stack-sm text-center font-sans text-body-md text-text-secondary">
+            {t('auth.signUp.otpSubtitle', { email })}
+          </Text>
+        </View>
+
+        <View className="mt-stack-lg w-full gap-stack-md">
+          <AuthTextInput
+            icon="dialpad"
+            value={code}
+            onChangeText={setCode}
+            placeholder={t('auth.forgotPassword.code')}
+            autoCapitalize="none"
+            keyboardType="number-pad"
+          />
+        </View>
+
+        {error && (
+          <AnimatedView
+            entering={FadeIn.duration(200)}
+            exiting={FadeOut.duration(150)}
+            style={{ width: '100%' }}
+          >
+            <Text className="mt-stack-sm font-sans text-sm text-error">{error}</Text>
+          </AnimatedView>
+        )}
+
+        <AnimatedPressable
+          onPress={handleVerify}
+          disabled={!canVerify}
+          style={{
+            shadowColor: '#F5C451',
+            shadowOpacity: 0.35,
+            shadowRadius: 20,
+            shadowOffset: { width: 0, height: 0 },
+            elevation: 8,
+          }}
+          className={`mt-stack-lg w-full flex-row items-center justify-center gap-2 rounded-full bg-primary-container py-4 ${
+            canVerify ? '' : 'opacity-50'
+          }`}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color="#3f2e00" />
+          ) : (
+            <>
+              <Text className="font-sans-bold uppercase tracking-wide text-on-primary-container">
+                {t('auth.signUp.otpSubmit')}
+              </Text>
+              <MaterialIcons name="arrow-forward" size={18} color="#3f2e00" />
+            </>
+          )}
+        </AnimatedPressable>
+
+        <AnimatedPressable onPress={handleResend} className="mt-stack-lg">
+          <Text className="font-sans text-caption text-text-secondary">
+            {t('auth.forgotPassword.noCode')}{' '}
+            <Text className="font-sans-bold text-text-primary">
+              {t('auth.signUp.otpResend')}
+            </Text>
+          </Text>
+        </AnimatedPressable>
+      </AuthBackground>
+    );
+  }
+
+  const canSubmit =
+    email.length > 0 && password.length > 0 && confirmPassword.length > 0 && !isSubmitting;
 
   return (
     <AuthBackground>
@@ -40,10 +129,10 @@ export default function SignUpScreen() {
 
       <View className="mt-stack-lg w-full items-center">
         <Text className="text-headline-lg-mobile font-sans-semibold text-text-primary">
-          Hesap oluştur
+          {t('auth.signUp.title')}
         </Text>
         <Text className="mt-stack-sm text-center font-sans text-body-md text-text-secondary">
-          Previously&apos;e katılmak için bilgilerini gir.
+          {t('auth.signUp.subtitle')}
         </Text>
       </View>
 
@@ -52,7 +141,7 @@ export default function SignUpScreen() {
           icon="email"
           value={email}
           onChangeText={setEmail}
-          placeholder="E-posta"
+          placeholder={t('auth.email')}
           autoCapitalize="none"
           autoComplete="email"
           keyboardType="email-address"
@@ -62,7 +151,7 @@ export default function SignUpScreen() {
           isPassword
           value={password}
           onChangeText={setPassword}
-          placeholder="Şifre"
+          placeholder={t('auth.password')}
           autoComplete="new-password"
         />
         <AuthTextInput
@@ -70,7 +159,7 @@ export default function SignUpScreen() {
           isPassword
           value={confirmPassword}
           onChangeText={setConfirmPassword}
-          placeholder="Şifreyi Onayla"
+          placeholder={t('auth.signUp.confirmPassword')}
           autoComplete="new-password"
         />
       </View>
@@ -81,7 +170,9 @@ export default function SignUpScreen() {
           exiting={FadeOut.duration(150)}
           style={{ width: '100%' }}
         >
-          <Text className="mt-stack-sm font-sans text-sm text-error">Şifreler eşleşmiyor.</Text>
+          <Text className="mt-stack-sm font-sans text-sm text-error">
+            {t('auth.signUp.passwordMismatch')}
+          </Text>
         </AnimatedView>
       )}
       {error && (
@@ -113,7 +204,7 @@ export default function SignUpScreen() {
         ) : (
           <>
             <Text className="font-sans-bold uppercase tracking-wide text-on-primary-container">
-              Kayıt Ol
+              {t('auth.signUp.submit')}
             </Text>
             <MaterialIcons name="arrow-forward" size={18} color="#3f2e00" />
           </>
@@ -122,7 +213,8 @@ export default function SignUpScreen() {
 
       <AnimatedPressable onPress={() => router.push('/login')} className="mt-stack-lg">
         <Text className="font-sans text-caption text-text-secondary">
-          Zaten hesabın var mı? <Text className="font-sans-bold text-text-primary">Giriş Yap</Text>
+          {t('auth.signUp.haveAccount')}{' '}
+          <Text className="font-sans-bold text-text-primary">{t('auth.signUp.signInLink')}</Text>
         </Text>
       </AnimatedPressable>
     </AuthBackground>

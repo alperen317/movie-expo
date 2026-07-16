@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { getPosterUrl, getStillUrl } from '../../lib/tmdb/config';
@@ -17,6 +18,7 @@ interface SeasonAccordionProps {
 }
 
 export function SeasonAccordion({ tvId, season, allSeasons }: SeasonAccordionProps) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [episodes, setEpisodes] = useState<TMDBSeasonEpisode[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -58,7 +60,7 @@ export function SeasonAccordion({ tvId, season, allSeasons }: SeasonAccordionPro
         const details = await getSeasonDetails(tvId, season.seasonNumber);
         setEpisodes(details.episodes);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load episodes.');
+        setError(err instanceof Error ? err.message : t('components.seasonAccordion.loadError'));
       } finally {
         setIsLoading(false);
       }
@@ -76,8 +78,11 @@ export function SeasonAccordion({ tvId, season, allSeasons }: SeasonAccordionPro
   const isOnlySeason = allSeasons.length <= 1;
   const markUpToHereTitle =
     firstSeasonNumber === season.seasonNumber
-      ? `Mark Season ${season.seasonNumber}?`
-      : `Mark Seasons ${firstSeasonNumber}–${season.seasonNumber}?`;
+      ? t('components.seasonAccordion.markSeasonTitle', { season: season.seasonNumber })
+      : t('components.seasonAccordion.markSeasonsTitle', {
+          from: firstSeasonNumber,
+          to: season.seasonNumber,
+        });
 
   const posterUri = getPosterUrl(season.posterPath, 'w185');
 
@@ -98,7 +103,12 @@ export function SeasonAccordion({ tvId, season, allSeasons }: SeasonAccordionPro
             {season.name}
           </Text>
           <Text className="font-sans text-caption text-text-secondary">
-            {watchedCount > 0 ? `${watchedCount}/${totalCount} watched` : `${totalCount} episodes`}
+            {watchedCount > 0
+              ? t('components.seasonAccordion.watchedCount', {
+                  watched: watchedCount,
+                  total: totalCount,
+                })
+              : t('components.seasonAccordion.episodeCount', { count: totalCount })}
           </Text>
         </View>
         {!isOnlySeason && (
@@ -130,11 +140,11 @@ export function SeasonAccordion({ tvId, season, allSeasons }: SeasonAccordionPro
       <ActionSheetModal
         visible={isMarkUpToHereConfirmOpen}
         title={markUpToHereTitle}
-        message={`This marks every episode through Season ${season.seasonNumber} as watched.`}
+        message={t('components.seasonAccordion.markUpToMessage', { season: season.seasonNumber })}
         onClose={() => setIsMarkUpToHereConfirmOpen(false)}
         actions={[
           {
-            label: 'Mark Watched',
+            label: t('components.seasonAccordion.markWatched'),
             onPress: () => markUpToSeason(tvId, allSeasons, season.seasonNumber),
           },
         ]}

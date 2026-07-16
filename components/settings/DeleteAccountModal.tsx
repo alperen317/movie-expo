@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Modal, Text, TextInput, View } from 'react-native';
 
 import { deleteAccount } from '../../lib/supabase/account';
@@ -15,6 +16,7 @@ interface DeleteAccountModalProps {
 const CONFIRM_WORD = 'DELETE';
 
 export function DeleteAccountModal({ visible, onClose }: DeleteAccountModalProps) {
+  const { t } = useTranslation();
   const [confirmText, setConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const canConfirm = confirmText.trim().toUpperCase() === CONFIRM_WORD && !isDeleting;
@@ -35,7 +37,7 @@ export function DeleteAccountModal({ visible, onClose }: DeleteAccountModalProps
       await useAuthStore.getState().signOut();
       router.replace('/login');
     } catch {
-      useToastStore.getState().show('Something went wrong. Please try again.', 'error-outline');
+      useToastStore.getState().show(t('toasts.genericError'), 'error-outline');
     } finally {
       setIsDeleting(false);
     }
@@ -45,15 +47,14 @@ export function DeleteAccountModal({ visible, onClose }: DeleteAccountModalProps
     <Modal visible={visible} transparent animationType="fade" onRequestClose={handleClose}>
       <View className="flex-1 items-center justify-center bg-background/80 px-margin-mobile">
         <View className="w-full max-w-md gap-stack-md rounded-2xl border border-glass-border bg-surface-container-low p-4">
-          <Text className="font-sans-bold text-title-md text-text-primary">Delete Account</Text>
-          <Text className="font-sans text-body-md text-text-secondary">
-            This permanently deletes your profile, watch history, episode progress, favorites, and
-            watchlist. Any shared lists you own are deleted too — including for other members. This
-            can’t be undone.
+          <Text className="font-sans-bold text-title-md text-text-primary">
+            {t('components.deleteAccount.title')}
           </Text>
           <Text className="font-sans text-body-md text-text-secondary">
-            Type <Text className="font-sans-bold text-text-primary">{CONFIRM_WORD}</Text> to
-            confirm.
+            {t('components.deleteAccount.body')}
+          </Text>
+          <Text className="font-sans text-body-md text-text-secondary">
+            {t('components.deleteAccount.confirmPrompt', { word: CONFIRM_WORD })}
           </Text>
           <TextInput
             value={confirmText}
@@ -74,7 +75,7 @@ export function DeleteAccountModal({ visible, onClose }: DeleteAccountModalProps
               <ActivityIndicator color="#690005" />
             ) : (
               <Text className="text-center font-sans-semibold text-body-md text-on-error">
-                Delete My Account
+                {t('components.deleteAccount.confirmButton')}
               </Text>
             )}
           </AnimatedPressable>
@@ -84,7 +85,7 @@ export function DeleteAccountModal({ visible, onClose }: DeleteAccountModalProps
             className="rounded-xl px-4 py-stack-md"
           >
             <Text className="text-center font-sans-semibold text-body-md text-text-secondary">
-              Cancel
+              {t('common.cancel')}
             </Text>
           </AnimatedPressable>
         </View>

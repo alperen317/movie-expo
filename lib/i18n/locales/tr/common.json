@@ -1,0 +1,14 @@
+{
+  "common": {
+    "tryAgain": "Tekrar Dene",
+    "clear": "Temizle",
+    "create": "Oluştur",
+    "cancel": "İptal",
+    "save": "Kaydet",
+    "done": "Tamam",
+    "somethingWrong": "Bir şeyler ters gitti.",
+    "favorites": "Favoriler",
+    "watchlist": "İzleme Listesi",
+    "watched": "İzlenenler"
+  }
+}

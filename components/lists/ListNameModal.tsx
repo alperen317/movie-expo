@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -28,6 +29,7 @@ export function ListNameModal({
   onClose,
   onSubmit,
 }: ListNameModalProps) {
+  const { t } = useTranslation();
   const [name, setName] = useState(initialValue);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +43,7 @@ export function ListNameModal({
   const handleSubmit = async () => {
     const trimmed = name.trim();
     if (trimmed.length === 0) {
-      setError('Give your list a name.');
+      setError(t('components.listName.enterName'));
       return;
     }
     setIsSubmitting(true);
@@ -50,7 +52,7 @@ export function ListNameModal({
       await onSubmit(trimmed);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.');
+      setError(err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setIsSubmitting(false);
     }
@@ -72,7 +74,7 @@ export function ListNameModal({
               setName(text);
               if (error) setError(null);
             }}
-            placeholder="e.g. Movies to watch together"
+            placeholder={t('components.listName.placeholder')}
             placeholderTextColor="#A1A1AA80"
             maxLength={60}
             className="rounded-lg border border-glass-border bg-surface/50 px-4 py-4 font-sans text-text-primary"
@@ -85,7 +87,9 @@ export function ListNameModal({
               onPress={handleClose}
               className="flex-1 items-center rounded-full border border-glass-border py-3"
             >
-              <Text className="font-sans-semibold text-body-md text-text-secondary">Cancel</Text>
+              <Text className="font-sans-semibold text-body-md text-text-secondary">
+                {t('common.cancel')}
+              </Text>
             </AnimatedPressable>
             <AnimatedPressable
               onPress={handleSubmit}

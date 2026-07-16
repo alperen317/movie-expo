@@ -1,0 +1,10 @@
+{
+  "lists": {
+    "title": "Lists",
+    "emptyTitle": "No shared lists yet",
+    "emptySubtitle": "Create a list and invite a friend to start building it together.",
+    "pendingInvites": "Pending Invites",
+    "yourLists": "Your Lists",
+    "newListTitle": "New Shared List"
+  }
+}

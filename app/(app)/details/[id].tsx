@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Linking,
@@ -17,6 +18,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GalleryViewer } from '../../../components/details/GalleryViewer';
+import i18n from '../../../lib/i18n';
 import { TrailerModal } from '../../../components/details/TrailerModal';
 import type { MediaCardItem } from '../../../components/home/MovieCard';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
@@ -35,11 +37,12 @@ import { useWatchLogStore } from '../../../stores/watchLog.store';
 
 function openUrlSafely(url: string) {
   Linking.openURL(url).catch(() => {
-    useToastStore.getState().show('Could not open link', 'error-outline');
+    useToastStore.getState().show(i18n.t('toasts.couldNotOpenLink'), 'error-outline');
   });
 }
 
 export default function DetailsScreen() {
+  const { t } = useTranslation();
   const { id, type } = useLocalSearchParams<{ id: string; type?: string }>();
   const mediaType = type === 'tv' ? 'tv' : 'movie';
   const insets = useSafeAreaInsets();
@@ -96,7 +99,7 @@ export default function DetailsScreen() {
         if (!cancelled) setDetails(media);
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load details.');
+          setError(err instanceof Error ? err.message : t('details.loadError'));
         }
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -225,7 +228,7 @@ export default function DetailsScreen() {
                 >
                   <MaterialIcons name="play-arrow" size={22} color="#3f2e00" />
                   <Text className="font-sans-semibold text-title-md text-on-primary-container">
-                    Watch Trailer
+                    {t('details.watchTrailer')}
                   </Text>
                 </Pressable>
               )}
@@ -247,7 +250,7 @@ export default function DetailsScreen() {
                     isWatched ? 'text-on-primary-container' : 'text-text-primary'
                   }`}
                 >
-                  {isWatched ? 'Watched' : 'Mark as Watched'}
+                  {isWatched ? t('details.watched') : t('details.markAsWatched')}
                 </Text>
               </Pressable>
               <Pressable
@@ -256,7 +259,7 @@ export default function DetailsScreen() {
               >
                 <MaterialIcons name={isWatchlisted ? 'check' : 'add'} size={22} color="#FFFFFF" />
                 <Text className="font-sans-semibold text-title-md text-text-primary">
-                  {isWatchlisted ? 'In Watchlist' : 'Add to Watchlist'}
+                  {isWatchlisted ? t('details.inWatchlist') : t('details.addToWatchlist')}
                 </Text>
               </Pressable>
             </View>
@@ -264,7 +267,7 @@ export default function DetailsScreen() {
             {details.watchProviders && (
               <View className="gap-stack-sm">
                 <Text className="font-sans-semibold text-title-md text-text-primary">
-                  Where to Watch
+                  {t('details.whereToWatch')}
                 </Text>
                 <Pressable
                   onPress={() => openUrlSafely(details.watchProviders!.link)}
@@ -293,14 +296,16 @@ export default function DetailsScreen() {
                   ))}
                 </Pressable>
                 <Text className="font-sans text-[11px] text-text-secondary">
-                  Streaming data provided by JustWatch
+                  {t('details.justWatchAttribution')}
                 </Text>
               </View>
             )}
 
             {details.mediaType === 'tv' && details.seasons.length > 0 && (
               <View className="gap-stack-sm">
-                <Text className="font-sans-semibold text-title-md text-text-primary">Seasons</Text>
+                <Text className="font-sans-semibold text-title-md text-text-primary">
+                  {t('details.seasons')}
+                </Text>
                 <View className="gap-stack-sm">
                   {details.seasons.map((season) => (
                     <SeasonAccordion
@@ -318,7 +323,7 @@ export default function DetailsScreen() {
               <View className="gap-stack-lg border border-glass-border bg-background-blur p-stack-md">
                 <View className="gap-stack-sm">
                   <Text className="font-sans-semibold text-title-md text-text-primary">
-                    Synopsis
+                    {t('details.synopsis')}
                   </Text>
                   <Text className="font-sans text-body-md leading-relaxed text-text-secondary">
                     {details.overview}
@@ -329,7 +334,9 @@ export default function DetailsScreen() {
 
                 {details.cast.length > 0 && (
                   <View className="gap-stack-sm">
-                    <Text className="font-sans-semibold text-title-md text-text-primary">Cast</Text>
+                    <Text className="font-sans-semibold text-title-md text-text-primary">
+                      {t('details.cast')}
+                    </Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                       <View className="flex-row gap-stack-md">
                         {details.cast.map((member) => {
