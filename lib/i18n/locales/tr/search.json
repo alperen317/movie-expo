@@ -1,0 +1,19 @@
+{
+  "search": {
+    "heading": "Sıradaki başyapıtını bul",
+    "placeholder": "Film, yönetmen veya tür ara...",
+    "recentSearches": "Son Aramalar",
+    "clearRecent": "TEMİZLE",
+    "popularGenres": "Popüler Türler",
+    "noResultsTitle": "Sonuç bulunamadı",
+    "noResultsSubtitle": "Farklı bir başlık, oyuncu veya tür dene.",
+    "genres": {
+      "horror": "Korku",
+      "horrorSubtitle": "Gölgeler & Gerilim",
+      "sciFi": "Bilim Kurgu",
+      "drama": "Drama",
+      "comedy": "Komedi",
+      "action": "Aksiyon"
+    }
+  }
+}

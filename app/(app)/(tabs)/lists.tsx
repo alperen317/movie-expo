@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -12,6 +13,7 @@ import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
 import { useSharedListsStore } from '../../../stores/sharedLists.store';
 
 export default function ListsScreen() {
+  const { t } = useTranslation();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isJoinOpen, setIsJoinOpen] = useState(false);
   const [respondingId, setRespondingId] = useState<string | null>(null);
@@ -55,7 +57,9 @@ export default function ListsScreen() {
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
       <View className="flex-row items-center justify-between px-margin-mobile py-stack-md">
-        <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">Lists</Text>
+        <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
+          {t('lists.title')}
+        </Text>
         <View className="flex-row gap-2">
           <AnimatedPressable
             onPress={() => setIsJoinOpen(true)}
@@ -87,7 +91,9 @@ export default function ListsScreen() {
             onPress={refetch}
             className="rounded-full border border-glass-border bg-background-blur px-6 py-3"
           >
-            <Text className="font-sans-semibold text-primary-container">Try Again</Text>
+            <Text className="font-sans-semibold text-primary-container">
+              {t('common.tryAgain')}
+            </Text>
           </AnimatedPressable>
         </View>
       )}
@@ -96,10 +102,10 @@ export default function ListsScreen() {
         <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
           <MaterialIcons name="groups" size={32} color="#A1A1AA" />
           <Text className="text-title-md font-sans-semibold text-text-primary">
-            No shared lists yet
+            {t('lists.emptyTitle')}
           </Text>
           <Text className="text-center font-sans text-body-md text-text-secondary">
-            Create a list and invite a friend to start building it together.
+            {t('lists.emptySubtitle')}
           </Text>
         </View>
       )}
@@ -114,7 +120,7 @@ export default function ListsScreen() {
             invites.length > 0 ? (
               <View className="mb-stack-lg gap-stack-md">
                 <Text className="font-sans-semibold text-caption uppercase tracking-wide text-text-secondary">
-                  Pending Invites
+                  {t('lists.pendingInvites')}
                 </Text>
                 <View className="gap-3">
                   {invites.map((invite) => (
@@ -129,7 +135,7 @@ export default function ListsScreen() {
                 </View>
                 {lists.length > 0 && (
                   <Text className="mt-stack-sm font-sans-semibold text-caption uppercase tracking-wide text-text-secondary">
-                    Your Lists
+                    {t('lists.yourLists')}
                   </Text>
                 )}
               </View>
@@ -144,8 +150,8 @@ export default function ListsScreen() {
 
       <ListNameModal
         visible={isCreateOpen}
-        title="New Shared List"
-        submitLabel="Create"
+        title={t('lists.newListTitle')}
+        submitLabel={t('common.create')}
         onClose={() => setIsCreateOpen(false)}
         onSubmit={async (name) => {
           await createList(name);

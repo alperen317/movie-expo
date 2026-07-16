@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   FlatList,
@@ -30,6 +31,7 @@ import { getPopularTVShows } from '../../../lib/tmdb/tv';
 import { useSharedListsStore } from '../../../stores/sharedLists.store';
 
 export default function AddItemsScreen() {
+  const { t } = useTranslation();
   const { listId } = useLocalSearchParams<{ listId: string }>();
   const { width: windowWidth } = useWindowDimensions();
 
@@ -97,10 +99,12 @@ export default function AddItemsScreen() {
           <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />
         </AnimatedPressable>
         <Text className="flex-1 text-headline-lg-mobile font-sans-bold text-text-primary">
-          Add to List
+          {t('listDetail.addToList')}
         </Text>
         <AnimatedPressable onPress={() => router.back()}>
-          <Text className="font-sans-semibold text-body-md text-primary-container">Done</Text>
+          <Text className="font-sans-semibold text-body-md text-primary-container">
+            {t('common.done')}
+          </Text>
         </AnimatedPressable>
       </View>
 
@@ -110,7 +114,7 @@ export default function AddItemsScreen() {
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder="Search movies or shows..."
+            placeholder={t('listDetail.searchPlaceholder')}
             placeholderTextColor="#A1A1AA"
             autoFocus
             autoCorrect={false}
@@ -146,7 +150,7 @@ export default function AddItemsScreen() {
           keyboardShouldPersistTaps="handled"
           ListHeaderComponent={
             <Text className="px-1 pb-3 pt-1 font-sans-semibold text-title-md text-text-primary">
-              Popular right now
+              {t('listDetail.popularNow')}
             </Text>
           }
         />
@@ -170,7 +174,7 @@ export default function AddItemsScreen() {
         <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
           <MaterialIcons name="search-off" size={32} color="#A1A1AA" />
           <Text className="text-title-md font-sans-semibold text-text-primary">
-            No results found
+            {t('search.noResultsTitle')}
           </Text>
         </View>
       )}

@@ -1,4 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { FlatList, Modal, Text, View } from 'react-native';
 
 import { getDeviceRegion } from '../../lib/tmdb/region';
@@ -13,6 +14,7 @@ interface RegionPickerModalProps {
 }
 
 export function RegionPickerModal({ visible, onClose }: RegionPickerModalProps) {
+  const { t } = useTranslation();
   const watchRegion = useProfileStore((state) => state.profile?.watchRegion ?? null);
   const updateProfile = useProfileStore((state) => state.updateProfile);
   const deviceRegionCode = getDeviceRegion();
@@ -23,9 +25,9 @@ export function RegionPickerModal({ visible, onClose }: RegionPickerModalProps) 
     onClose();
     try {
       await updateProfile({ watchRegion: code });
-      useToastStore.getState().show('Watch region updated', 'check-circle');
+      useToastStore.getState().show(t('components.regionPicker.updated'), 'check-circle');
     } catch {
-      useToastStore.getState().show('Something went wrong. Please try again.', 'error-outline');
+      useToastStore.getState().show(t('toasts.genericError'), 'error-outline');
     }
   };
 
@@ -37,9 +39,11 @@ export function RegionPickerModal({ visible, onClose }: RegionPickerModalProps) 
           className="w-full max-w-md gap-1 rounded-2xl border border-glass-border bg-surface-container-low p-2"
         >
           <View className="gap-1 px-4 pb-2 pt-3">
-            <Text className="font-sans-bold text-title-md text-text-primary">Watch Region</Text>
+            <Text className="font-sans-bold text-title-md text-text-primary">
+              {t('profile.watchRegion')}
+            </Text>
             <Text className="font-sans text-body-md text-text-secondary">
-              Controls which streaming availability shows on movie and show pages.
+              {t('components.regionPicker.subtitle')}
             </Text>
           </View>
           <FlatList
@@ -48,7 +52,7 @@ export function RegionPickerModal({ visible, onClose }: RegionPickerModalProps) 
             showsVerticalScrollIndicator={false}
             ListHeaderComponent={
               <RegionRow
-                label={`Use Device Region (currently ${deviceRegionName})`}
+                label={t('components.regionPicker.useDeviceRegion', { region: deviceRegionName })}
                 selected={watchRegion === null}
                 onPress={() => handleSelect(null)}
               />
@@ -63,7 +67,7 @@ export function RegionPickerModal({ visible, onClose }: RegionPickerModalProps) 
           />
           <AnimatedPressable onPress={onClose} className="rounded-xl px-4 py-stack-md">
             <Text className="text-center font-sans-semibold text-body-md text-text-secondary">
-              Cancel
+              {t('common.cancel')}
             </Text>
           </AnimatedPressable>
         </View>

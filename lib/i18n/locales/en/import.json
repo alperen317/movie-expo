@@ -1,0 +1,24 @@
+{
+  "import": {
+    "title": "Import",
+    "searchPlaceholder": "Search a movie or show",
+    "search": "Search",
+    "listWatched": "Watched",
+    "listWatchlist": "Watchlist",
+    "showSuffix": " · Show",
+    "pickDifferent": "Choose a different result",
+    "noData": "No data to import was found in this file.",
+    "readError": "Couldn't read the file.",
+    "importError": "An error occurred during import.",
+    "intro": "Select your TV Time (GDPR export) or Letterboxd export zip file and we'll import your watch history and watchlist.",
+    "gdprExport": "GDPR export (.zip)",
+    "export": "Export (.zip)",
+    "matching": "Matching… {{done}}/{{total}}",
+    "selectedCount": "{{selected}} / {{total}} selected",
+    "importButton": "Import ({{count}})",
+    "importing": "Importing…",
+    "importedCount": "{{count}} items imported",
+    "skippedCount": "{{count}} items skipped",
+    "done": "Done"
+  }
+}

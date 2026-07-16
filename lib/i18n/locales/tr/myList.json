@@ -1,0 +1,19 @@
+{
+  "myList": {
+    "title": "Listem",
+    "empty": {
+      "favorites": {
+        "title": "Henüz favori yok",
+        "subtitle": "Bir yapımın kalp simgesine dokunarak buraya ekle."
+      },
+      "watchlist": {
+        "title": "İzleme listen boş",
+        "subtitle": "Bir yapımda \"İzleme Listesine Ekle\"ye dokunarak sonrası için kaydet."
+      },
+      "watched": {
+        "title": "Henüz izlenen yapım yok",
+        "subtitle": "Bir yapımı detay sayfasından izlendi olarak işaretleyince burada görünür."
+      }
+    }
+  }
+}

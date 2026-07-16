@@ -1,0 +1,10 @@
+{
+  "lists": {
+    "title": "Listeler",
+    "emptyTitle": "Henüz paylaşılan liste yok",
+    "emptySubtitle": "Bir liste oluştur ve birlikte doldurmak için bir arkadaşını davet et.",
+    "pendingInvites": "Bekleyen Davetler",
+    "yourLists": "Listelerin",
+    "newListTitle": "Yeni Paylaşılan Liste"
+  }
+}

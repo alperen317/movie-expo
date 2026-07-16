@@ -1,0 +1,15 @@
+{
+  "details": {
+    "loadError": "Detaylar yüklenemedi.",
+    "watchTrailer": "Fragmanı İzle",
+    "watched": "İzlendi",
+    "markAsWatched": "İzlendi Olarak İşaretle",
+    "inWatchlist": "İzleme Listesinde",
+    "addToWatchlist": "İzleme Listesine Ekle",
+    "whereToWatch": "Nerede İzlenir",
+    "justWatchAttribution": "Yayın verileri JustWatch tarafından sağlanır",
+    "seasons": "Sezonlar",
+    "synopsis": "Özet",
+    "cast": "Oyuncular"
+  }
+}

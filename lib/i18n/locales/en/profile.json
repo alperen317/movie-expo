@@ -1,0 +1,20 @@
+{
+  "profile": {
+    "title": "Profile",
+    "memberSince": "Member since {{date}}",
+    "statistics": "Statistics",
+    "upcomingEpisodes": "Upcoming Episodes",
+    "importFrom": "Import from TV Time / Letterboxd",
+    "watchRegion": "Watch Region",
+    "deviceDefault": "Device Default",
+    "shareCrashReports": "Share Crash Reports",
+    "clearSearchHistory": "Clear Search History",
+    "clearHistoryMessage": "This will remove all your recent searches.",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfUse": "Terms of Use",
+    "signOut": "Sign Out",
+    "deleteAccount": "Delete Account",
+    "crashRestart": "Restart the app for this to take effect",
+    "tmdbAttribution": "This product uses the TMDB API but is not endorsed or certified by TMDB."
+  }
+}

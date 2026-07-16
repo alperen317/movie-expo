@@ -1,0 +1,19 @@
+{
+  "myList": {
+    "title": "My List",
+    "empty": {
+      "favorites": {
+        "title": "No favorites yet",
+        "subtitle": "Tap the heart icon on a title to add it here."
+      },
+      "watchlist": {
+        "title": "Your watchlist is empty",
+        "subtitle": "Tap \"Add to Watchlist\" on a title to save it for later."
+      },
+      "watched": {
+        "title": "No watched titles yet",
+        "subtitle": "Mark a title as watched from its details page to see it here."
+      }
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "legal": {
+    "lastUpdated": "Last updated: July 2026",
+    "privacy": {
+      "title": "Privacy Policy",
+      "collectTitle": "What we collect",
+      "collectBody": "When you create an account, we store your email address, and anything you choose to add to your profile: display name and avatar style. We store what you track in the app: your watch log (ratings and notes included), episode progress, favorites, and watchlist.",
+      "sharedTitle": "Shared lists",
+      "sharedBody": "If you create or join a shared list, other members can see the list's contents, who added each item, and your profile's display name/avatar/email. List join codes are only usable by people you share them with.",
+      "deviceTitle": "What stays on your device",
+      "deviceBody": "Your recent search history is stored locally on your device only — it's never sent to our servers, and you can clear it at any time from Profile.",
+      "permissionsTitle": "Device permissions",
+      "permissionsBody": "If you enable episode reminders, we request notification permission to schedule local reminders for upcoming episodes. This doesn't send any data off your device.",
+      "thirdPartiesTitle": "Third parties",
+      "thirdPartiesBody": "We use Supabase to host our database and handle authentication — your data is stored on their infrastructure as our processor. We use TMDB for movie/TV metadata (posters, titles, ratings); no personal data is sent to TMDB. If you keep crash reporting enabled in Profile, anonymized crash reports may be sent to Sentry to help us fix bugs — you can turn this off at any time.",
+      "deleteTitle": "Deleting your data",
+      "deleteBody": "You can permanently delete your account and all associated data at any time from Profile → Delete Account. This also deletes any shared lists you own, for every member.",
+      "contactTitle": "Contact",
+      "contactBody": "Questions about this policy or your data? Email alialperena@gmail.com."
+    },
+    "terms": {
+      "title": "Terms of Use",
+      "usingTitle": "Using Previously",
+      "usingBody": "Previously is a free, personal watch-tracking app for movies and TV shows. You're responsible for the accounts you create and the content you add to shared lists. Don't use the app to upload content you don't have the right to share, or to harass other users.",
+      "accountsTitle": "Shared lists and accounts",
+      "accountsBody": "Anyone with a list's join code can join it. You're responsible for who you share a code with. List owners can remove members from lists they own; leaving or deleting your account removes you from lists you don't own.",
+      "attributionTitle": "Content and attribution",
+      "attributionBody": "This product uses the TMDB API but is not endorsed or certified by TMDB. Movie and show data, including streaming availability, is provided by TMDB and JustWatch and may not always be accurate or up to date.",
+      "warrantyTitle": "No warranty",
+      "warrantyBody": "Previously is provided \"as is,\" without warranty of any kind. We don't guarantee the app will be uninterrupted, error-free, or that your data will never be lost — back up anything irreplaceable (e.g. via the export options available in the app).",
+      "changesTitle": "Changes",
+      "changesBody": "We may update these terms as the app changes. Continuing to use the app after an update means you accept the revised terms.",
+      "contactTitle": "Contact",
+      "contactBody": "Questions about these terms? Email alialperena@gmail.com."
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "editProfile": {
+    "title": "Edit Profile",
+    "name": "Name",
+    "style": "Style",
+    "saving": "Saving…",
+    "updated": "Profile updated"
+  }
+}

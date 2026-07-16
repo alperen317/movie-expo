@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { FadeIn, FadeOut } from 'react-native-reanimated';
 
@@ -10,6 +11,7 @@ import { AnimatedPressable, AnimatedView } from '../components/ui/AnimatedPressa
 import { useAuthStore } from '../stores/auth.store';
 
 export default function SignUpScreen() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -35,15 +37,16 @@ export default function SignUpScreen() {
           <MaterialIcons name="mark-email-read" size={28} color="#3f2e00" />
         </View>
         <Text className="mt-stack-lg text-headline-lg-mobile font-sans-semibold text-text-primary">
-          E-postanı kontrol et
+          {t('auth.signUp.checkEmailTitle')}
         </Text>
         <Text className="mt-stack-sm text-center font-sans text-body-md text-text-secondary">
-          {email} adresine bir doğrulama bağlantısı gönderdik. Hesabını onayladıktan sonra giriş
-          yapabilirsin.
+          {t('auth.signUp.checkEmailBody', { email })}
         </Text>
 
         <AnimatedPressable onPress={() => router.replace('/login')} className="mt-stack-lg">
-          <Text className="font-sans-bold text-primary-container">Giriş ekranına dön</Text>
+          <Text className="font-sans-bold text-primary-container">
+            {t('auth.signUp.backToSignIn')}
+          </Text>
         </AnimatedPressable>
       </AuthBackground>
     );
@@ -55,10 +58,10 @@ export default function SignUpScreen() {
 
       <View className="mt-stack-lg w-full items-center">
         <Text className="text-headline-lg-mobile font-sans-semibold text-text-primary">
-          Hesap oluştur
+          {t('auth.signUp.title')}
         </Text>
         <Text className="mt-stack-sm text-center font-sans text-body-md text-text-secondary">
-          Previously&apos;e katılmak için bilgilerini gir.
+          {t('auth.signUp.subtitle')}
         </Text>
       </View>
 
@@ -67,7 +70,7 @@ export default function SignUpScreen() {
           icon="email"
           value={email}
           onChangeText={setEmail}
-          placeholder="E-posta"
+          placeholder={t('auth.email')}
           autoCapitalize="none"
           autoComplete="email"
           keyboardType="email-address"
@@ -77,7 +80,7 @@ export default function SignUpScreen() {
           isPassword
           value={password}
           onChangeText={setPassword}
-          placeholder="Şifre"
+          placeholder={t('auth.password')}
           autoComplete="new-password"
         />
         <AuthTextInput
@@ -85,7 +88,7 @@ export default function SignUpScreen() {
           isPassword
           value={confirmPassword}
           onChangeText={setConfirmPassword}
-          placeholder="Şifreyi Onayla"
+          placeholder={t('auth.signUp.confirmPassword')}
           autoComplete="new-password"
         />
       </View>
@@ -96,7 +99,9 @@ export default function SignUpScreen() {
           exiting={FadeOut.duration(150)}
           style={{ width: '100%' }}
         >
-          <Text className="mt-stack-sm font-sans text-sm text-error">Şifreler eşleşmiyor.</Text>
+          <Text className="mt-stack-sm font-sans text-sm text-error">
+            {t('auth.signUp.passwordMismatch')}
+          </Text>
         </AnimatedView>
       )}
       {error && (
@@ -128,7 +133,7 @@ export default function SignUpScreen() {
         ) : (
           <>
             <Text className="font-sans-bold uppercase tracking-wide text-on-primary-container">
-              Kayıt Ol
+              {t('auth.signUp.submit')}
             </Text>
             <MaterialIcons name="arrow-forward" size={18} color="#3f2e00" />
           </>
@@ -137,7 +142,8 @@ export default function SignUpScreen() {
 
       <AnimatedPressable onPress={() => router.push('/login')} className="mt-stack-lg">
         <Text className="font-sans text-caption text-text-secondary">
-          Zaten hesabın var mı? <Text className="font-sans-bold text-text-primary">Giriş Yap</Text>
+          {t('auth.signUp.haveAccount')}{' '}
+          <Text className="font-sans-bold text-text-primary">{t('auth.signUp.signInLink')}</Text>
         </Text>
       </AnimatedPressable>
     </AuthBackground>

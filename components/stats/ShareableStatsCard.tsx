@@ -1,9 +1,8 @@
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 
 import type { GenreCount, MonthActivity } from '../../lib/stats';
-
-const MONTH_LABELS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
 
 interface ShareableStatsCardProps {
   periodLabel: string;
@@ -40,6 +39,10 @@ export function ShareableStatsCard({
   activity,
   activityYear,
 }: ShareableStatsCardProps) {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language === 'tr' ? 'tr-TR' : 'en-US';
+  const monthNarrow = (month: number) =>
+    new Date(2000, month, 1).toLocaleDateString(locale, { month: 'narrow' });
   const { days, hours } = formatDuration(totalMinutes);
   const rankedGenres = topGenres.slice(0, 3);
   const hasActivity = activity.some((entry) => entry.count > 0);
@@ -61,7 +64,7 @@ export function ShareableStatsCard({
               Previously
             </Text>
             <Text className="mt-1 font-sans text-caption text-text-secondary">
-              {periodLabel} Recap
+              {t('components.statsCard.recap', { period: periodLabel })}
             </Text>
           </View>
           <View className="h-9 w-9 items-center justify-center rounded-full border border-glass-border">
@@ -78,23 +81,23 @@ export function ShareableStatsCard({
               style={{ backgroundColor: 'rgba(245,196,81,0.16)' }}
             />
             <Text className="font-sans-bold text-display-xl-mobile text-text-primary">
-              {days}d {hours}h
+              {t('stats.daysHours', { days, hours })}
             </Text>
             <Text className="font-sans text-body-md text-text-secondary">
-              of watching, together
+              {t('components.statsCard.ofWatching')}
             </Text>
           </View>
 
           <View className="flex-row gap-stack-lg">
-            <StatColumn value={movieCount} label="Movies" />
-            <StatColumn value={episodeCount} label="Episodes" />
-            <StatColumn value={showCount} label="Shows" />
+            <StatColumn value={movieCount} label={t('stats.movies')} />
+            <StatColumn value={episodeCount} label={t('stats.episodes')} />
+            <StatColumn value={showCount} label={t('stats.shows')} />
           </View>
 
           {rankedGenres.length > 0 && (
             <View className="gap-2">
               <Text className="font-sans text-[10px] uppercase tracking-widest text-text-secondary">
-                Top Genres
+                {t('components.statsCard.topGenres')}
               </Text>
               {rankedGenres.map((genre, index) => (
                 <View key={genre.genre} className="flex-row items-center gap-2">
@@ -120,7 +123,7 @@ export function ShareableStatsCard({
           {hasActivity && (
             <View className="gap-2">
               <Text className="font-sans text-[10px] uppercase tracking-widest text-text-secondary">
-                {activityYear} by month
+                {t('components.statsCard.byMonth', { year: activityYear })}
               </Text>
               <View className="flex-row items-end gap-1" style={{ height: 36 }}>
                 {activity.map((entry) => (
@@ -136,12 +139,12 @@ export function ShareableStatsCard({
                 ))}
               </View>
               <View className="flex-row justify-between">
-                {MONTH_LABELS.map((label, index) => (
+                {activity.map((entry) => (
                   <Text
-                    key={index}
+                    key={entry.month}
                     className="w-2 text-center font-sans text-[8px] text-text-secondary"
                   >
-                    {label}
+                    {monthNarrow(entry.month)}
                   </Text>
                 ))}
               </View>
@@ -149,7 +152,9 @@ export function ShareableStatsCard({
           )}
         </View>
 
-        <Text className="font-sans text-[10px] text-text-secondary opacity-60">Data from TMDB</Text>
+        <Text className="font-sans text-[10px] text-text-secondary opacity-60">
+          {t('components.statsCard.dataFromTmdb')}
+        </Text>
       </LinearGradient>
     </View>
   );

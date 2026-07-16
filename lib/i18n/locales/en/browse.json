@@ -1,0 +1,6 @@
+{
+  "browse": {
+    "genre": "Genre",
+    "loadError": "Failed to load list."
+  }
+}

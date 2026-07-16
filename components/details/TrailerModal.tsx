@@ -1,4 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Linking,
@@ -11,6 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 
+import i18n from '../../lib/i18n';
 import { useToastStore } from '../../stores/toast.store';
 import { AnimatedPressable } from '../ui/AnimatedPressable';
 
@@ -22,11 +24,12 @@ interface TrailerModalProps {
 
 function openUrlSafely(url: string) {
   Linking.openURL(url).catch(() => {
-    useToastStore.getState().show('Could not open link', 'error-outline');
+    useToastStore.getState().show(i18n.t('toasts.couldNotOpenLink'), 'error-outline');
   });
 }
 
 export function TrailerModal({ visible, onClose, trailerKey }: TrailerModalProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { width: windowWidth } = useWindowDimensions();
 
@@ -72,7 +75,7 @@ export function TrailerModal({ visible, onClose, trailerKey }: TrailerModalProps
           >
             <MaterialIcons name="open-in-new" size={16} color="#FFFFFF" />
             <Text className="font-sans-semibold text-caption text-text-primary">
-              Open in YouTube
+              {t('components.trailer.openInYoutube')}
             </Text>
           </AnimatedPressable>
           <AnimatedPressable
