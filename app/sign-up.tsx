@@ -111,9 +111,7 @@ export default function SignUpScreen() {
         <AnimatedPressable onPress={handleResend} className="mt-stack-lg">
           <Text className="font-sans text-caption text-text-secondary">
             {t('auth.forgotPassword.noCode')}{' '}
-            <Text className="font-sans-bold text-text-primary">
-              {t('auth.signUp.otpResend')}
-            </Text>
+            <Text className="font-sans-bold text-text-primary">{t('auth.signUp.otpResend')}</Text>
           </Text>
         </AnimatedPressable>
       </AuthBackground>
