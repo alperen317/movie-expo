@@ -1,22 +1,25 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import type { TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 
 import type { SharedListSummary } from '../../lib/supabase/sharedLists';
 import { AnimatedPressable } from '../ui/AnimatedPressable';
 
-function formatUpdatedAt(dateString: string): string {
+function formatUpdatedAt(dateString: string, t: TFunction): string {
   const diffMs = Date.now() - new Date(dateString).getTime();
   const diffMinutes = Math.floor(diffMs / 60000);
-  if (diffMinutes < 1) return 'Updated just now';
-  if (diffMinutes < 60) return `Updated ${diffMinutes}m ago`;
+  if (diffMinutes < 1) return t('components.listCard.updatedJustNow');
+  if (diffMinutes < 60) return t('components.listCard.updatedMinutes', { count: diffMinutes });
   const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) return `Updated ${diffHours}h ago`;
+  if (diffHours < 24) return t('components.listCard.updatedHours', { count: diffHours });
   const diffDays = Math.floor(diffHours / 24);
-  return `Updated ${diffDays}d ago`;
+  return t('components.listCard.updatedDays', { count: diffDays });
 }
 
 export function ListCard({ list }: { list: SharedListSummary }) {
+  const { t } = useTranslation();
   return (
     <AnimatedPressable
       onPress={() => router.push({ pathname: '/lists/[id]', params: { id: list.id } })}
@@ -30,7 +33,7 @@ export function ListCard({ list }: { list: SharedListSummary }) {
           {list.name}
         </Text>
         <Text className="font-sans text-caption text-text-secondary">
-          {formatUpdatedAt(list.updatedAt)}
+          {formatUpdatedAt(list.updatedAt, t)}
         </Text>
       </View>
       <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />

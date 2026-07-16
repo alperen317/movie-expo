@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   FlatList,
@@ -38,17 +39,22 @@ const TILE_HEIGHT = 200;
 
 interface Genre {
   id: number;
-  name: string;
-  subtitle?: string;
+  nameKey: string;
+  subtitleKey?: string;
   span: 'full' | 'half';
 }
 
 const GENRES: Genre[] = [
-  { id: 27, name: 'Horror', subtitle: 'Shadows & Suspense', span: 'full' },
-  { id: 878, name: 'Sci-Fi', span: 'half' },
-  { id: 18, name: 'Drama', span: 'half' },
-  { id: 35, name: 'Comedy', span: 'full' },
-  { id: 28, name: 'Action', span: 'full' },
+  {
+    id: 27,
+    nameKey: 'search.genres.horror',
+    subtitleKey: 'search.genres.horrorSubtitle',
+    span: 'full',
+  },
+  { id: 878, nameKey: 'search.genres.sciFi', span: 'half' },
+  { id: 18, nameKey: 'search.genres.drama', span: 'half' },
+  { id: 35, nameKey: 'search.genres.comedy', span: 'full' },
+  { id: 28, nameKey: 'search.genres.action', span: 'full' },
 ];
 
 function GenreTile({
@@ -60,14 +66,16 @@ function GenreTile({
   backdropPath?: string | null;
   style?: object;
 }) {
+  const { t } = useTranslation();
   const backdropUri = getBackdropUrl(backdropPath ?? null, 'w780');
+  const name = t(genre.nameKey);
 
   return (
     <AnimatedPressable
       onPress={() =>
         router.push({
           pathname: '/list/[source]',
-          params: { source: 'genre-movies', genreId: String(genre.id), title: genre.name },
+          params: { source: 'genre-movies', genreId: String(genre.id), title: name },
         })
       }
       style={[{ height: TILE_HEIGHT }, style]}
@@ -84,11 +92,11 @@ function GenreTile({
       />
       <View className="absolute bottom-0 left-0 right-0 p-stack-md">
         <Text className="text-headline-lg-mobile font-sans-bold uppercase text-text-primary">
-          {genre.name}
+          {name}
         </Text>
-        {genre.subtitle && (
+        {genre.subtitleKey && (
           <Text className="mt-1 font-sans text-caption text-on-surface-variant">
-            {genre.subtitle}
+            {t(genre.subtitleKey)}
           </Text>
         )}
       </View>
@@ -97,6 +105,7 @@ function GenreTile({
 }
 
 export default function SearchScreen() {
+  const { t } = useTranslation();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -144,7 +153,7 @@ export default function SearchScreen() {
     <SafeAreaView edges={['top']} style={{ height: windowHeight }} className="bg-background">
       <View className="gap-stack-md px-margin-mobile pb-stack-md pt-stack-sm">
         <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
-          Find your next masterpiece
+          {t('search.heading')}
         </Text>
 
         <View
@@ -158,7 +167,7 @@ export default function SearchScreen() {
             onChangeText={setQuery}
             onFocus={() => setIsInputFocused(true)}
             onBlur={() => setIsInputFocused(false)}
-            placeholder="Search movies, directors, or genres..."
+            placeholder={t('search.placeholder')}
             placeholderTextColor="#A1A1AA"
             autoCorrect={false}
             returnKeyType="search"
@@ -182,10 +191,12 @@ export default function SearchScreen() {
             <View className="mb-section-gap px-margin-mobile">
               <View className="mb-stack-md flex-row items-end justify-between">
                 <Text className="text-title-md font-sans-semibold text-text-primary">
-                  Recent Searches
+                  {t('search.recentSearches')}
                 </Text>
                 <Pressable onPress={handleClearRecent}>
-                  <Text className="font-sans-bold text-label-caps text-text-secondary">CLEAR</Text>
+                  <Text className="font-sans-bold text-label-caps text-text-secondary">
+                    {t('search.clearRecent')}
+                  </Text>
                 </Pressable>
               </View>
               <View className="flex-row flex-wrap gap-3">
@@ -205,7 +216,7 @@ export default function SearchScreen() {
 
           <View className="px-margin-mobile">
             <Text className="mb-stack-md text-title-md font-sans-semibold text-text-primary">
-              Popular Genres
+              {t('search.popularGenres')}
             </Text>
             <View className="gap-gutter">
               <GenreTile genre={GENRES[0]} backdropPath={genreBackdrops[GENRES[0].id]} />
@@ -246,10 +257,10 @@ export default function SearchScreen() {
             <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
               <MaterialIcons name="search-off" size={32} color="#A1A1AA" />
               <Text className="text-title-md font-sans-semibold text-text-primary">
-                No results found
+                {t('search.noResultsTitle')}
               </Text>
               <Text className="text-center font-sans text-body-md text-text-secondary">
-                Try a different title, actor, or genre.
+                {t('search.noResultsSubtitle')}
               </Text>
             </View>
           )}

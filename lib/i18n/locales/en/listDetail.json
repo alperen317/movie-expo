@@ -1,0 +1,22 @@
+{
+  "listDetail": {
+    "fallbackTitle": "List",
+    "memberCount_one": "{{count}} member",
+    "memberCount_other": "{{count}} members",
+    "emptyTitle": "No titles yet",
+    "emptySubtitle": "Add a movie or show to get this list started.",
+    "renameTitle": "Rename List",
+    "rename": "Rename",
+    "deleteList": "Delete List",
+    "leaveList": "Leave List",
+    "deleteMessage": "This removes it for everyone. This can't be undone.",
+    "delete": "Delete",
+    "leaveMessage": "You'll need a new invite to rejoin.",
+    "leave": "Leave",
+    "members": "Members",
+    "pending": "Pending",
+    "addToList": "Add to List",
+    "searchPlaceholder": "Search movies or shows...",
+    "popularNow": "Popular right now"
+  }
+}

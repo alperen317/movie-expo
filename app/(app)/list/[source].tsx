@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Text, useWindowDimensions, View } from 'react-native';
 import { FadeIn } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -31,17 +32,17 @@ interface SourcePage {
 
 const SOURCE_CONFIG: Record<
   Exclude<Source, 'person-credits' | 'genre-movies'>,
-  { title: string; fetchPage: (page: number) => Promise<SourcePage> }
+  { titleKey: string; fetchPage: (page: number) => Promise<SourcePage> }
 > = {
   'trending-movies': {
-    title: 'Trending This Week',
+    titleKey: 'home.trendingThisWeek',
     fetchPage: async (page) => {
       const data = await getTrendingMovies('day', page);
       return { results: data.results.map(toMovieCardItem), totalPages: data.total_pages };
     },
   },
   'popular-tv': {
-    title: 'Popular TV Shows',
+    titleKey: 'home.popularTvShows',
     fetchPage: async (page) => {
       const data = await getPopularTVShows(page);
       return { results: data.results.map(toTVCardItem), totalPages: data.total_pages };
@@ -50,6 +51,7 @@ const SOURCE_CONFIG: Record<
 };
 
 export default function ListScreen() {
+  const { t } = useTranslation();
   const { source, personId, genreId, title } = useLocalSearchParams<{
     source: string;
     personId?: string;
@@ -64,7 +66,7 @@ export default function ListScreen() {
   }>(() => {
     if (source === 'person-credits' && personId) {
       return {
-        title: title || 'Known For',
+        title: title || t('actor.knownFor'),
         fetchPage: async () => {
           const person = toPersonDetails(await getPersonDetails(Number(personId)));
           return { results: person.knownFor, totalPages: 1 };
@@ -73,18 +75,18 @@ export default function ListScreen() {
     }
     if (source === 'genre-movies' && genreId) {
       return {
-        title: title || 'Genre',
+        title: title || t('browse.genre'),
         fetchPage: async (page) => {
           const data = await discoverMoviesByGenre(Number(genreId), page);
           return { results: data.results.map(toMovieCardItem), totalPages: data.total_pages };
         },
       };
     }
-    return (
+    const staticConfig =
       SOURCE_CONFIG[source as Exclude<Source, 'person-credits' | 'genre-movies'>] ??
-      SOURCE_CONFIG['trending-movies']
-    );
-  }, [source, personId, genreId, title]);
+      SOURCE_CONFIG['trending-movies'];
+    return { title: t(staticConfig.titleKey), fetchPage: staticConfig.fetchPage };
+  }, [source, personId, genreId, title, t]);
 
   const numColumns = getGridColumns(windowWidth);
 
@@ -110,7 +112,7 @@ export default function ListScreen() {
       })
       .catch((err) => {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : 'Failed to load list.');
+        setError(err instanceof Error ? err.message : t('browse.loadError'));
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false);

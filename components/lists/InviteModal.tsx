@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -31,6 +32,7 @@ export function InviteModal({
   onSubmit,
   onRegenerate,
 }: InviteModalProps) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +48,7 @@ export function InviteModal({
   const handleSubmit = async () => {
     const trimmed = email.trim();
     if (trimmed.length === 0) {
-      setError('Enter an email address.');
+      setError(t('components.invite.enterEmail'));
       return;
     }
     setIsSubmitting(true);
@@ -56,7 +58,7 @@ export function InviteModal({
       setEmail('');
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send invite.');
+      setError(err instanceof Error ? err.message : t('components.invite.sendFailed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -69,7 +71,7 @@ export function InviteModal({
   };
 
   const handleShare = () => {
-    Share.share({ message: `Join my list on Previously — use code ${joinCode}` });
+    Share.share({ message: t('components.invite.shareMessage', { code: joinCode }) });
   };
 
   const handleRegenerate = async () => {
@@ -89,11 +91,13 @@ export function InviteModal({
         className="items-center justify-center bg-background/80 px-margin-mobile"
       >
         <View className="w-full max-w-md gap-stack-md rounded-2xl border border-glass-border bg-surface-container-low p-6">
-          <Text className="font-sans-bold text-title-md text-text-primary">Invite a Friend</Text>
+          <Text className="font-sans-bold text-title-md text-text-primary">
+            {t('components.invite.title')}
+          </Text>
 
           <View className="gap-stack-sm rounded-xl border border-glass-border bg-surface/50 p-4">
             <Text className="font-sans text-caption text-text-secondary">
-              Or share this code — anyone with it joins instantly.
+              {t('components.invite.shareCodeHint')}
             </Text>
             <Text className="text-center font-sans-bold text-headline-lg-mobile tracking-widest text-primary">
               {joinCode}
@@ -109,7 +113,7 @@ export function InviteModal({
                   color="#A1A1AA"
                 />
                 <Text className="font-sans-semibold text-caption text-text-secondary">
-                  {justCopied ? 'Copied' : 'Copy'}
+                  {justCopied ? t('components.invite.copied') : t('components.invite.copy')}
                 </Text>
               </AnimatedPressable>
               <AnimatedPressable
@@ -117,7 +121,9 @@ export function InviteModal({
                 className="flex-1 flex-row items-center justify-center gap-2 rounded-full border border-glass-border py-2"
               >
                 <MaterialIcons name="ios-share" size={16} color="#A1A1AA" />
-                <Text className="font-sans-semibold text-caption text-text-secondary">Share</Text>
+                <Text className="font-sans-semibold text-caption text-text-secondary">
+                  {t('components.invite.share')}
+                </Text>
               </AnimatedPressable>
             </View>
             {isCreator && (
@@ -127,7 +133,9 @@ export function InviteModal({
                 className="self-center"
               >
                 <Text className="font-sans text-caption text-text-secondary underline">
-                  {isRegenerating ? 'Regenerating…' : 'Regenerate code'}
+                  {isRegenerating
+                    ? t('components.invite.regenerating')
+                    : t('components.invite.regenerate')}
                 </Text>
               </AnimatedPressable>
             )}
@@ -135,12 +143,14 @@ export function InviteModal({
 
           <View className="flex-row items-center gap-3">
             <View className="h-px flex-1 bg-glass-border" />
-            <Text className="font-sans text-caption text-text-secondary">or invite by email</Text>
+            <Text className="font-sans text-caption text-text-secondary">
+              {t('components.invite.orByEmail')}
+            </Text>
             <View className="h-px flex-1 bg-glass-border" />
           </View>
 
           <Text className="font-sans text-caption text-text-secondary">
-            They need an existing Previously account to be added.
+            {t('components.invite.needAccount')}
           </Text>
           <AuthTextInput
             icon="alternate-email"
@@ -162,7 +172,9 @@ export function InviteModal({
               onPress={handleClose}
               className="flex-1 items-center rounded-full border border-glass-border py-3"
             >
-              <Text className="font-sans-semibold text-body-md text-text-secondary">Cancel</Text>
+              <Text className="font-sans-semibold text-body-md text-text-secondary">
+                {t('common.cancel')}
+              </Text>
             </AnimatedPressable>
             <AnimatedPressable
               onPress={handleSubmit}
@@ -173,7 +185,7 @@ export function InviteModal({
                 <ActivityIndicator color="#3f2e00" />
               ) : (
                 <Text className="font-sans-semibold text-body-md text-on-primary-container">
-                  Send Invite
+                  {t('components.invite.sendInvite')}
                 </Text>
               )}
             </AnimatedPressable>

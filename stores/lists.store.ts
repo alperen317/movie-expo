@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import type { MediaCardItem } from '../components/home/MovieCard';
+import i18n from '../lib/i18n';
 import {
   addSavedMedia,
   fetchSavedMedia,
@@ -64,7 +65,9 @@ export const useListsStore = create<ListsState>((set, get) => ({
     useToastStore
       .getState()
       .show(
-        wasSaved ? `${item.title} removed from Favorites` : `${item.title} added to Favorites`,
+        wasSaved
+          ? i18n.t('toasts.removedFromFavorites', { title: item.title })
+          : i18n.t('toasts.addedToFavorites', { title: item.title }),
         wasSaved ? 'favorite-border' : 'favorite',
       );
 
@@ -78,7 +81,7 @@ export const useListsStore = create<ListsState>((set, get) => ({
         else delete favorites[key];
         return { favorites };
       });
-      useToastStore.getState().show('Something went wrong. Please try again.', 'error-outline');
+      useToastStore.getState().show(i18n.t('toasts.genericError'), 'error-outline');
       throw err;
     }
   },
@@ -116,7 +119,9 @@ export const useListsStore = create<ListsState>((set, get) => ({
       useToastStore
         .getState()
         .show(
-          wasSaved ? `${item.title} removed from Watchlist` : `${item.title} added to Watchlist`,
+          wasSaved
+            ? i18n.t('toasts.removedFromWatchlist', { title: item.title })
+            : i18n.t('toasts.addedToWatchlist', { title: item.title }),
           wasSaved ? 'bookmark-border' : 'bookmark',
         );
     }
@@ -131,7 +136,7 @@ export const useListsStore = create<ListsState>((set, get) => ({
         else delete watchlist[key];
         return { watchlist };
       });
-      useToastStore.getState().show('Something went wrong. Please try again.', 'error-outline');
+      useToastStore.getState().show(i18n.t('toasts.genericError'), 'error-outline');
       throw err;
     }
   },

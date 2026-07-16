@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FlatList, Text, View } from 'react-native';
 
 import { getPosterUrl } from '../../lib/tmdb/config';
@@ -18,6 +19,7 @@ interface ContinueWatchingItem {
 }
 
 export function ContinueWatchingRow() {
+  const { t } = useTranslation();
   const entries = useEpisodeProgressStore((state) => state.entries);
   const showIds = useMemo(() => useEpisodeProgressStore.getState().showIdsInProgress(), [entries]);
   const showIdsKey = showIds.join(',');
@@ -103,7 +105,7 @@ export function ContinueWatchingRow() {
     <View className="mt-section-gap">
       <View className="mb-stack-md px-margin-mobile">
         <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
-          Continue Watching
+          {t('components.continueWatching.title')}
         </Text>
       </View>
       <FlatList
@@ -119,7 +121,9 @@ export function ContinueWatchingRow() {
 }
 
 function ContinueWatchingCard({ item }: { item: ContinueWatchingItem }) {
+  const { t } = useTranslation();
   const posterUri = getPosterUrl(item.posterPath, 'w342');
+  const episodeCode = `S${item.seasonNumber} E${item.episodeNumber}`;
 
   return (
     <AnimatedPressable
@@ -136,7 +140,7 @@ function ContinueWatchingCard({ item }: { item: ContinueWatchingItem }) {
       />
       <View className="absolute left-2 top-2 rounded-full border border-glass-border bg-background-blur px-2 py-1">
         <Text className="font-sans-bold text-[10px] uppercase text-text-primary">
-          {item.isUpcoming ? 'Upcoming' : `S${item.seasonNumber} E${item.episodeNumber}`}
+          {item.isUpcoming ? t('components.continueWatching.upcoming') : episodeCode}
         </Text>
       </View>
       <View className="absolute bottom-0 left-0 right-0 bg-background-blur p-3">
@@ -145,8 +149,8 @@ function ContinueWatchingCard({ item }: { item: ContinueWatchingItem }) {
         </Text>
         <Text className="font-sans text-caption text-on-surface-variant" numberOfLines={1}>
           {item.isUpcoming
-            ? `Coming S${item.seasonNumber} E${item.episodeNumber}`
-            : `Next: S${item.seasonNumber} E${item.episodeNumber}`}
+            ? t('components.continueWatching.coming', { ep: episodeCode })
+            : t('components.continueWatching.next', { ep: episodeCode })}
         </Text>
       </View>
     </AnimatedPressable>

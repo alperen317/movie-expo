@@ -2,6 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import * as Sharing from 'expo-sharing';
 import { router } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ViewShot from 'react-native-view-shot';
@@ -11,27 +12,18 @@ import { AnimatedPressable } from '../../components/ui/AnimatedPressable';
 import { useStatsData } from '../../hooks/useStatsData';
 import { filterInputByYear, monthlyActivity, summarizeStats } from '../../lib/stats';
 
-const MONTH_LABELS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
-const MONTH_NAMES = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-];
-
 type Period = 'all' | 'year';
 
 export default function StatsScreen() {
+  const { t, i18n } = useTranslation();
   const currentYear = new Date().getFullYear();
   const isDecember = new Date().getMonth() === 11;
+
+  const locale = i18n.language === 'tr' ? 'tr-TR' : 'en-US';
+  const monthNarrow = (month: number) =>
+    new Date(2000, month, 1).toLocaleDateString(locale, { month: 'narrow' });
+  const monthLong = (month: number) =>
+    new Date(2000, month, 1).toLocaleDateString(locale, { month: 'long' });
 
   const { input, isLoading } = useStatsData();
   const [period, setPeriod] = useState<Period>(isDecember ? 'year' : 'all');
@@ -79,7 +71,9 @@ export default function StatsScreen() {
         >
           <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />
         </AnimatedPressable>
-        <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">Statistics</Text>
+        <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
+          {t('stats.title')}
+        </Text>
       </View>
 
       {isLoading && (
@@ -98,9 +92,11 @@ export default function StatsScreen() {
       {!isLoading && !hasData && (
         <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
           <MaterialIcons name="bar-chart" size={32} color="#A1A1AA" />
-          <Text className="text-title-md font-sans-semibold text-text-primary">No stats yet</Text>
+          <Text className="text-title-md font-sans-semibold text-text-primary">
+            {t('stats.emptyTitle')}
+          </Text>
           <Text className="text-center font-sans text-body-md text-text-secondary">
-            Mark movies and episodes as watched to see your stats here.
+            {t('stats.emptySubtitle')}
           </Text>
         </View>
       )}
@@ -114,7 +110,7 @@ export default function StatsScreen() {
             <View className="flex-row items-center gap-2 overflow-hidden rounded-xl border border-primary-container/40 bg-primary-container/10 p-4">
               <MaterialIcons name="auto-awesome" size={20} color="#f5c451" />
               <Text className="flex-1 font-sans-semibold text-body-md text-primary-container">
-                Your Year Wrapped is ready
+                {t('stats.yearWrapped')}
               </Text>
             </View>
           )}
@@ -127,7 +123,7 @@ export default function StatsScreen() {
               <Text
                 className={`font-sans-semibold text-caption ${period === 'all' ? 'text-on-primary-container' : 'text-text-secondary'}`}
               >
-                All Time
+                {t('stats.allTime')}
               </Text>
             </AnimatedPressable>
             <AnimatedPressable
@@ -137,7 +133,7 @@ export default function StatsScreen() {
               <Text
                 className={`font-sans-semibold text-caption ${period === 'year' ? 'text-on-primary-container' : 'text-text-secondary'}`}
               >
-                This Year
+                {t('stats.thisYear')}
               </Text>
             </AnimatedPressable>
           </View>
@@ -150,15 +146,13 @@ export default function StatsScreen() {
               style={{ backgroundColor: 'rgba(245,196,81,0.14)' }}
             />
             <Text className="font-sans text-caption text-text-secondary">
-              {period === 'year'
-                ? `In ${currentYear}, you've spent`
-                : "Across your life, you've spent"}
+              {period === 'year' ? t('stats.heroYear', { year: currentYear }) : t('stats.heroLife')}
             </Text>
             <Text className="mt-1 text-display-xl-mobile font-sans-bold text-text-primary">
-              {lifeDaysWhole}d {lifeHoursRemainder}h
+              {t('stats.daysHours', { days: lifeDaysWhole, hours: lifeHoursRemainder })}
             </Text>
             <Text className="font-sans text-body-md text-text-secondary">
-              watching movies and TV
+              {t('stats.heroSuffix')}
             </Text>
           </View>
 
@@ -167,25 +161,31 @@ export default function StatsScreen() {
               <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
                 {summary.movieCount}
               </Text>
-              <Text className="font-sans text-caption text-text-secondary">Movies</Text>
+              <Text className="font-sans text-caption text-text-secondary">
+                {t('stats.movies')}
+              </Text>
             </View>
             <View className="flex-1 items-center gap-1 rounded-xl border border-glass-border bg-surface-container-low py-stack-md">
               <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
                 {summary.episodeCount}
               </Text>
-              <Text className="font-sans text-caption text-text-secondary">Episodes</Text>
+              <Text className="font-sans text-caption text-text-secondary">
+                {t('stats.episodes')}
+              </Text>
             </View>
             <View className="flex-1 items-center gap-1 rounded-xl border border-glass-border bg-surface-container-low py-stack-md">
               <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
                 {summary.showCount}
               </Text>
-              <Text className="font-sans text-caption text-text-secondary">Shows</Text>
+              <Text className="font-sans text-caption text-text-secondary">{t('stats.shows')}</Text>
             </View>
           </View>
 
           {summary.topGenres.length > 0 && (
             <View className="gap-stack-sm">
-              <Text className="font-sans-semibold text-title-md text-text-primary">Genres</Text>
+              <Text className="font-sans-semibold text-title-md text-text-primary">
+                {t('stats.genres')}
+              </Text>
               <View className="gap-3 rounded-xl border border-glass-border bg-surface-container-low p-4">
                 {summary.topGenres.map((genre, index) => (
                   <View key={genre.genre} className="gap-1">
@@ -214,13 +214,13 @@ export default function StatsScreen() {
           <View className="gap-stack-sm">
             <View className="flex-row items-center justify-between">
               <Text className="font-sans-semibold text-title-md text-text-primary">
-                {currentYear} Activity
+                {t('stats.activity', { year: currentYear })}
               </Text>
               {peakMonth.count > 0 && (
                 <View className="flex-row items-center gap-1">
                   <MaterialIcons name="local-fire-department" size={14} color="#f5c451" />
                   <Text className="font-sans text-caption text-primary-container">
-                    Peak in {MONTH_NAMES[peakMonth.month]}
+                    {t('stats.peakIn', { month: monthLong(peakMonth.month) })}
                   </Text>
                 </View>
               )}
@@ -244,7 +244,7 @@ export default function StatsScreen() {
                     style={{ height: Math.max(4, (entry.count / maxActivity) * 70) }}
                   />
                   <Text className="font-sans text-[9px] text-text-secondary">
-                    {MONTH_LABELS[entry.month]}
+                    {monthNarrow(entry.month)}
                   </Text>
                 </View>
               ))}
@@ -253,11 +253,11 @@ export default function StatsScreen() {
 
           <View className="gap-stack-sm">
             <Text className="font-sans-semibold text-title-md text-text-primary">
-              Share your recap
+              {t('stats.shareRecap')}
             </Text>
             <ViewShot ref={viewShotRef} options={{ format: 'png', quality: 1 }}>
               <ShareableStatsCard
-                periodLabel={period === 'year' ? String(currentYear) : 'All Time'}
+                periodLabel={period === 'year' ? String(currentYear) : t('stats.allTime')}
                 totalMinutes={summary.totalMinutes}
                 movieCount={summary.movieCount}
                 episodeCount={summary.episodeCount}
@@ -284,7 +284,7 @@ export default function StatsScreen() {
                 <>
                   <MaterialIcons name="ios-share" size={20} color="#3f2e00" />
                   <Text className="font-sans-semibold text-title-md text-on-primary-container">
-                    Share
+                    {t('stats.share')}
                   </Text>
                 </>
               )}

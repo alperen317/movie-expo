@@ -1,6 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
+import i18n from '../i18n';
 import { getTVShowDetails } from '../tmdb/tv';
 import { useEpisodeProgressStore } from '../../stores/episodeProgress.store';
 
@@ -83,7 +84,10 @@ export async function scheduleUpcomingEpisodeReminders(): Promise<void> {
       identifier: candidate.id,
       content: {
         title: candidate.title,
-        body: `S${candidate.seasonNumber} E${candidate.episodeNumber} is airing today.`,
+        body: i18n.t('notifications.episodeAiringBody', {
+          season: candidate.seasonNumber,
+          episode: candidate.episodeNumber,
+        }),
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,

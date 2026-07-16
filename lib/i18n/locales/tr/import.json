@@ -1,0 +1,24 @@
+{
+  "import": {
+    "title": "İçe Aktar",
+    "searchPlaceholder": "Film veya dizi ara",
+    "search": "Ara",
+    "listWatched": "İzlendi",
+    "listWatchlist": "İzleme Listesi",
+    "showSuffix": " · Dizi",
+    "pickDifferent": "Farklı bir sonuç seç",
+    "noData": "Bu dosyada içe aktarılacak veri bulunamadı.",
+    "readError": "Dosya okunamadı.",
+    "importError": "İçe aktarma sırasında bir hata oluştu.",
+    "intro": "TV Time (GDPR export) ya da Letterboxd export zip dosyanı seç, izleme geçmişini ve izleme listeni içeri aktaralım.",
+    "gdprExport": "GDPR export (.zip)",
+    "export": "Export (.zip)",
+    "matching": "Eşleştiriliyor… {{done}}/{{total}}",
+    "selectedCount": "{{selected}} / {{total}} öğe seçili",
+    "importButton": "İçe Aktar ({{count}})",
+    "importing": "İçe aktarılıyor…",
+    "importedCount": "{{count}} öğe içeri aktarıldı",
+    "skippedCount": "{{count}} öğe atlandı",
+    "done": "Tamam"
+  }
+}

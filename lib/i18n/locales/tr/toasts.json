@@ -1,0 +1,17 @@
+{
+  "toasts": {
+    "couldNotOpenLink": "Bağlantı açılamadı",
+    "genericError": "Bir şeyler ters gitti. Lütfen tekrar dene.",
+    "addedToFavorites": "{{title}} Favorilere eklendi",
+    "removedFromFavorites": "{{title}} Favorilerden çıkarıldı",
+    "addedToWatchlist": "{{title}} İzleme Listesine eklendi",
+    "removedFromWatchlist": "{{title}} İzleme Listesinden çıkarıldı",
+    "markedAsWatched": "{{title}} izlendi olarak işaretlendi",
+    "seasonMarkedWatched": "{{season}}. sezon izlendi olarak işaretlendi",
+    "markedThroughSeason": "{{season}}. sezona kadar işaretlendi",
+    "watchLogUpdated": "İzleme kaydı güncellendi",
+    "inviteSent": "{{email}} adresine davet gönderildi",
+    "addedToSharedList": "{{title}} listeye eklendi",
+    "removedFromSharedList": "{{title}} listeden çıkarıldı"
+  }
+}

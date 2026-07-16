@@ -1,0 +1,17 @@
+{
+  "toasts": {
+    "couldNotOpenLink": "Could not open link",
+    "genericError": "Something went wrong. Please try again.",
+    "addedToFavorites": "{{title}} added to Favorites",
+    "removedFromFavorites": "{{title}} removed from Favorites",
+    "addedToWatchlist": "{{title}} added to Watchlist",
+    "removedFromWatchlist": "{{title}} removed from Watchlist",
+    "markedAsWatched": "{{title}} marked as watched",
+    "seasonMarkedWatched": "Season {{season}} marked as watched",
+    "markedThroughSeason": "Marked through Season {{season}}",
+    "watchLogUpdated": "Watch log updated",
+    "inviteSent": "Invite sent to {{email}}",
+    "addedToSharedList": "{{title}} added to list",
+    "removedFromSharedList": "{{title}} removed from list"
+  }
+}

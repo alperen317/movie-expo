@@ -1,0 +1,9 @@
+{
+  "calendar": {
+    "title": "Takvim",
+    "today": "Bugün",
+    "tomorrow": "Yarın",
+    "emptyTitle": "Yaklaşan bölüm yok",
+    "emptySubtitle": "Takip ettiğin dizilerin sonraki bölümü burada görünür."
+  }
+}

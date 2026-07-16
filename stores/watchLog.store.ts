@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import type { MediaCardItem } from '../components/home/MovieCard';
+import i18n from '../lib/i18n';
 import {
   addWatchLogEntry,
   fetchWatchLog,
@@ -80,7 +81,9 @@ export const useWatchLogStore = create<WatchLogState>((set, get) => ({
     };
 
     set((state) => ({ entries: [optimisticEntry, ...state.entries] }));
-    useToastStore.getState().show(`${item.title} marked as watched`, 'check-circle');
+    useToastStore
+      .getState()
+      .show(i18n.t('toasts.markedAsWatched', { title: item.title }), 'check-circle');
 
     try {
       const saved = await addWatchLogEntry(item, options);
@@ -96,7 +99,7 @@ export const useWatchLogStore = create<WatchLogState>((set, get) => ({
       }
     } catch (err) {
       set((state) => ({ entries: state.entries.filter((entry) => entry.logId !== tempId) }));
-      useToastStore.getState().show('Something went wrong. Please try again.', 'error-outline');
+      useToastStore.getState().show(i18n.t('toasts.genericError'), 'error-outline');
       throw err;
     }
   },
@@ -114,7 +117,7 @@ export const useWatchLogStore = create<WatchLogState>((set, get) => ({
           : entry,
       ),
     }));
-    useToastStore.getState().show('Watch log updated', 'check-circle');
+    useToastStore.getState().show(i18n.t('toasts.watchLogUpdated'), 'check-circle');
 
     try {
       const saved = await updateWatchLogEntry(logId, options);
@@ -130,7 +133,7 @@ export const useWatchLogStore = create<WatchLogState>((set, get) => ({
       }
     } catch (err) {
       set({ entries: previous });
-      useToastStore.getState().show('Something went wrong. Please try again.', 'error-outline');
+      useToastStore.getState().show(i18n.t('toasts.genericError'), 'error-outline');
       throw err;
     }
   },

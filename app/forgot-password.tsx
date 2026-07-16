@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { FadeIn, FadeOut } from 'react-native-reanimated';
 
@@ -10,6 +11,7 @@ import { AnimatedPressable, AnimatedView } from '../components/ui/AnimatedPressa
 import { useAuthStore } from '../stores/auth.store';
 
 export default function ForgotPasswordScreen() {
+  const { t } = useTranslation();
   const session = useAuthStore((state) => state.session);
   const { requestPasswordReset, resetPassword, isSubmitting, error } = useAuthStore();
 
@@ -50,10 +52,10 @@ export default function ForgotPasswordScreen() {
 
         <View className="mt-stack-lg w-full items-center">
           <Text className="text-headline-lg-mobile font-sans-semibold text-text-primary">
-            Yeni şifre belirle
+            {t('auth.forgotPassword.resetTitle')}
           </Text>
           <Text className="mt-stack-sm text-center font-sans text-body-md text-text-secondary">
-            {email} adresine gönderdiğimiz kodu ve yeni şifreni gir.
+            {t('auth.forgotPassword.resetSubtitle', { email })}
           </Text>
         </View>
 
@@ -62,7 +64,7 @@ export default function ForgotPasswordScreen() {
             icon="dialpad"
             value={code}
             onChangeText={setCode}
-            placeholder="Doğrulama kodu"
+            placeholder={t('auth.forgotPassword.code')}
             autoCapitalize="none"
             keyboardType="number-pad"
           />
@@ -71,7 +73,7 @@ export default function ForgotPasswordScreen() {
             isPassword
             value={password}
             onChangeText={setPassword}
-            placeholder="Yeni şifre"
+            placeholder={t('auth.forgotPassword.newPassword')}
             autoComplete="new-password"
           />
           <AuthTextInput
@@ -79,7 +81,7 @@ export default function ForgotPasswordScreen() {
             isPassword
             value={confirmPassword}
             onChangeText={setConfirmPassword}
-            placeholder="Yeni şifreyi onayla"
+            placeholder={t('auth.forgotPassword.confirmNewPassword')}
             autoComplete="new-password"
           />
         </View>
@@ -90,7 +92,9 @@ export default function ForgotPasswordScreen() {
             exiting={FadeOut.duration(150)}
             style={{ width: '100%' }}
           >
-            <Text className="mt-stack-sm font-sans text-sm text-error">Şifreler eşleşmiyor.</Text>
+            <Text className="mt-stack-sm font-sans text-sm text-error">
+              {t('auth.signUp.passwordMismatch')}
+            </Text>
           </AnimatedView>
         )}
         {error && (
@@ -122,7 +126,7 @@ export default function ForgotPasswordScreen() {
           ) : (
             <>
               <Text className="font-sans-bold uppercase tracking-wide text-on-primary-container">
-                Şifreyi Sıfırla
+                {t('auth.forgotPassword.submit')}
               </Text>
               <MaterialIcons name="arrow-forward" size={18} color="#3f2e00" />
             </>
@@ -131,7 +135,10 @@ export default function ForgotPasswordScreen() {
 
         <AnimatedPressable onPress={() => setStep('request')} className="mt-stack-lg">
           <Text className="font-sans text-caption text-text-secondary">
-            Kod gelmedi mi? <Text className="font-sans-bold text-text-primary">Tekrar dene</Text>
+            {t('auth.forgotPassword.noCode')}{' '}
+            <Text className="font-sans-bold text-text-primary">
+              {t('auth.forgotPassword.retry')}
+            </Text>
           </Text>
         </AnimatedPressable>
       </AuthBackground>
@@ -146,10 +153,10 @@ export default function ForgotPasswordScreen() {
 
       <View className="mt-stack-lg w-full items-center">
         <Text className="text-headline-lg-mobile font-sans-semibold text-text-primary">
-          Şifreni mi unuttun?
+          {t('auth.forgotPassword.requestTitle')}
         </Text>
         <Text className="mt-stack-sm text-center font-sans text-body-md text-text-secondary">
-          E-posta adresini gir, sana bir doğrulama kodu gönderelim.
+          {t('auth.forgotPassword.requestSubtitle')}
         </Text>
       </View>
 
@@ -158,7 +165,7 @@ export default function ForgotPasswordScreen() {
           icon="email"
           value={email}
           onChangeText={setEmail}
-          placeholder="E-posta"
+          placeholder={t('auth.email')}
           autoCapitalize="none"
           autoComplete="email"
           keyboardType="email-address"
@@ -194,7 +201,7 @@ export default function ForgotPasswordScreen() {
         ) : (
           <>
             <Text className="font-sans-bold uppercase tracking-wide text-on-primary-container">
-              Kod Gönder
+              {t('auth.forgotPassword.sendCode')}
             </Text>
             <MaterialIcons name="arrow-forward" size={18} color="#3f2e00" />
           </>
@@ -203,7 +210,10 @@ export default function ForgotPasswordScreen() {
 
       <AnimatedPressable onPress={() => router.replace('/login')} className="mt-stack-lg">
         <Text className="font-sans text-caption text-text-secondary">
-          Şifreni hatırladın mı? <Text className="font-sans-bold text-text-primary">Giriş Yap</Text>
+          {t('auth.forgotPassword.rememberedPassword')}{' '}
+          <Text className="font-sans-bold text-text-primary">
+            {t('auth.forgotPassword.signInLink')}
+          </Text>
         </Text>
       </AnimatedPressable>
     </AuthBackground>

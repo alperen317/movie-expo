@@ -4,6 +4,7 @@ import { File } from 'expo-file-system';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Platform, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -45,6 +46,7 @@ function ManualSearchBox({
   initialQuery: string;
   onPick: (item: MediaCardItem) => void;
 }) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState(initialQuery);
   const [candidates, setCandidates] = useState<MediaCardItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -70,7 +72,7 @@ function ManualSearchBox({
         <TextInput
           value={query}
           onChangeText={setQuery}
-          placeholder="Film veya dizi ara"
+          placeholder={t('import.searchPlaceholder')}
           placeholderTextColor="#A1A1AA80"
           onSubmitEditing={runSearch}
           className="flex-1 rounded-lg border border-glass-border bg-surface px-3 py-2 font-sans text-text-primary"
@@ -82,7 +84,9 @@ function ManualSearchBox({
           {isSearching ? (
             <ActivityIndicator color="#3f2e00" />
           ) : (
-            <Text className="font-sans-semibold text-caption text-on-primary-container">Ara</Text>
+            <Text className="font-sans-semibold text-caption text-on-primary-container">
+              {t('import.search')}
+            </Text>
           )}
         </AnimatedPressable>
       </View>
@@ -126,6 +130,7 @@ function ReviewRow({
   onStartSearch: () => void;
   onPick: (item: MediaCardItem) => void;
 }) {
+  const { t } = useTranslation();
   const { record, candidate, confidence } = result;
   const posterUrl = candidate ? getPosterUrl(candidate.posterPath, 'w185') : null;
 
@@ -159,8 +164,8 @@ function ReviewRow({
           </Text>
           <Text className="font-sans text-caption text-text-secondary">
             {(candidate?.year ?? record.year) || '—'} ·{' '}
-            {record.listType === 'watched' ? 'İzlendi' : 'Watchlist'}
-            {candidate?.mediaType === 'tv' ? ' · Dizi' : ''}
+            {record.listType === 'watched' ? t('import.listWatched') : t('import.listWatchlist')}
+            {candidate?.mediaType === 'tv' ? t('import.showSuffix') : ''}
           </Text>
         </View>
         {!candidate && <MaterialIcons name="search" size={20} color="#A1A1AA" />}
@@ -169,7 +174,7 @@ function ReviewRow({
       {candidate && confidence === 'low' && !isSearching && (
         <AnimatedPressable onPress={onStartSearch} className="self-start">
           <Text className="font-sans text-caption text-primary-container">
-            Farklı bir sonuç seç
+            {t('import.pickDifferent')}
           </Text>
         </AnimatedPressable>
       )}
@@ -178,6 +183,7 @@ function ReviewRow({
 }
 
 export default function ImportScreen() {
+  const { t } = useTranslation();
   const [step, setStep] = useState<Step>('source');
   const [error, setError] = useState<string | null>(null);
   const [matchProgress, setMatchProgress] = useState({ done: 0, total: 0 });
@@ -202,7 +208,7 @@ export default function ImportScreen() {
       const records = source === 'tvtime' ? parseTVTimeExport(files) : parseLetterboxdExport(files);
 
       if (records.length === 0) {
-        setError('Bu dosyada içe aktarılacak veri bulunamadı.');
+        setError(t('import.noData'));
         return;
       }
 
@@ -217,7 +223,7 @@ export default function ImportScreen() {
       );
       setStep('review');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Dosya okunamadı.');
+      setError(err instanceof Error ? err.message : t('import.readError'));
       setStep('source');
     }
   };
@@ -276,7 +282,7 @@ export default function ImportScreen() {
       setSummary({ imported: chosen.length, skipped: results.length - chosen.length });
       setStep('done');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'İçe aktarma sırasında bir hata oluştu.');
+      setError(err instanceof Error ? err.message : t('import.importError'));
       setStep('review');
     }
   };
@@ -291,7 +297,9 @@ export default function ImportScreen() {
         >
           <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />
         </AnimatedPressable>
-        <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">Import</Text>
+        <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
+          {t('import.title')}
+        </Text>
       </View>
 
       {error && (
@@ -302,10 +310,7 @@ export default function ImportScreen() {
 
       {step === 'source' && (
         <View className="flex-1 gap-stack-md px-margin-mobile pt-stack-lg">
-          <Text className="font-sans text-body-md text-text-secondary">
-            TV Time (GDPR export) ya da Letterboxd export zip dosyanı seç, izleme geçmişini ve
-            watchlist&apos;ini içeri aktaralım.
-          </Text>
+          <Text className="font-sans text-body-md text-text-secondary">{t('import.intro')}</Text>
           <AnimatedPressable
             onPress={() => pickSource('tvtime')}
             className="flex-row items-center gap-3 rounded-xl border border-glass-border bg-surface-container-low p-4"
@@ -313,7 +318,9 @@ export default function ImportScreen() {
             <MaterialIcons name="tv" size={22} color="#A1A1AA" />
             <View className="flex-1">
               <Text className="font-sans-semibold text-body-md text-text-primary">TV Time</Text>
-              <Text className="font-sans text-caption text-text-secondary">GDPR export (.zip)</Text>
+              <Text className="font-sans text-caption text-text-secondary">
+                {t('import.gdprExport')}
+              </Text>
             </View>
             <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
           </AnimatedPressable>
@@ -324,7 +331,9 @@ export default function ImportScreen() {
             <MaterialIcons name="movie" size={22} color="#A1A1AA" />
             <View className="flex-1">
               <Text className="font-sans-semibold text-body-md text-text-primary">Letterboxd</Text>
-              <Text className="font-sans text-caption text-text-secondary">Export (.zip)</Text>
+              <Text className="font-sans text-caption text-text-secondary">
+                {t('import.export')}
+              </Text>
             </View>
             <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
           </AnimatedPressable>
@@ -335,7 +344,7 @@ export default function ImportScreen() {
         <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
           <ActivityIndicator color="#ffffff" />
           <Text className="font-sans text-body-md text-text-secondary">
-            Eşleştiriliyor… {matchProgress.done}/{matchProgress.total}
+            {t('import.matching', { done: matchProgress.done, total: matchProgress.total })}
           </Text>
         </View>
       )}
@@ -344,7 +353,7 @@ export default function ImportScreen() {
         <>
           <View className="px-margin-mobile pb-stack-sm">
             <Text className="font-sans text-caption text-text-secondary">
-              {selected.size} / {results.length} öğe seçili
+              {t('import.selectedCount', { selected: selected.size, total: results.length })}
             </Text>
           </View>
           <ScrollView
@@ -371,7 +380,7 @@ export default function ImportScreen() {
               className="items-center rounded-full bg-primary-container py-3"
             >
               <Text className="font-sans-semibold text-body-md text-on-primary-container">
-                İçe Aktar ({selected.size})
+                {t('import.importButton', { count: selected.size })}
               </Text>
             </AnimatedPressable>
           </View>
@@ -381,7 +390,9 @@ export default function ImportScreen() {
       {step === 'importing' && (
         <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
           <ActivityIndicator color="#ffffff" />
-          <Text className="font-sans text-body-md text-text-secondary">İçe aktarılıyor…</Text>
+          <Text className="font-sans text-body-md text-text-secondary">
+            {t('import.importing')}
+          </Text>
         </View>
       )}
 
@@ -389,18 +400,20 @@ export default function ImportScreen() {
         <View className="flex-1 items-center justify-center gap-stack-md px-margin-mobile">
           <MaterialIcons name="check-circle" size={48} color="#f5c451" />
           <Text className="text-center font-sans-semibold text-title-md text-text-primary">
-            {summary.imported} öğe içeri aktarıldı
+            {t('import.importedCount', { count: summary.imported })}
           </Text>
           {summary.skipped > 0 && (
             <Text className="text-center font-sans text-body-md text-text-secondary">
-              {summary.skipped} öğe atlandı
+              {t('import.skippedCount', { count: summary.skipped })}
             </Text>
           )}
           <AnimatedPressable
             onPress={() => router.back()}
             className="items-center rounded-full bg-primary-container px-6 py-3"
           >
-            <Text className="font-sans-semibold text-body-md text-on-primary-container">Tamam</Text>
+            <Text className="font-sans-semibold text-body-md text-on-primary-container">
+              {t('import.done')}
+            </Text>
           </AnimatedPressable>
         </View>
       )}

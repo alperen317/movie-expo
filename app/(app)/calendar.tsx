@@ -1,7 +1,9 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
+import type { TFunction } from 'i18next';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -20,18 +22,20 @@ interface UpcomingEpisode {
   airDate: string;
 }
 
-function formatAirDate(airDate: string): string {
+function formatAirDate(airDate: string, t: TFunction, language: string): string {
   const date = new Date(`${airDate}T00:00:00`);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const diffDays = Math.round((date.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
 
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Tomorrow';
-  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  if (diffDays === 0) return t('calendar.today');
+  if (diffDays === 1) return t('calendar.tomorrow');
+  const locale = language === 'tr' ? 'tr-TR' : 'en-US';
+  return date.toLocaleDateString(locale, { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
 export default function CalendarScreen() {
+  const { t, i18n } = useTranslation();
   const entries = useEpisodeProgressStore((state) => state.entries);
   const showIds = useMemo(() => useEpisodeProgressStore.getState().showIdsInProgress(), [entries]);
   const showIdsKey = showIds.join(',');
@@ -98,7 +102,9 @@ export default function CalendarScreen() {
         >
           <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />
         </AnimatedPressable>
-        <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">Calendar</Text>
+        <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
+          {t('calendar.title')}
+        </Text>
       </View>
 
       {isLoading && (
@@ -111,10 +117,10 @@ export default function CalendarScreen() {
         <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
           <MaterialIcons name="event-available" size={32} color="#A1A1AA" />
           <Text className="text-title-md font-sans-semibold text-text-primary">
-            No upcoming episodes
+            {t('calendar.emptyTitle')}
           </Text>
           <Text className="text-center font-sans text-body-md text-text-secondary">
-            Shows you&apos;re tracking will show their next episode here.
+            {t('calendar.emptySubtitle')}
           </Text>
         </View>
       )}
@@ -161,7 +167,7 @@ export default function CalendarScreen() {
                 </Text>
               </View>
               <Text className="font-sans-semibold text-caption text-primary-container">
-                {formatAirDate(item.airDate)}
+                {formatAirDate(item.airDate, t, i18n.language)}
               </Text>
             </AnimatedPressable>
           )}

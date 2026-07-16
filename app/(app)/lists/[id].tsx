@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Modal, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -26,6 +27,7 @@ import { useSharedListsStore } from '../../../stores/sharedLists.store';
 // route, which is an unrelated generic TMDB "view all" browse template.
 
 export default function SharedListDetailScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { width: windowWidth } = useWindowDimensions();
   const currentUserId = useAuthStore((state) => state.session?.user?.id);
@@ -90,7 +92,7 @@ export default function SharedListDetailScreen() {
           className="flex-1 text-headline-lg-mobile font-sans-bold text-text-primary"
           numberOfLines={1}
         >
-          {activeList?.name ?? 'List'}
+          {activeList?.name ?? t('listDetail.fallbackTitle')}
         </Text>
         <AnimatedPressable
           onPress={() => setIsOverflowOpen(true)}
@@ -108,8 +110,9 @@ export default function SharedListDetailScreen() {
           >
             <MemberAvatarRow members={memberList} />
             <Text className="font-sans text-caption text-text-secondary">
-              {memberList.filter((m) => m.status === 'accepted').length} member
-              {memberList.filter((m) => m.status === 'accepted').length === 1 ? '' : 's'}
+              {t('listDetail.memberCount', {
+                count: memberList.filter((m) => m.status === 'accepted').length,
+              })}
             </Text>
           </AnimatedPressable>
           <AnimatedPressable
@@ -136,7 +139,9 @@ export default function SharedListDetailScreen() {
             onPress={() => id && openList(id)}
             className="rounded-full border border-glass-border bg-background-blur px-6 py-3"
           >
-            <Text className="font-sans-semibold text-primary-container">Try Again</Text>
+            <Text className="font-sans-semibold text-primary-container">
+              {t('common.tryAgain')}
+            </Text>
           </AnimatedPressable>
         </View>
       )}
@@ -144,9 +149,11 @@ export default function SharedListDetailScreen() {
       {!isDetailLoading && !detailError && itemList.length === 0 && (
         <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
           <MaterialIcons name="movie-filter" size={32} color="#A1A1AA" />
-          <Text className="text-title-md font-sans-semibold text-text-primary">No titles yet</Text>
+          <Text className="text-title-md font-sans-semibold text-text-primary">
+            {t('listDetail.emptyTitle')}
+          </Text>
           <Text className="text-center font-sans text-body-md text-text-secondary">
-            Add a movie or show to get this list started.
+            {t('listDetail.emptySubtitle')}
           </Text>
         </View>
       )}
@@ -204,8 +211,8 @@ export default function SharedListDetailScreen() {
       {activeList && (
         <ListNameModal
           visible={isRenameOpen}
-          title="Rename List"
-          submitLabel="Save"
+          title={t('listDetail.renameTitle')}
+          submitLabel={t('common.save')}
           initialValue={activeList.name}
           onClose={() => setIsRenameOpen(false)}
           onSubmit={async (name) => {
@@ -216,18 +223,18 @@ export default function SharedListDetailScreen() {
 
       <ActionSheetModal
         visible={isOverflowOpen}
-        title={activeList?.name ?? 'List'}
+        title={activeList?.name ?? t('listDetail.fallbackTitle')}
         onClose={() => setIsOverflowOpen(false)}
         actions={[
-          { label: 'Rename', onPress: () => setIsRenameOpen(true) },
+          { label: t('listDetail.rename'), onPress: () => setIsRenameOpen(true) },
           isCreator
             ? {
-                label: 'Delete List',
+                label: t('listDetail.deleteList'),
                 destructive: true,
                 onPress: () => setIsDeleteConfirmOpen(true),
               }
             : {
-                label: 'Leave List',
+                label: t('listDetail.leaveList'),
                 destructive: true,
                 onPress: () => setIsLeaveConfirmOpen(true),
               },
@@ -236,18 +243,18 @@ export default function SharedListDetailScreen() {
 
       <ActionSheetModal
         visible={isDeleteConfirmOpen}
-        title="Delete List"
-        message="This removes it for everyone. This can’t be undone."
+        title={t('listDetail.deleteList')}
+        message={t('listDetail.deleteMessage')}
         onClose={() => setIsDeleteConfirmOpen(false)}
-        actions={[{ label: 'Delete', destructive: true, onPress: handleDelete }]}
+        actions={[{ label: t('listDetail.delete'), destructive: true, onPress: handleDelete }]}
       />
 
       <ActionSheetModal
         visible={isLeaveConfirmOpen}
-        title="Leave List"
-        message="You’ll need a new invite to rejoin."
+        title={t('listDetail.leaveList')}
+        message={t('listDetail.leaveMessage')}
         onClose={() => setIsLeaveConfirmOpen(false)}
-        actions={[{ label: 'Leave', destructive: true, onPress: handleLeave }]}
+        actions={[{ label: t('listDetail.leave'), destructive: true, onPress: handleLeave }]}
       />
 
       <Modal
@@ -259,7 +266,9 @@ export default function SharedListDetailScreen() {
         <View className="flex-1 items-center justify-center bg-background/80 px-margin-mobile">
           <View className="w-full max-w-md gap-stack-md rounded-2xl border border-glass-border bg-surface-container-low p-6">
             <View className="flex-row items-center justify-between">
-              <Text className="font-sans-bold text-title-md text-text-primary">Members</Text>
+              <Text className="font-sans-bold text-title-md text-text-primary">
+                {t('listDetail.members')}
+              </Text>
               <AnimatedPressable onPress={() => setIsMembersOpen(false)}>
                 <MaterialIcons name="close" size={22} color="#A1A1AA" />
               </AnimatedPressable>
@@ -279,7 +288,9 @@ export default function SharedListDetailScreen() {
                       {member.displayName || member.email}
                     </Text>
                     {member.status === 'pending' && (
-                      <Text className="font-sans text-caption text-text-secondary">Pending</Text>
+                      <Text className="font-sans text-caption text-text-secondary">
+                        {t('listDetail.pending')}
+                      </Text>
                     )}
                   </View>
                   {isCreator && member.userId !== currentUserId && (

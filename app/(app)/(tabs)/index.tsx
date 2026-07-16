@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Pressable,
@@ -21,6 +22,7 @@ import { useMovieStore } from '../../../stores/movie.store';
 import { useWatchLogStore } from '../../../stores/watchLog.store';
 
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const {
     trendingMovies,
     isLoading,
@@ -77,7 +79,7 @@ export default function HomeScreen() {
           {hasEpisodeProgress || hasWatchLog ? <ContinueWatchingRow /> : <ImportPromptCard />}
           {rest.length > 0 && (
             <MediaRow
-              title="Trending This Week"
+              title={t('home.trendingThisWeek')}
               items={rest.map(toMovieCardItem)}
               onViewAll={() =>
                 router.push({ pathname: '/list/[source]', params: { source: 'trending-movies' } })
@@ -86,7 +88,7 @@ export default function HomeScreen() {
           )}
           {!isTVLoading && popularTVShows.length > 0 && (
             <MediaRow
-              title="Popular TV Shows"
+              title={t('home.popularTvShows')}
               items={popularTVShows.map(toTVCardItem)}
               onViewAll={() =>
                 router.push({ pathname: '/list/[source]', params: { source: 'popular-tv' } })

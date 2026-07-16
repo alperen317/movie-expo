@@ -1,0 +1,14 @@
+{
+  "common": {
+    "tryAgain": "Try Again",
+    "clear": "Clear",
+    "create": "Create",
+    "cancel": "Cancel",
+    "save": "Save",
+    "done": "Done",
+    "somethingWrong": "Something went wrong.",
+    "favorites": "Favorites",
+    "watchlist": "Watchlist",
+    "watched": "Watched"
+  }
+}

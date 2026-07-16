@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -19,34 +20,16 @@ import { dedupeWatchLog, useWatchLogStore } from '../../../stores/watchLog.store
 
 type Tab = 'favorites' | 'watchlist' | 'watched';
 
-const TABS: { key: Tab; label: string }[] = [
-  { key: 'favorites', label: 'Favorites' },
-  { key: 'watchlist', label: 'Watchlist' },
-  { key: 'watched', label: 'Watched' },
-];
+const TABS: Tab[] = ['favorites', 'watchlist', 'watched'];
 
-const EMPTY_STATE: Record<
-  Tab,
-  { icon: React.ComponentProps<typeof MaterialIcons>['name']; title: string; subtitle: string }
-> = {
-  favorites: {
-    icon: 'favorite-border',
-    title: 'No favorites yet',
-    subtitle: 'Tap the heart icon on a title to add it here.',
-  },
-  watchlist: {
-    icon: 'bookmark-border',
-    title: 'Your watchlist is empty',
-    subtitle: 'Tap "Add to Watchlist" on a title to save it for later.',
-  },
-  watched: {
-    icon: 'history',
-    title: 'No watched titles yet',
-    subtitle: 'Mark a title as watched from its details page to see it here.',
-  },
+const EMPTY_ICONS: Record<Tab, React.ComponentProps<typeof MaterialIcons>['name']> = {
+  favorites: 'favorite-border',
+  watchlist: 'bookmark-border',
+  watched: 'history',
 };
 
 export default function FavoritesScreen() {
+  const { t } = useTranslation();
   const { tab } = useLocalSearchParams<{ tab?: string }>();
   const [activeTab, setActiveTab] = useState<Tab>(
     tab === 'watchlist' || tab === 'watched' ? tab : 'favorites',
@@ -100,20 +83,20 @@ export default function FavoritesScreen() {
   const numColumns = getGridColumns(windowWidth);
   const gridData = useMemo(() => padGridRow(items, numColumns), [items, numColumns]);
 
-  const emptyState = EMPTY_STATE[activeTab];
-
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
       <View className="gap-stack-md px-margin-mobile py-stack-md">
-        <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">My List</Text>
+        <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
+          {t('myList.title')}
+        </Text>
 
         <View className="flex-row gap-2 rounded-full border border-glass-border bg-background-blur p-1">
-          {TABS.map((tab) => {
-            const isActive = tab.key === activeTab;
+          {TABS.map((tabKey) => {
+            const isActive = tabKey === activeTab;
             return (
               <AnimatedPressable
-                key={tab.key}
-                onPress={() => setActiveTab(tab.key)}
+                key={tabKey}
+                onPress={() => setActiveTab(tabKey)}
                 className={`flex-1 items-center rounded-full py-2 ${isActive ? 'bg-primary-container' : ''}`}
               >
                 <Text
@@ -121,7 +104,7 @@ export default function FavoritesScreen() {
                     isActive ? 'text-on-primary-container' : 'text-text-secondary'
                   }`}
                 >
-                  {tab.label}
+                  {t(`common.${tabKey}`)}
                 </Text>
               </AnimatedPressable>
             );
@@ -142,19 +125,21 @@ export default function FavoritesScreen() {
             onPress={refetch}
             className="rounded-full border border-glass-border bg-background-blur px-6 py-3"
           >
-            <Text className="font-sans-semibold text-primary-container">Try Again</Text>
+            <Text className="font-sans-semibold text-primary-container">
+              {t('common.tryAgain')}
+            </Text>
           </AnimatedPressable>
         </View>
       )}
 
       {!isLoading && !error && items.length === 0 && (
         <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
-          <MaterialIcons name={emptyState.icon} size={32} color="#A1A1AA" />
+          <MaterialIcons name={EMPTY_ICONS[activeTab]} size={32} color="#A1A1AA" />
           <Text className="text-title-md font-sans-semibold text-text-primary">
-            {emptyState.title}
+            {t(`myList.empty.${activeTab}.title`)}
           </Text>
           <Text className="text-center font-sans text-body-md text-text-secondary">
-            {emptyState.subtitle}
+            {t(`myList.empty.${activeTab}.subtitle`)}
           </Text>
         </View>
       )}

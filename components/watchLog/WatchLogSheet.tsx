@@ -1,5 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -34,6 +35,7 @@ function toDateInput(date: Date): string {
 }
 
 export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheetProps) {
+  const { t } = useTranslation();
   const logWatch = useWatchLogStore((state) => state.logWatch);
   const updateWatch = useWatchLogStore((state) => state.updateWatch);
   const existingEntry = useWatchLogStore((state) => state.latestEntryFor(item.mediaType, item.id));
@@ -117,7 +119,7 @@ export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheet
 
   const handleSubmit = async () => {
     if (!resolvedDate) {
-      setError('Enter a valid date (YYYY-MM-DD).');
+      setError(t('components.watchLog.invalidDate'));
       return;
     }
     setIsSubmitting(true);
@@ -149,7 +151,7 @@ export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheet
       reset();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.');
+      setError(err instanceof Error ? err.message : t('common.somethingWrong'));
     } finally {
       setIsSubmitting(false);
     }
@@ -165,12 +167,14 @@ export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheet
         <View className="w-full max-w-md gap-stack-md rounded-2xl border border-glass-border bg-surface-container-low p-6">
           <Text className="font-sans-bold text-title-md text-text-primary" numberOfLines={1}>
             {existingEntry
-              ? `Edit your log for "${item.title}"`
-              : `Mark "${item.title}" as watched`}
+              ? t('components.watchLog.editTitle', { title: item.title })
+              : t('components.watchLog.markTitle', { title: item.title })}
           </Text>
 
           <View className="gap-stack-sm">
-            <Text className="font-sans-semibold text-caption text-text-secondary">When?</Text>
+            <Text className="font-sans-semibold text-caption text-text-secondary">
+              {t('components.watchLog.when')}
+            </Text>
             <View className="flex-row gap-2">
               {(['today', 'yesterday', 'custom'] as DateChoice[]).map((choice) => (
                 <Pressable
@@ -187,7 +191,11 @@ export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheet
                       dateChoice === choice ? 'text-on-primary-container' : 'text-text-secondary'
                     }`}
                   >
-                    {choice === 'today' ? 'Today' : choice === 'yesterday' ? 'Yesterday' : 'Custom'}
+                    {choice === 'today'
+                      ? t('components.watchLog.today')
+                      : choice === 'yesterday'
+                        ? t('components.watchLog.yesterday')
+                        : t('components.watchLog.custom')}
                   </Text>
                 </Pressable>
               ))}
@@ -205,7 +213,7 @@ export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheet
 
           <View className="gap-stack-sm">
             <Text className="font-sans-semibold text-caption text-text-secondary">
-              Rating (optional)
+              {t('components.watchLog.ratingOptional')}
             </Text>
             <View className="flex-row gap-2">
               {[1, 2, 3, 4, 5].map((star) => (
@@ -226,12 +234,12 @@ export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheet
 
           <View className="gap-stack-sm">
             <Text className="font-sans-semibold text-caption text-text-secondary">
-              Note (optional)
+              {t('components.watchLog.noteOptional')}
             </Text>
             <TextInput
               value={note}
               onChangeText={setNote}
-              placeholder="Any thoughts?"
+              placeholder={t('components.watchLog.notePlaceholder')}
               placeholderTextColor="#A1A1AA80"
               multiline
               textAlignVertical="top"
@@ -255,11 +263,11 @@ export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheet
                   {markAllEpisodes && <MaterialIcons name="check" size={16} color="#3f2e00" />}
                 </View>
                 <Text className="font-sans text-caption text-text-secondary">
-                  Mark every episode as watched too
+                  {t('components.watchLog.markEveryEpisode')}
                 </Text>
               </Pressable>
               <Text className="font-sans text-[11px] text-text-secondary">
-                Only watched some seasons? Uncheck this and use the Seasons list below instead.
+                {t('components.watchLog.markEveryEpisodeHint')}
               </Text>
             </View>
           )}
@@ -279,7 +287,7 @@ export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheet
                 {dropFromWatchlist && <MaterialIcons name="check" size={16} color="#3f2e00" />}
               </View>
               <Text className="font-sans text-caption text-text-secondary">
-                Remove from Watchlist
+                {t('components.watchLog.removeFromWatchlist')}
               </Text>
             </Pressable>
           )}
@@ -291,7 +299,9 @@ export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheet
               onPress={handleClose}
               className="flex-1 items-center rounded-full border border-glass-border py-3"
             >
-              <Text className="font-sans-semibold text-body-md text-text-secondary">Cancel</Text>
+              <Text className="font-sans-semibold text-body-md text-text-secondary">
+                {t('common.cancel')}
+              </Text>
             </AnimatedPressable>
             <AnimatedPressable
               onPress={handleSubmit}
@@ -302,7 +312,9 @@ export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheet
                 <ActivityIndicator color="#3f2e00" />
               ) : (
                 <Text className="font-sans-semibold text-body-md text-on-primary-container">
-                  {existingEntry ? 'Save Changes' : 'Mark as Watched'}
+                  {existingEntry
+                    ? t('components.watchLog.saveChanges')
+                    : t('details.markAsWatched')}
                 </Text>
               )}
             </AnimatedPressable>
