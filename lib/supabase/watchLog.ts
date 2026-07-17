@@ -16,7 +16,7 @@ interface WatchLogRow {
   poster_path: string | null;
   vote_average: number;
   year: string | null;
-  genre: string | null;
+  genres: string[] | null;
   watched_at: string;
   rating: number | null;
   note: string | null;
@@ -31,7 +31,7 @@ function fromRow(row: WatchLogRow): WatchLogEntry {
     posterPath: row.poster_path,
     voteAverage: row.vote_average,
     year: row.year,
-    genre: row.genre,
+    genres: row.genres ?? [],
     watchedAt: row.watched_at,
     rating: row.rating,
     note: row.note,
@@ -42,7 +42,7 @@ export async function fetchWatchLog(): Promise<WatchLogEntry[]> {
   const { data, error } = await supabase
     .from('watch_log')
     .select(
-      'id, media_id, media_type, title, poster_path, vote_average, year, genre, watched_at, rating, note',
+      'id, media_id, media_type, title, poster_path, vote_average, year, genres, watched_at, rating, note',
     )
     .order('watched_at', { ascending: false });
 
@@ -69,13 +69,13 @@ export async function addWatchLogEntry(
       poster_path: item.posterPath,
       vote_average: item.voteAverage,
       year: item.year,
-      genre: item.genre,
+      genres: item.genres,
       watched_at: options.watchedAt.toISOString(),
       rating: options.rating,
       note: options.note ?? null,
     })
     .select(
-      'id, media_id, media_type, title, poster_path, vote_average, year, genre, watched_at, rating, note',
+      'id, media_id, media_type, title, poster_path, vote_average, year, genres, watched_at, rating, note',
     )
     .single();
 
@@ -105,7 +105,7 @@ export async function addWatchLogEntriesBatch(
     poster_path: item.posterPath,
     vote_average: item.voteAverage,
     year: item.year,
-    genre: item.genre,
+    genres: item.genres,
     watched_at: watchedAt.toISOString(),
     rating,
     note: null,
@@ -130,7 +130,7 @@ export async function updateWatchLogEntry(
     })
     .eq('id', logId)
     .select(
-      'id, media_id, media_type, title, poster_path, vote_average, year, genre, watched_at, rating, note',
+      'id, media_id, media_type, title, poster_path, vote_average, year, genres, watched_at, rating, note',
     )
     .single();
 

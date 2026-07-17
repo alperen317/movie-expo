@@ -75,7 +75,7 @@ export default function DetailsScreen() {
       year: details.year,
       posterPath: details.posterPath,
       voteAverage: details.voteAverage,
-      genre: details.genres[0] ?? null,
+      genres: details.genres,
       mediaType: details.mediaType,
     };
   }, [details]);

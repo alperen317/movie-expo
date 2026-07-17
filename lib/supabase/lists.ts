@@ -14,7 +14,7 @@ interface SavedMediaRow {
   poster_path: string | null;
   vote_average: number;
   year: string | null;
-  genre: string | null;
+  genres: string[] | null;
   created_at: string;
 }
 
@@ -26,7 +26,7 @@ function fromRow(row: SavedMediaRow): SavedMediaItem {
     posterPath: row.poster_path,
     voteAverage: row.vote_average,
     year: row.year,
-    genre: row.genre,
+    genres: row.genres ?? [],
     savedAt: row.created_at,
   };
 }
@@ -34,7 +34,7 @@ function fromRow(row: SavedMediaRow): SavedMediaItem {
 export async function fetchSavedMedia(listType: ListType): Promise<SavedMediaItem[]> {
   const { data, error } = await supabase
     .from('saved_media')
-    .select('media_id, media_type, title, poster_path, vote_average, year, genre, created_at')
+    .select('media_id, media_type, title, poster_path, vote_average, year, genres, created_at')
     .eq('list_type', listType)
     .order('created_at', { ascending: false });
 
@@ -57,7 +57,7 @@ export async function addSavedMedia(item: MediaCardItem, listType: ListType): Pr
     poster_path: item.posterPath,
     vote_average: item.voteAverage,
     year: item.year,
-    genre: item.genre,
+    genres: item.genres,
   });
 
   if (error) throw error;
@@ -88,7 +88,7 @@ export async function addSavedMediaBatch(
     poster_path: item.posterPath,
     vote_average: item.voteAverage,
     year: item.year,
-    genre: item.genre,
+    genres: item.genres,
   }));
 
   for (let i = 0; i < rows.length; i += BATCH_CHUNK_SIZE) {

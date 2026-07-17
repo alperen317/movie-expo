@@ -29,6 +29,18 @@
     "addedByCaption": "Added by {{name}} · {{time}}",
     "addedByCaptionSelf": "You added this · {{time}}",
     "watchedByCount": "{{watched}}/{{total}} members watched",
-    "startPoll": "Start a Poll"
+    "startPoll": "Start a Poll",
+    "filterAll": "All",
+    "filterMovies": "Movies",
+    "filterShows": "Shows",
+    "filterAllGenres": "All genres",
+    "sortTitleLabel": "Sort by",
+    "sortRecent": "Recently added",
+    "sortOldest": "Oldest first",
+    "sortTitle": "Title A-Z",
+    "sortRating": "Highest rated",
+    "sortYear": "Newest year",
+    "noMatchesTitle": "No titles match these filters",
+    "clearFilters": "Clear filters"
   }
 }

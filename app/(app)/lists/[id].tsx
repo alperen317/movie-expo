@@ -2,7 +2,15 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, FlatList, Modal, Text, useWindowDimensions, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Modal,
+  ScrollView,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
@@ -30,6 +38,23 @@ import { useSharedListsStore } from '../../../stores/sharedLists.store';
 // screen) -- not to be confused with the existing singular `list/[source]`
 // route, which is an unrelated generic TMDB "view all" browse template.
 
+type SortOption = 'recent' | 'oldest' | 'title' | 'rating' | 'year';
+type MediaTypeFilter = 'all' | 'movie' | 'tv';
+
+const SORT_LABEL_KEYS: Record<SortOption, string> = {
+  recent: 'listDetail.sortRecent',
+  oldest: 'listDetail.sortOldest',
+  title: 'listDetail.sortTitle',
+  rating: 'listDetail.sortRating',
+  year: 'listDetail.sortYear',
+};
+
+const MEDIA_TYPE_FILTER_LABEL_KEYS: Record<MediaTypeFilter, string> = {
+  all: 'listDetail.filterAll',
+  movie: 'listDetail.filterMovies',
+  tv: 'listDetail.filterShows',
+};
+
 export default function SharedListDetailScreen() {
   const { t } = useTranslation();
   const colors = useThemeColors();
@@ -44,6 +69,10 @@ export default function SharedListDetailScreen() {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isLeaveConfirmOpen, setIsLeaveConfirmOpen] = useState(false);
   const [isStartPollOpen, setIsStartPollOpen] = useState(false);
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const [sortOption, setSortOption] = useState<SortOption>('recent');
+  const [mediaTypeFilter, setMediaTypeFilter] = useState<MediaTypeFilter>('all');
+  const [genreFilter, setGenreFilter] = useState<string | null>(null);
 
   const activeList = useSharedListsStore((state) => state.activeList);
   const members = useSharedListsStore((state) => state.members);
@@ -71,10 +100,32 @@ export default function SharedListDetailScreen() {
   }, [id, openList, closeList]);
 
   const memberList = Object.values(members).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-  const itemList = Object.values(items).sort((a, b) => b.addedAt.localeCompare(a.addedAt));
+  const allItemList = Object.values(items).sort((a, b) => b.addedAt.localeCompare(a.addedAt));
   const isCreator = Boolean(activeList && currentUserId && activeList.createdBy === currentUserId);
   const myMembership = memberList.find((member) => member.userId === currentUserId);
   const acceptedMemberCount = memberList.filter((member) => member.status === 'accepted').length;
+
+  const availableGenres = Array.from(new Set(allItemList.flatMap((item) => item.genres))).sort(
+    (a, b) => a.localeCompare(b),
+  );
+
+  const itemList = allItemList
+    .filter((item) => mediaTypeFilter === 'all' || item.mediaType === mediaTypeFilter)
+    .filter((item) => !genreFilter || item.genres.includes(genreFilter))
+    .sort((a, b) => {
+      switch (sortOption) {
+        case 'oldest':
+          return a.addedAt.localeCompare(b.addedAt);
+        case 'title':
+          return a.title.localeCompare(b.title);
+        case 'rating':
+          return b.voteAverage - a.voteAverage;
+        case 'year':
+          return (b.year ?? '').localeCompare(a.year ?? '');
+        default:
+          return b.addedAt.localeCompare(a.addedAt);
+      }
+    });
 
   const numColumns = getGridColumns(windowWidth);
   const itemGridData = useMemo(() => padGridRow(itemList, numColumns), [itemList, numColumns]);
@@ -84,7 +135,7 @@ export default function SharedListDetailScreen() {
   )
     .map((candidate) => ({
       candidate,
-      item: itemList.find((listItem) => listItem.rowId === candidate.listItemId),
+      item: allItemList.find((listItem) => listItem.rowId === candidate.listItemId),
     }))
     .filter((entry): entry is { candidate: PollCandidate; item: SharedListItem } =>
       Boolean(entry.item),
@@ -157,7 +208,96 @@ export default function SharedListDetailScreen() {
         />
       )}
 
-      {isDetailLoading && itemList.length === 0 && (
+      {allItemList.length > 0 && (
+        <View className="gap-stack-sm px-margin-mobile pb-stack-sm">
+          <View className="flex-row items-center gap-2">
+            <View className="flex-1 flex-row rounded-full border border-glass-border bg-surface-container-low p-1">
+              {(['all', 'movie', 'tv'] as const).map((option) => (
+                <AnimatedPressable
+                  key={option}
+                  onPress={() => setMediaTypeFilter(option)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: mediaTypeFilter === option }}
+                  className={`flex-1 items-center rounded-full py-2 ${
+                    mediaTypeFilter === option ? 'bg-primary-container' : ''
+                  }`}
+                >
+                  <Text
+                    className={`font-sans-semibold text-caption ${
+                      mediaTypeFilter === option
+                        ? 'text-on-primary-container'
+                        : 'text-text-secondary'
+                    }`}
+                  >
+                    {t(MEDIA_TYPE_FILTER_LABEL_KEYS[option])}
+                  </Text>
+                </AnimatedPressable>
+              ))}
+            </View>
+            <AnimatedPressable
+              onPress={() => setIsSortOpen(true)}
+              accessibilityRole="button"
+              accessibilityLabel={t('a11y.openSortMenu')}
+              className="h-9 flex-row items-center gap-1 rounded-full border border-glass-border bg-surface-container-low px-3"
+            >
+              <MaterialIcons name="sort" size={16} color={colors.textSecondary} />
+              <Text className="font-sans-semibold text-caption text-text-secondary">
+                {t(SORT_LABEL_KEYS[sortOption])}
+              </Text>
+            </AnimatedPressable>
+          </View>
+
+          {availableGenres.length > 1 && (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 8 }}
+            >
+              <AnimatedPressable
+                onPress={() => setGenreFilter(null)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: genreFilter === null }}
+                className={`rounded-full border px-3 py-1.5 ${
+                  genreFilter === null
+                    ? 'border-primary-container bg-primary-container/10'
+                    : 'border-glass-border'
+                }`}
+              >
+                <Text
+                  className={`font-sans-semibold text-caption ${
+                    genreFilter === null ? 'text-primary-container' : 'text-text-secondary'
+                  }`}
+                >
+                  {t('listDetail.filterAllGenres')}
+                </Text>
+              </AnimatedPressable>
+              {availableGenres.map((genre) => (
+                <AnimatedPressable
+                  key={genre}
+                  onPress={() => setGenreFilter(genre)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: genreFilter === genre }}
+                  className={`rounded-full border px-3 py-1.5 ${
+                    genreFilter === genre
+                      ? 'border-primary-container bg-primary-container/10'
+                      : 'border-glass-border'
+                  }`}
+                >
+                  <Text
+                    className={`font-sans-semibold text-caption ${
+                      genreFilter === genre ? 'text-primary-container' : 'text-text-secondary'
+                    }`}
+                  >
+                    {genre}
+                  </Text>
+                </AnimatedPressable>
+              ))}
+            </ScrollView>
+          )}
+        </View>
+      )}
+
+      {isDetailLoading && allItemList.length === 0 && (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color={colors.textPrimary} />
         </View>
@@ -179,7 +319,7 @@ export default function SharedListDetailScreen() {
         </View>
       )}
 
-      {!isDetailLoading && !detailError && itemList.length === 0 && (
+      {!isDetailLoading && !detailError && allItemList.length === 0 && (
         <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
           <MaterialIcons name="movie-filter" size={32} color={colors.icon} />
           <Text className="text-title-md font-sans-semibold text-text-primary">
@@ -188,6 +328,26 @@ export default function SharedListDetailScreen() {
           <Text className="text-center font-sans text-body-md text-text-secondary">
             {t('listDetail.emptySubtitle')}
           </Text>
+        </View>
+      )}
+
+      {!isDetailLoading && !detailError && allItemList.length > 0 && itemList.length === 0 && (
+        <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
+          <MaterialIcons name="filter-alt-off" size={32} color={colors.icon} />
+          <Text className="text-title-md font-sans-semibold text-text-primary">
+            {t('listDetail.noMatchesTitle')}
+          </Text>
+          <AnimatedPressable
+            onPress={() => {
+              setMediaTypeFilter('all');
+              setGenreFilter(null);
+            }}
+            className="rounded-full border border-glass-border bg-background-blur px-6 py-3"
+          >
+            <Text className="font-sans-semibold text-primary-container">
+              {t('listDetail.clearFilters')}
+            </Text>
+          </AnimatedPressable>
         </View>
       )}
 
@@ -246,11 +406,21 @@ export default function SharedListDetailScreen() {
       {activeList && (
         <StartPollModal
           visible={isStartPollOpen}
-          items={itemList}
+          items={allItemList}
           onClose={() => setIsStartPollOpen(false)}
           onSubmit={(deadlineIso, itemIds) => startPoll(activeList.id, deadlineIso, itemIds)}
         />
       )}
+
+      <ActionSheetModal
+        visible={isSortOpen}
+        title={t('listDetail.sortTitleLabel')}
+        onClose={() => setIsSortOpen(false)}
+        actions={(Object.keys(SORT_LABEL_KEYS) as SortOption[]).map((option) => ({
+          label: `${sortOption === option ? '✓ ' : ''}${t(SORT_LABEL_KEYS[option])}`,
+          onPress: () => setSortOption(option),
+        }))}
+      />
 
       {activeList && (
         <ListNameModal
@@ -271,7 +441,7 @@ export default function SharedListDetailScreen() {
         onClose={() => setIsOverflowOpen(false)}
         actions={[
           { label: t('listDetail.rename'), onPress: () => setIsRenameOpen(true) },
-          ...(!isPollActive && itemList.length >= 2
+          ...(!isPollActive && allItemList.length >= 2
             ? [{ label: t('listDetail.startPoll'), onPress: () => setIsStartPollOpen(true) }]
             : []),
           isCreator

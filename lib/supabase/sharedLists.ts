@@ -356,7 +356,7 @@ interface ItemRow {
   poster_path: string | null;
   vote_average: number;
   year: string | null;
-  genre: string | null;
+  genres: string[] | null;
   added_by: string;
   created_at: string;
   // Only present on the initial REST fetch (a PostgREST embed) -- realtime
@@ -379,7 +379,7 @@ function fromItemRow(row: ItemRow): SharedListItem {
     posterPath: row.poster_path,
     voteAverage: row.vote_average,
     year: row.year,
-    genre: row.genre,
+    genres: row.genres ?? [],
     listId: row.list_id,
     addedBy: row.added_by,
     addedByName: row.adder?.display_name || row.adder?.email || '',
@@ -394,7 +394,7 @@ export async function fetchListItems(listId: string): Promise<SharedListItem[]> 
   const { data, error } = await supabase
     .from('list_items')
     .select(
-      'id, list_id, media_id, media_type, title, poster_path, vote_average, year, genre, added_by, created_at, adder:profiles!list_items_added_by_fkey(display_name, email, avatar_variant, avatar_seed)',
+      'id, list_id, media_id, media_type, title, poster_path, vote_average, year, genres, added_by, created_at, adder:profiles!list_items_added_by_fkey(display_name, email, avatar_variant, avatar_seed)',
     )
     .eq('list_id', listId)
     .order('created_at', { ascending: false });
@@ -419,7 +419,7 @@ export async function addListItem(listId: string, item: MediaCardItem): Promise<
       poster_path: item.posterPath,
       vote_average: item.voteAverage,
       year: item.year,
-      genre: item.genre,
+      genres: item.genres,
       added_by: user.id,
     })
     .select('id')

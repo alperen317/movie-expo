@@ -42,16 +42,19 @@ export const TMDB_TV_GENRE_MAP: Record<number, string> = {
 };
 
 // List/search/trending responses only carry `genre_ids`, so names are resolved
-// from these maps rather than the (localized) detail payload. Translate the
+// from these maps rather than the (localized) detail payload. Translate each
 // resolved name through i18n, keyed by TMDB genre id, with the English map as
-// the fallback for any id that lacks a translation.
+// the fallback for any id that lacks a translation. Unmapped ids are dropped.
+export function getAllGenres(genreIds: number[], scope: 'movie' | 'tv' = 'movie'): string[] {
+  const map = scope === 'tv' ? TMDB_TV_GENRE_MAP : TMDB_GENRE_MAP;
+  return genreIds
+    .filter((id) => map[id])
+    .map((id) => i18n.t(`genres.${scope}.${id}`, { defaultValue: map[id] }));
+}
+
 export function getPrimaryGenre(
   genreIds: number[],
   scope: 'movie' | 'tv' = 'movie',
 ): string | null {
-  const [first] = genreIds;
-  if (first === undefined) return null;
-  const fallback = (scope === 'tv' ? TMDB_TV_GENRE_MAP : TMDB_GENRE_MAP)[first];
-  if (!fallback) return null;
-  return i18n.t(`genres.${scope}.${first}`, { defaultValue: fallback });
+  return getAllGenres(genreIds, scope)[0] ?? null;
 }

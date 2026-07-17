@@ -8,7 +8,7 @@ import { FadeInDown } from 'react-native-reanimated';
 
 import { AnimatedPressable, AnimatedView } from '../ui/AnimatedPressable';
 import { getPosterUrl } from '../../lib/tmdb/config';
-import { getPrimaryGenre } from '../../lib/tmdb/genres';
+import { getAllGenres } from '../../lib/tmdb/genres';
 import type { TMDBMovie, TMDBMultiSearchResult, TMDBTVShow } from '../../lib/tmdb/types';
 import { useWatchLogStore } from '../../stores/watchLog.store';
 
@@ -40,7 +40,7 @@ export interface MediaCardItem {
   year: string | null;
   posterPath: string | null;
   voteAverage: number;
-  genre: string | null;
+  genres: string[];
   mediaType: 'movie' | 'tv';
 }
 
@@ -51,7 +51,7 @@ export function toMovieCardItem(movie: TMDBMovie): MediaCardItem {
     year: movie.release_date?.slice(0, 4) || null,
     posterPath: movie.poster_path,
     voteAverage: movie.vote_average,
-    genre: getPrimaryGenre(movie.genre_ids),
+    genres: getAllGenres(movie.genre_ids),
     mediaType: 'movie',
   };
 }
@@ -63,7 +63,7 @@ export function toTVCardItem(show: TMDBTVShow): MediaCardItem {
     year: show.first_air_date?.slice(0, 4) || null,
     posterPath: show.poster_path,
     voteAverage: show.vote_average,
-    genre: getPrimaryGenre(show.genre_ids, 'tv'),
+    genres: getAllGenres(show.genre_ids, 'tv'),
     mediaType: 'tv',
   };
 }
@@ -78,7 +78,7 @@ export function toSearchCardItem(result: TMDBMultiSearchResult): MediaCardItem |
     year: (isMovie ? result.release_date : result.first_air_date)?.slice(0, 4) || null,
     posterPath: result.poster_path,
     voteAverage: result.vote_average ?? 0,
-    genre: getPrimaryGenre(result.genre_ids ?? [], isMovie ? 'movie' : 'tv'),
+    genres: getAllGenres(result.genre_ids ?? [], isMovie ? 'movie' : 'tv'),
     mediaType: result.media_type,
   };
 }
@@ -101,7 +101,7 @@ export function MovieCard({
 }) {
   const { t } = useTranslation();
   const posterUri = getPosterUrl(item.posterPath, 'w342');
-  const subtitle = [item.genre, item.year].filter(Boolean).join(' • ');
+  const subtitle = [item.genres[0], item.year].filter(Boolean).join(' • ');
   const personalRating = useWatchLogStore((state) => state.ratingFor(item.mediaType, item.id));
   const typeLabel = item.mediaType === 'tv' ? t('a11y.typeTv') : t('a11y.typeMovie');
 

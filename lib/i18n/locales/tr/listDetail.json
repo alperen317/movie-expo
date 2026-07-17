@@ -29,6 +29,18 @@
     "addedByCaption": "{{name}} ekledi · {{time}}",
     "addedByCaptionSelf": "Sen ekledin · {{time}}",
     "watchedByCount": "{{watched}}/{{total}} üye izledi",
-    "startPoll": "Oylama Başlat"
+    "startPoll": "Oylama Başlat",
+    "filterAll": "Tümü",
+    "filterMovies": "Filmler",
+    "filterShows": "Diziler",
+    "filterAllGenres": "Tüm türler",
+    "sortTitleLabel": "Sırala",
+    "sortRecent": "Son eklenen",
+    "sortOldest": "Önce eski",
+    "sortTitle": "Başlık A-Z",
+    "sortRating": "En yüksek puan",
+    "sortYear": "En yeni yıl",
+    "noMatchesTitle": "Bu filtrelere uyan yapım yok",
+    "clearFilters": "Filtreleri temizle"
   }
 }
