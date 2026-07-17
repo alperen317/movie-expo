@@ -2,3 +2,6 @@ project_id = "drprzsnlkwsykijjpval"
 
 [functions.send-auth-email]
 verify_jwt = false
+
+[functions.send-list-invite-email]
+verify_jwt = true
