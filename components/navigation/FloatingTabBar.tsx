@@ -4,12 +4,13 @@ import { useTabTrigger } from 'expo-router/ui';
 import { useColorScheme } from 'nativewind';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AnimatedPressable, AnimatedView } from '../ui/AnimatedPressable';
 import { useThemeColors } from '../../lib/theme/useThemeColors';
+import { useSharedListsStore } from '../../stores/sharedLists.store';
 
 const TABS: {
   name: string;
@@ -27,10 +28,12 @@ function TabBarButton({
   name,
   icon,
   labelKey,
+  badgeCount,
 }: {
   name: string;
   icon: React.ComponentProps<typeof MaterialIcons>['name'];
   labelKey: string;
+  badgeCount?: number;
 }) {
   const colors = useThemeColors();
   const { t } = useTranslation();
@@ -47,12 +50,16 @@ function TabBarButton({
     transform: [{ scale: 0.8 + focusProgress.value * 0.2 }],
   }));
 
+  const label = badgeCount
+    ? t('a11y.tabWithBadge', { label: t(labelKey), count: badgeCount })
+    : t('a11y.tab', { label: t(labelKey) });
+
   return (
     <AnimatedPressable
       onPress={triggerProps.onPress}
       onLongPress={triggerProps.onLongPress}
       accessibilityRole="tab"
-      accessibilityLabel={t('a11y.tab', { label: t(labelKey) })}
+      accessibilityLabel={label}
       accessibilityState={{ selected: isFocused }}
       className="h-12 w-12 items-center justify-center rounded-full"
     >
@@ -65,6 +72,17 @@ function TabBarButton({
         ]}
       />
       <MaterialIcons name={icon} size={24} color={isFocused ? '#3f2e00' : colors.icon} />
+      {Boolean(badgeCount) && (
+        <View
+          pointerEvents="none"
+          className="absolute right-1.5 top-1.5 min-w-[16px] items-center justify-center rounded-full bg-error px-1"
+          style={{ height: 16 }}
+        >
+          <Text className="font-sans-bold text-[10px] text-on-error">
+            {badgeCount! > 9 ? '9+' : badgeCount}
+          </Text>
+        </View>
+      )}
     </AnimatedPressable>
   );
 }
@@ -72,6 +90,7 @@ function TabBarButton({
 export function FloatingTabBar() {
   const insets = useSafeAreaInsets();
   const { colorScheme } = useColorScheme();
+  const pendingInviteCount = useSharedListsStore((state) => Object.keys(state.pendingInvites).length);
 
   return (
     <View
@@ -91,7 +110,13 @@ export function FloatingTabBar() {
       >
         <View className="flex-row items-center gap-1 border border-glass-border bg-background-blur p-2">
           {TABS.map((tab) => (
-            <TabBarButton key={tab.name} name={tab.name} icon={tab.icon} labelKey={tab.labelKey} />
+            <TabBarButton
+              key={tab.name}
+              name={tab.name}
+              icon={tab.icon}
+              labelKey={tab.labelKey}
+              badgeCount={tab.name === 'lists' ? pendingInviteCount : undefined}
+            />
           ))}
         </View>
       </BlurView>
