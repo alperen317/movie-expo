@@ -9,6 +9,12 @@
     "somethingWrong": "Bir şeyler ters gitti.",
     "favorites": "Favoriler",
     "watchlist": "İzleme Listesi",
-    "watched": "İzlenenler"
+    "watched": "İzlenenler",
+    "filterAll": "Tümü",
+    "filterMovies": "Filmler",
+    "filterShows": "Diziler",
+    "filterAllGenres": "Tüm türler",
+    "noFilterMatches": "Bu filtrelere uyan yapım yok",
+    "clearFilters": "Filtreleri temizle"
   }
 }

@@ -4,16 +4,14 @@
     "placeholder": "Search movies, directors, or genres...",
     "recentSearches": "Recent Searches",
     "clearRecent": "CLEAR",
-    "popularGenres": "Popular Genres",
+    "popularTitle": "Popular Right Now",
+    "popularGenres": "Browse by Genre",
     "noResultsTitle": "No results found",
     "noResultsSubtitle": "Try a different title, actor, or genre.",
-    "genres": {
-      "horror": "Horror",
-      "horrorSubtitle": "Shadows & Suspense",
-      "sciFi": "Sci-Fi",
-      "drama": "Drama",
-      "comedy": "Comedy",
-      "action": "Action"
-    }
+    "sortTitleLabel": "Sort by",
+    "sortRelevance": "Best match",
+    "sortRating": "Highest rated",
+    "sortTitle": "Title A-Z",
+    "sortYear": "Newest year"
   }
 }

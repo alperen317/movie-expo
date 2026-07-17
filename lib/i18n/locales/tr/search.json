@@ -4,16 +4,14 @@
     "placeholder": "Film, yönetmen veya tür ara...",
     "recentSearches": "Son Aramalar",
     "clearRecent": "TEMİZLE",
-    "popularGenres": "Popüler Türler",
+    "popularTitle": "Şu An Popüler",
+    "popularGenres": "Türe Göre Gözat",
     "noResultsTitle": "Sonuç bulunamadı",
     "noResultsSubtitle": "Farklı bir başlık, oyuncu veya tür dene.",
-    "genres": {
-      "horror": "Korku",
-      "horrorSubtitle": "Gölgeler & Gerilim",
-      "sciFi": "Bilim Kurgu",
-      "drama": "Drama",
-      "comedy": "Komedi",
-      "action": "Aksiyon"
-    }
+    "sortTitleLabel": "Sırala",
+    "sortRelevance": "En iyi eşleşme",
+    "sortRating": "En yüksek puan",
+    "sortTitle": "Başlık A-Z",
+    "sortYear": "En yeni yıl"
   }
 }

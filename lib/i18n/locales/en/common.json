@@ -9,6 +9,12 @@
     "somethingWrong": "Something went wrong.",
     "favorites": "Favorites",
     "watchlist": "Watchlist",
-    "watched": "Watched"
+    "watched": "Watched",
+    "filterAll": "All",
+    "filterMovies": "Movies",
+    "filterShows": "Shows",
+    "filterAllGenres": "All genres",
+    "noFilterMatches": "No titles match these filters",
+    "clearFilters": "Clear filters"
   }
 }

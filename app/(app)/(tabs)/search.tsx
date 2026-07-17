@@ -1,6 +1,4 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +7,6 @@ import {
   FlatList,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   useWindowDimensions,
@@ -17,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { MediaRow } from '../../../components/home/MediaRow';
 import {
   CARD_WIDTH,
   GRID_GAP,
@@ -24,86 +22,30 @@ import {
   MovieCard,
   getGridColumns,
   padGridRow,
+  toMovieCardItem,
 } from '../../../components/home/MovieCard';
+import { ActionSheetModal } from '../../../components/ui/ActionSheetModal';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
+import { MediaFilterBar } from '../../../components/ui/MediaFilterBar';
 import { useMediaSearch } from '../../../lib/hooks/useMediaSearch';
+import { useMediaTypeGenreFilter } from '../../../lib/hooks/useMediaTypeGenreFilter';
 import {
   addRecentSearch,
   clearRecentSearches,
   getRecentSearches,
 } from '../../../lib/storage/recentSearches';
 import { useThemeColors } from '../../../lib/theme/useThemeColors';
-import { getBackdropUrl } from '../../../lib/tmdb/config';
-import { discoverMoviesByGenre } from '../../../lib/tmdb/movies';
+import { TMDB_GENRE_MAP } from '../../../lib/tmdb/genres';
+import { useMovieStore } from '../../../stores/movie.store';
 
-const TILE_HEIGHT = 200;
+type SearchSortOption = 'relevance' | 'rating' | 'title' | 'year';
 
-interface Genre {
-  id: number;
-  nameKey: string;
-  subtitleKey?: string;
-  span: 'full' | 'half';
-}
-
-const GENRES: Genre[] = [
-  {
-    id: 27,
-    nameKey: 'search.genres.horror',
-    subtitleKey: 'search.genres.horrorSubtitle',
-    span: 'full',
-  },
-  { id: 878, nameKey: 'search.genres.sciFi', span: 'half' },
-  { id: 18, nameKey: 'search.genres.drama', span: 'half' },
-  { id: 35, nameKey: 'search.genres.comedy', span: 'full' },
-  { id: 28, nameKey: 'search.genres.action', span: 'full' },
-];
-
-function GenreTile({
-  genre,
-  backdropPath,
-  style,
-}: {
-  genre: Genre;
-  backdropPath?: string | null;
-  style?: object;
-}) {
-  const { t } = useTranslation();
-  const backdropUri = getBackdropUrl(backdropPath ?? null, 'w780');
-  const name = t(genre.nameKey);
-
-  return (
-    <AnimatedPressable
-      onPress={() =>
-        router.push({
-          pathname: '/list/[source]',
-          params: { source: 'genre-movies', genreId: String(genre.id), title: name },
-        })
-      }
-      style={[{ height: TILE_HEIGHT }, style]}
-      className="overflow-hidden rounded-xl border border-glass-border bg-surface-container-low"
-    >
-      <Image
-        source={backdropUri ? { uri: backdropUri } : undefined}
-        style={StyleSheet.absoluteFill}
-        contentFit="cover"
-      />
-      <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.35)', 'rgba(0,0,0,0.9)']}
-        style={StyleSheet.absoluteFill}
-      />
-      <View className="absolute bottom-0 left-0 right-0 p-stack-md">
-        <Text className="text-headline-lg-mobile font-sans-bold uppercase text-text-primary">
-          {name}
-        </Text>
-        {genre.subtitleKey && (
-          <Text className="mt-1 font-sans text-caption text-on-surface-variant">
-            {t(genre.subtitleKey)}
-          </Text>
-        )}
-      </View>
-    </AnimatedPressable>
-  );
-}
+const SORT_LABEL_KEYS: Record<SearchSortOption, string> = {
+  relevance: 'search.sortRelevance',
+  rating: 'search.sortRating',
+  title: 'search.sortTitle',
+  year: 'search.sortYear',
+};
 
 export default function SearchScreen() {
   const { t } = useTranslation();
@@ -112,7 +54,8 @@ export default function SearchScreen() {
 
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const [genreBackdrops, setGenreBackdrops] = useState<Record<number, string | null>>({});
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const [sortOption, setSortOption] = useState<SearchSortOption>('relevance');
 
   const handleQueryResolved = useCallback((resolvedQuery: string) => {
     addRecentSearch(resolvedQuery).then(setRecentSearches);
@@ -122,32 +65,62 @@ export default function SearchScreen() {
     onQueryResolved: handleQueryResolved,
   });
 
+  const trendingMovies = useMovieStore((state) => state.trendingMovies);
+  const fetchTrendingMovies = useMovieStore((state) => state.fetchTrendingMovies);
+
   useEffect(() => {
     getRecentSearches().then(setRecentSearches);
-
-    let cancelled = false;
-    Promise.all(
-      GENRES.map((genre) =>
-        discoverMoviesByGenre(genre.id, 1)
-          .then((data) => [genre.id, data.results[0]?.backdrop_path ?? null] as const)
-          .catch(() => [genre.id, null] as const),
-      ),
-    ).then((entries) => {
-      if (!cancelled) setGenreBackdrops(Object.fromEntries(entries));
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    if (useMovieStore.getState().trendingMovies.length === 0) {
+      fetchTrendingMovies();
+    }
+  }, [fetchTrendingMovies]);
 
   const handleClearRecent = () => {
     clearRecentSearches();
     setRecentSearches([]);
   };
 
+  const {
+    mediaTypeFilter,
+    setMediaTypeFilter,
+    genreFilter,
+    setGenreFilter,
+    availableGenres,
+    filteredItems,
+    clearFilters,
+  } = useMediaTypeGenreFilter(results);
+
+  const sortedResults =
+    sortOption === 'relevance'
+      ? filteredItems
+      : [...filteredItems].sort((a, b) => {
+          switch (sortOption) {
+            case 'rating':
+              return b.voteAverage - a.voteAverage;
+            case 'title':
+              return a.title.localeCompare(b.title);
+            case 'year':
+              return (b.year ?? '').localeCompare(a.year ?? '');
+            default:
+              return 0;
+          }
+        });
+
   const numColumns = getGridColumns(windowWidth);
-  const gridData = useMemo(() => padGridRow(results, numColumns), [results, numColumns]);
+  const gridData = useMemo(
+    () => padGridRow(sortedResults, numColumns),
+    [sortedResults, numColumns],
+  );
+  const genreChips = useMemo(
+    () =>
+      Object.entries(TMDB_GENRE_MAP)
+        .map(([id, fallback]) => ({
+          id: Number(id),
+          name: t(`genres.movie.${id}`, { defaultValue: fallback }),
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [t],
+  );
 
   const isBrowsing = debouncedQuery.length === 0;
 
@@ -229,24 +202,37 @@ export default function SearchScreen() {
             <Text className="mb-stack-md text-title-md font-sans-semibold text-text-primary">
               {t('search.popularGenres')}
             </Text>
-            <View className="gap-gutter">
-              <GenreTile genre={GENRES[0]} backdropPath={genreBackdrops[GENRES[0].id]} />
-              <View className="flex-row gap-gutter">
-                <GenreTile
-                  genre={GENRES[1]}
-                  backdropPath={genreBackdrops[GENRES[1].id]}
-                  style={{ flex: 1 }}
-                />
-                <GenreTile
-                  genre={GENRES[2]}
-                  backdropPath={genreBackdrops[GENRES[2].id]}
-                  style={{ flex: 1 }}
-                />
-              </View>
-              <GenreTile genre={GENRES[3]} backdropPath={genreBackdrops[GENRES[3].id]} />
-              <GenreTile genre={GENRES[4]} backdropPath={genreBackdrops[GENRES[4].id]} />
+            <View className="flex-row flex-wrap gap-3">
+              {genreChips.map((genre) => (
+                <AnimatedPressable
+                  key={genre.id}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/list/[source]',
+                      params: {
+                        source: 'genre-movies',
+                        genreId: String(genre.id),
+                        title: genre.name,
+                      },
+                    })
+                  }
+                  className="rounded-full border border-glass-border bg-background-blur px-4 py-2"
+                >
+                  <Text className="font-sans text-body-md text-text-primary">{genre.name}</Text>
+                </AnimatedPressable>
+              ))}
             </View>
           </View>
+
+          {trendingMovies.length > 0 && (
+            <MediaRow
+              title={t('search.popularTitle')}
+              items={trendingMovies.map(toMovieCardItem)}
+              onViewAll={() =>
+                router.push({ pathname: '/list/[source]', params: { source: 'trending-movies' } })
+              }
+            />
+          )}
         </ScrollView>
       ) : (
         <>
@@ -277,28 +263,80 @@ export default function SearchScreen() {
           )}
 
           {!searchError && results.length > 0 && (
-            <FlatList
-              key={numColumns}
-              data={gridData}
-              numColumns={numColumns}
-              keyExtractor={(item, index) =>
-                item ? `${item.mediaType}-${item.id}` : `filler-${index}`
-              }
-              renderItem={({ item, index }) =>
-                item ? (
-                  <MovieCard item={item} index={index % numColumns} />
-                ) : (
-                  <View style={{ width: CARD_WIDTH }} />
-                )
-              }
-              columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: GRID_GAP }}
-              contentContainerStyle={{ paddingHorizontal: GRID_PADDING, paddingBottom: 120 }}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-            />
+            <>
+              <View className="px-margin-mobile pb-stack-sm">
+                <MediaFilterBar
+                  mediaTypeFilter={mediaTypeFilter}
+                  onMediaTypeFilterChange={setMediaTypeFilter}
+                  genreFilter={genreFilter}
+                  onGenreFilterChange={setGenreFilter}
+                  availableGenres={availableGenres}
+                  rightAccessory={
+                    <AnimatedPressable
+                      onPress={() => setIsSortOpen(true)}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('a11y.openSortMenu')}
+                      className="h-9 flex-row items-center gap-1 rounded-full border border-glass-border bg-surface-container-low px-3"
+                    >
+                      <MaterialIcons name="sort" size={16} color={colors.textSecondary} />
+                      <Text className="font-sans-semibold text-caption text-text-secondary">
+                        {t(SORT_LABEL_KEYS[sortOption])}
+                      </Text>
+                    </AnimatedPressable>
+                  }
+                />
+              </View>
+
+              {sortedResults.length === 0 ? (
+                <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
+                  <MaterialIcons name="filter-alt-off" size={32} color={colors.icon} />
+                  <Text className="text-title-md font-sans-semibold text-text-primary">
+                    {t('common.noFilterMatches')}
+                  </Text>
+                  <AnimatedPressable
+                    onPress={clearFilters}
+                    className="rounded-full border border-glass-border bg-background-blur px-6 py-3"
+                  >
+                    <Text className="font-sans-semibold text-primary-container">
+                      {t('common.clearFilters')}
+                    </Text>
+                  </AnimatedPressable>
+                </View>
+              ) : (
+                <FlatList
+                  key={numColumns}
+                  data={gridData}
+                  numColumns={numColumns}
+                  keyExtractor={(item, index) =>
+                    item ? `${item.mediaType}-${item.id}` : `filler-${index}`
+                  }
+                  renderItem={({ item, index }) =>
+                    item ? (
+                      <MovieCard item={item} index={index % numColumns} />
+                    ) : (
+                      <View style={{ width: CARD_WIDTH }} />
+                    )
+                  }
+                  columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: GRID_GAP }}
+                  contentContainerStyle={{ paddingHorizontal: GRID_PADDING, paddingBottom: 120 }}
+                  showsVerticalScrollIndicator={false}
+                  keyboardShouldPersistTaps="handled"
+                />
+              )}
+            </>
           )}
         </>
       )}
+
+      <ActionSheetModal
+        visible={isSortOpen}
+        title={t('search.sortTitleLabel')}
+        onClose={() => setIsSortOpen(false)}
+        actions={(Object.keys(SORT_LABEL_KEYS) as SearchSortOption[]).map((option) => ({
+          label: `${sortOption === option ? '✓ ' : ''}${t(SORT_LABEL_KEYS[option])}`,
+          onPress: () => setSortOption(option),
+        }))}
+      />
     </SafeAreaView>
   );
 }
