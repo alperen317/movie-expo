@@ -4,6 +4,7 @@ import { Text, View } from 'react-native';
 
 import { CARD_WIDTH, MovieCard } from '../home/MovieCard';
 import { AnimatedPressable } from '../ui/AnimatedPressable';
+import { BoringAvatar } from '../ui/BoringAvatar';
 import { getRelativeTimeParts } from '../../lib/format/relativeTime';
 import type { SharedListItem } from '../../lib/supabase/sharedLists';
 import { useThemeColors } from '../../lib/theme/useThemeColors';
@@ -12,9 +13,6 @@ interface ListItemCardProps {
   item: SharedListItem;
   index?: number;
   currentUserId?: string;
-  voteCount: number;
-  votedByMe: boolean;
-  onToggleVote: () => void;
   watchedCount: number;
   memberCount: number;
   onRemove: () => void;
@@ -24,9 +22,6 @@ export function ListItemCard({
   item,
   index,
   currentUserId,
-  voteCount,
-  votedByMe,
-  onToggleVote,
   watchedCount,
   memberCount,
   onRemove,
@@ -35,7 +30,7 @@ export function ListItemCard({
   const { t } = useTranslation();
 
   const { unit, count } = getRelativeTimeParts(item.addedAt);
-  const time =
+  const fullTime =
     unit === 'now'
       ? t('listDetail.timeJustNow')
       : unit === 'minutes'
@@ -43,41 +38,35 @@ export function ListItemCard({
         : unit === 'hours'
           ? t('listDetail.timeHours', { count })
           : t('listDetail.timeDays', { count });
-  const caption =
-    item.addedBy && item.addedBy === currentUserId
-      ? t('listDetail.addedByCaptionSelf', { time })
+  const shortTime =
+    unit === 'now'
+      ? t('listDetail.timeShortNow')
+      : unit === 'minutes'
+        ? t('listDetail.timeShortMinutes', { count })
+        : unit === 'hours'
+          ? t('listDetail.timeShortHours', { count })
+          : t('listDetail.timeShortDays', { count });
+
+  // Hidden during the brief optimistic window before realtime confirms the
+  // insert (rowId/addedByName are blank placeholders until then).
+  const hasAddedByInfo = Boolean(item.rowId);
+  const addedByFullText = hasAddedByInfo
+    ? item.addedBy === currentUserId
+      ? t('listDetail.addedByCaptionSelf', { time: fullTime })
       : item.addedByName
-        ? t('listDetail.addedByCaption', { name: item.addedByName, time })
-        : null;
+        ? t('listDetail.addedByCaption', { name: item.addedByName, time: fullTime })
+        : null
+    : null;
+  const watchedFullText =
+    watchedCount > 0
+      ? t('listDetail.watchedByCount', { watched: watchedCount, total: memberCount })
+      : null;
+  const infoLabel = [addedByFullText, watchedFullText].filter(Boolean).join('. ');
 
   return (
     <View style={{ width: CARD_WIDTH }}>
       <View style={{ position: 'relative' }}>
         <MovieCard item={item} index={index} />
-        <AnimatedPressable
-          onPress={onToggleVote}
-          accessibilityRole="button"
-          accessibilityState={{ selected: votedByMe }}
-          accessibilityLabel={t(votedByMe ? 'a11y.removeVote' : 'a11y.castVote', {
-            title: item.title,
-          })}
-          className={`absolute bottom-2 left-2 flex-row items-center gap-1 rounded-full border px-2 py-1 ${
-            votedByMe
-              ? 'border-primary-container bg-primary-container'
-              : 'border-glass-border bg-background-blur'
-          }`}
-        >
-          <MaterialIcons name="thumb-up" size={14} color={votedByMe ? '#3f2e00' : colors.icon} />
-          {voteCount > 0 && (
-            <Text
-              className={`font-sans-bold text-[10px] ${
-                votedByMe ? 'text-on-primary-container' : 'text-text-primary'
-              }`}
-            >
-              {voteCount}
-            </Text>
-          )}
-        </AnimatedPressable>
         <AnimatedPressable
           onPress={onRemove}
           accessibilityRole="button"
@@ -87,15 +76,35 @@ export function ListItemCard({
           <MaterialIcons name="delete-outline" size={16} color={colors.error} />
         </AnimatedPressable>
       </View>
-      {caption && (
-        <Text className="mt-1 font-sans text-caption text-text-secondary" numberOfLines={1}>
-          {caption}
-        </Text>
-      )}
-      {watchedCount > 0 && (
-        <Text className="mt-0.5 font-sans text-caption text-text-secondary" numberOfLines={1}>
-          {t('listDetail.watchedByCount', { watched: watchedCount, total: memberCount })}
-        </Text>
+      {(hasAddedByInfo || watchedFullText) && (
+        <View
+          className="mt-1 flex-row items-center justify-between"
+          accessible
+          accessibilityLabel={infoLabel}
+        >
+          <View className="flex-row items-center gap-1">
+            {hasAddedByInfo && (
+              <>
+                <View className="h-4 w-4 overflow-hidden rounded-full">
+                  <BoringAvatar
+                    name={item.addedByAvatarSeed || item.addedByName || item.addedBy}
+                    variant={item.addedByAvatarVariant}
+                    size={16}
+                  />
+                </View>
+                <Text className="font-sans text-[10px] text-text-secondary">{shortTime}</Text>
+              </>
+            )}
+          </View>
+          {watchedFullText && (
+            <View className="flex-row items-center gap-1">
+              <MaterialIcons name="visibility" size={12} color={colors.icon} />
+              <Text className="font-sans text-[10px] text-text-secondary">
+                {watchedCount}/{memberCount}
+              </Text>
+            </View>
+          )}
+        </View>
       )}
     </View>
   );

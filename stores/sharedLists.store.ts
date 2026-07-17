@@ -5,12 +5,12 @@ import type { MediaCardItem } from '../components/home/MovieCard';
 import i18n from '../lib/i18n';
 import {
   addListItem,
-  castVote,
+  castPollVote as castPollVoteRequest,
   createSharedList,
   deleteSharedList,
+  fetchActivePoll,
   fetchListById,
   fetchListItems,
-  fetchListItemVotes,
   fetchListMembers,
   fetchListWatchSummary,
   fetchMyLists,
@@ -18,11 +18,11 @@ import {
   inviteMemberByEmail,
   joinListByCode as joinListByCodeRequest,
   ListMember,
+  ListPoll,
   PendingInvite,
   regenerateJoinCode as regenerateJoinCodeRequest,
   removeListItem,
   removeMember as removeMemberRequest,
-  removeVote,
   renameSharedList,
   respondToInvite as respondToInviteRequest,
   sendInviteEmail,
@@ -30,6 +30,7 @@ import {
   sharedListItemFromRow,
   SharedListsError,
   SharedListSummary,
+  startPoll as startPollRequest,
   subscribeToList,
   unsubscribeFromList,
 } from '../lib/supabase/sharedLists';
@@ -49,6 +50,11 @@ interface SharedListsState {
   isInvitesLoading: boolean;
   invitesError: string | null;
   fetchPendingInvites: () => Promise<void>;
+  // Bumped by respondToInvite so an in-flight fetchPendingInvites (e.g.
+  // triggered by AppState resume / auth token refresh -- see app/_layout.tsx
+  // and auth.store.ts) can detect it's now stale and discard its response
+  // instead of clobbering the more-authoritative local mutation.
+  _invitesGeneration: number;
 
   createList: (name: string) => Promise<SharedListSummary>;
   renameList: (listId: string, name: string) => Promise<void>;
@@ -75,12 +81,13 @@ interface SharedListsState {
   addItem: (listId: string, item: MediaCardItem) => Promise<void>;
   removeItem: (listId: string, mediaId: number, mediaType: 'movie' | 'tv') => Promise<void>;
 
-  // Keyed by SharedListItem.rowId. The store doesn't know the current
-  // user's id (deliberately -- no cross-store import, see addedByName's
-  // resolution in _subscribeRealtime below); callers pass it into
-  // toggleVote and derive "did I vote" themselves from this raw list.
-  voteUserIds: Record<string, string[]>;
-  toggleVote: (listItemRowId: string, currentUserId: string) => Promise<void>;
+  // Most recent poll for the open list (active or just-closed), or null if
+  // one was never started. Refreshed on open/resume and on any realtime
+  // change to the poll tables (see onPollChange below) -- low-frequency
+  // enough that a full refetch is simpler than fine-grained patching.
+  activePoll: ListPoll | null;
+  startPoll: (listId: string, deadlineIso: string, itemIds: string[]) => Promise<void>;
+  castPollVote: (candidateId: string) => Promise<void>;
 
   // Keyed the same way as `items` (keyOf(mediaType, id)). Read-only, no
   // realtime -- watch_log isn't in the realtime publication, and watching
@@ -88,10 +95,6 @@ interface SharedListsState {
   watchSummary: Record<string, number>;
 
   _listItemsByRowId: Record<string, string>;
-  // Resolves realtime DELETE events on list_item_votes, whose payload.old
-  // carries only the vote row's own id -- same problem/solution as
-  // _listItemsByRowId above.
-  _voteRowsById: Record<string, { itemRowId: string; userId: string }>;
 
   _channel: RealtimeChannel | null;
   _subscribeRealtime: (listId: string) => void;
@@ -123,15 +126,22 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
   pendingInvites: {},
   isInvitesLoading: false,
   invitesError: null,
+  _invitesGeneration: 0,
   fetchPendingInvites: async () => {
+    const myGeneration = get()._invitesGeneration;
     set({ isInvitesLoading: true, invitesError: null });
     try {
       const invites = await fetchPendingInvites();
+      // A respondToInvite mutation landed while this fetch was in flight;
+      // its local state is authoritative, so this now-stale response is
+      // discarded rather than resurrecting an invite that was just handled.
+      if (get()._invitesGeneration !== myGeneration) return;
       set({
         pendingInvites: Object.fromEntries(invites.map((invite) => [invite.membershipId, invite])),
         isInvitesLoading: false,
       });
     } catch (err) {
+      if (get()._invitesGeneration !== myGeneration) return;
       set({
         invitesError: err instanceof Error ? err.message : 'Failed to load invites.',
         isInvitesLoading: false,
@@ -197,13 +207,25 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
   },
 
   respondToInvite: async (membershipId, accept) => {
-    await respondToInviteRequest(membershipId, accept);
+    const previous = get().pendingInvites[membershipId];
     set((state) => {
       const pendingInvites = { ...state.pendingInvites };
       delete pendingInvites[membershipId];
-      return { pendingInvites };
+      return { pendingInvites, _invitesGeneration: state._invitesGeneration + 1 };
     });
-    if (accept) await get().fetchMyLists();
+    try {
+      await respondToInviteRequest(membershipId, accept);
+      if (accept) await get().fetchMyLists();
+    } catch (err) {
+      set((state) => ({
+        pendingInvites: previous
+          ? { ...state.pendingInvites, [membershipId]: previous }
+          : state.pendingInvites,
+        _invitesGeneration: state._invitesGeneration + 1,
+      }));
+      useToastStore.getState().show(i18n.t('toasts.genericError'), 'error-outline');
+      throw err;
+    }
   },
 
   activeListId: null,
@@ -212,10 +234,9 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
   items: {},
   isDetailLoading: false,
   detailError: null,
-  voteUserIds: {},
+  activePoll: null,
   watchSummary: {},
   _listItemsByRowId: {},
-  _voteRowsById: {},
 
   openList: async (listId) => {
     get()._unsubscribeRealtime();
@@ -224,25 +245,20 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
       activeList: null,
       members: {},
       items: {},
-      voteUserIds: {},
+      activePoll: null,
       watchSummary: {},
       _listItemsByRowId: {},
-      _voteRowsById: {},
       isDetailLoading: true,
       detailError: null,
     });
     try {
-      const [list, members, items, votes, watchSummary] = await Promise.all([
+      const [list, members, items, activePoll, watchSummary] = await Promise.all([
         fetchListById(listId),
         fetchListMembers(listId),
         fetchListItems(listId),
-        fetchListItemVotes(listId),
+        fetchActivePoll(listId),
         fetchListWatchSummary(listId),
       ]);
-      const voteUserIds: Record<string, string[]> = {};
-      for (const vote of votes) {
-        (voteUserIds[vote.listItemId] ??= []).push(vote.userId);
-      }
       set({
         activeList: list,
         members: Object.fromEntries(members.map((m) => [m.membershipId, m])),
@@ -250,10 +266,7 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
         _listItemsByRowId: Object.fromEntries(
           items.map((item) => [item.rowId, keyOf(item.mediaType, item.id)]),
         ),
-        voteUserIds,
-        _voteRowsById: Object.fromEntries(
-          votes.map((vote) => [vote.id, { itemRowId: vote.listItemId, userId: vote.userId }]),
-        ),
+        activePoll,
         watchSummary,
         isDetailLoading: false,
       });
@@ -273,10 +286,9 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
       activeList: null,
       members: {},
       items: {},
-      voteUserIds: {},
+      activePoll: null,
       watchSummary: {},
       _listItemsByRowId: {},
-      _voteRowsById: {},
       detailError: null,
     });
   },
@@ -290,17 +302,13 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
     const listId = get().activeListId;
     if (!listId) return;
     try {
-      const [list, members, items, votes, watchSummary] = await Promise.all([
+      const [list, members, items, activePoll, watchSummary] = await Promise.all([
         fetchListById(listId),
         fetchListMembers(listId),
         fetchListItems(listId),
-        fetchListItemVotes(listId),
+        fetchActivePoll(listId),
         fetchListWatchSummary(listId),
       ]);
-      const voteUserIds: Record<string, string[]> = {};
-      for (const vote of votes) {
-        (voteUserIds[vote.listItemId] ??= []).push(vote.userId);
-      }
       set({
         activeList: list,
         members: Object.fromEntries(members.map((m) => [m.membershipId, m])),
@@ -308,10 +316,7 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
         _listItemsByRowId: Object.fromEntries(
           items.map((item) => [item.rowId, keyOf(item.mediaType, item.id)]),
         ),
-        voteUserIds,
-        _voteRowsById: Object.fromEntries(
-          votes.map((vote) => [vote.id, { itemRowId: vote.listItemId, userId: vote.userId }]),
-        ),
+        activePoll,
         watchSummary,
       });
       get()._unsubscribeRealtime();
@@ -376,6 +381,8 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
           listId,
           addedBy: '',
           addedByName: '',
+          addedByAvatarVariant: 'beam',
+          addedByAvatarSeed: null,
           addedAt: new Date().toISOString(),
           rowId: '',
         },
@@ -421,29 +428,30 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
     }
   },
 
-  toggleVote: async (listItemRowId, currentUserId) => {
-    const already = (get().voteUserIds[listItemRowId] ?? []).includes(currentUserId);
-    set((state) => {
-      const current = state.voteUserIds[listItemRowId] ?? [];
-      const next = already
-        ? current.filter((id) => id !== currentUserId)
-        : [...current, currentUserId];
-      return { voteUserIds: { ...state.voteUserIds, [listItemRowId]: next } };
+  startPoll: async (listId, deadlineIso, itemIds) => {
+    await startPollRequest(listId, deadlineIso, itemIds);
+    const poll = await fetchActivePoll(listId);
+    if (get().activeListId === listId) set({ activePoll: poll });
+  },
+
+  castPollVote: async (candidateId) => {
+    const poll = get().activePoll;
+    if (!poll) return;
+    const previous = poll;
+    set({
+      activePoll: {
+        ...poll,
+        candidates: poll.candidates.map((c) => {
+          if (c.id === candidateId) return { ...c, myVote: true, voteCount: c.voteCount + 1 };
+          if (c.myVote) return { ...c, myVote: false, voteCount: c.voteCount - 1 };
+          return c;
+        }),
+      },
     });
     try {
-      if (already) {
-        await removeVote(listItemRowId, currentUserId);
-      } else {
-        await castVote(listItemRowId);
-      }
+      await castPollVoteRequest(poll.id, candidateId);
     } catch (err) {
-      set((state) => {
-        const current = state.voteUserIds[listItemRowId] ?? [];
-        const next = already
-          ? [...current, currentUserId]
-          : current.filter((id) => id !== currentUserId);
-        return { voteUserIds: { ...state.voteUserIds, [listItemRowId]: next } };
-      });
+      set({ activePoll: previous });
       useToastStore.getState().show(i18n.t('toasts.genericError'), 'error-outline');
       throw err;
     }
@@ -483,57 +491,30 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
         // instead of an extra round-trip.
         const item = sharedListItemFromRow(row);
         const adder = Object.values(get().members).find((m) => m.userId === item.addedBy);
-        if (adder) item.addedByName = adder.displayName || adder.email;
+        if (adder) {
+          item.addedByName = adder.displayName || adder.email;
+          item.addedByAvatarVariant = adder.avatarVariant;
+          item.addedByAvatarSeed = adder.avatarSeed;
+        }
         const key = keyOf(item.mediaType, item.id);
         set((state) => ({
           items: { ...state.items, [key]: item },
           _listItemsByRowId: { ...state._listItemsByRowId, [item.rowId]: key },
         }));
       },
-      onVotesChange: (payload) => {
-        if (payload.eventType === 'DELETE') {
-          // payload.old carries only the vote row's own id -- same
-          // REPLICA IDENTITY DEFAULT limitation as list_items' DELETE.
-          const oldId = (payload.old as { id?: string }).id;
-          if (!oldId) return;
-          const removed = get()._voteRowsById[oldId];
-          if (!removed) return;
-          set((state) => {
-            const voteRowsById = { ...state._voteRowsById };
-            delete voteRowsById[oldId];
-            return {
-              voteUserIds: {
-                ...state.voteUserIds,
-                [removed.itemRowId]: (state.voteUserIds[removed.itemRowId] ?? []).filter(
-                  (id) => id !== removed.userId,
-                ),
-              },
-              _voteRowsById: voteRowsById,
-            };
-          });
-          return;
+      onPollChange: async () => {
+        // Poll activity is low-frequency (a handful of votes over a short
+        // window), so a full refetch is simpler and plenty fast -- same
+        // best-effort pattern as onMembersChange/onListChange below.
+        const listId = get().activeListId;
+        if (!listId) return;
+        try {
+          const poll = await fetchActivePoll(listId);
+          set({ activePoll: poll });
+        } catch {
+          // Best-effort refresh; a transient failure just leaves the poll
+          // card showing whatever it had before.
         }
-
-        const row = payload.new as { id: string; list_item_id: string; user_id: string };
-        // list_item_votes has no list_id to filter on directly; reuse
-        // _listItemsByRowId (already scoped to the open list) instead.
-        if (!get()._listItemsByRowId[row.list_item_id]) return;
-
-        set((state) => {
-          const current = state.voteUserIds[row.list_item_id] ?? [];
-          // Always (re)register the row id -> {item, user} mapping, even if
-          // this user's vote is already reflected (e.g. the realtime echo
-          // of our own optimistic insert) -- otherwise a later unvote's
-          // DELETE event can't be resolved back to this item/user.
-          const nextUserIds = current.includes(row.user_id) ? current : [...current, row.user_id];
-          return {
-            voteUserIds: { ...state.voteUserIds, [row.list_item_id]: nextUserIds },
-            _voteRowsById: {
-              ...state._voteRowsById,
-              [row.id]: { itemRowId: row.list_item_id, userId: row.user_id },
-            },
-          };
-        });
       },
       onMembersChange: async (payload) => {
         // Subscribed to the whole table; skip members of other lists.
@@ -579,7 +560,7 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
       activeList: null,
       members: {},
       items: {},
-      voteUserIds: {},
+      activePoll: null,
       watchSummary: {},
       detailError: null,
     });

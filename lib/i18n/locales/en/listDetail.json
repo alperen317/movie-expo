@@ -22,8 +22,13 @@
     "timeMinutes": "{{count}}m ago",
     "timeHours": "{{count}}h ago",
     "timeDays": "{{count}}d ago",
+    "timeShortNow": "now",
+    "timeShortMinutes": "{{count}}m",
+    "timeShortHours": "{{count}}h",
+    "timeShortDays": "{{count}}d",
     "addedByCaption": "Added by {{name}} · {{time}}",
     "addedByCaptionSelf": "You added this · {{time}}",
-    "watchedByCount": "{{watched}}/{{total}} members watched"
+    "watchedByCount": "{{watched}}/{{total}} members watched",
+    "startPoll": "Start a Poll"
   }
 }

@@ -22,8 +22,13 @@
     "timeMinutes": "{{count}} dk önce",
     "timeHours": "{{count}} sa önce",
     "timeDays": "{{count}} gün önce",
+    "timeShortNow": "şimdi",
+    "timeShortMinutes": "{{count}}dk",
+    "timeShortHours": "{{count}}sa",
+    "timeShortDays": "{{count}}g",
     "addedByCaption": "{{name}} ekledi · {{time}}",
     "addedByCaptionSelf": "Sen ekledin · {{time}}",
-    "watchedByCount": "{{watched}}/{{total}} üye izledi"
+    "watchedByCount": "{{watched}}/{{total}} üye izledi",
+    "startPoll": "Oylama Başlat"
   }
 }

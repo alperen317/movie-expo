@@ -46,6 +46,8 @@ export default function ListsScreen() {
     setRespondingId(membershipId);
     try {
       await respondToInvite(membershipId, accept);
+    } catch {
+      // Toast already shown by the store action.
     } finally {
       setRespondingId(null);
     }

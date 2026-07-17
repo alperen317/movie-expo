@@ -109,6 +109,30 @@
       "light": "Light",
       "dark": "Dark",
       "updated": "Theme updated"
+    },
+    "startPoll": {
+      "title": "Start a Poll",
+      "candidatesLabel": "Pick candidates (at least 2)",
+      "deadlineLabel": "When should it close?",
+      "preset30m": "30m",
+      "preset1h": "1h",
+      "preset3h": "3h",
+      "presetTonight": "Tonight 9 PM",
+      "presetTomorrow": "Tomorrow 9 PM",
+      "presetCustom": "Custom",
+      "needTwoCandidates": "Pick at least two candidates.",
+      "invalidDeadline": "Enter a valid date and time (YYYY-MM-DD, HH:MM).",
+      "submit": "Start Poll"
+    },
+    "activePoll": {
+      "title": "Poll in progress",
+      "resultsTitle": "Poll results",
+      "closed": "Closed",
+      "remainingMinutes": "{{count}}m left",
+      "remainingHours": "{{count}}h left",
+      "remainingDays": "{{count}}d left",
+      "voteCount_one": "{{count}} vote",
+      "voteCount_other": "{{count}} votes"
     }
   }
 }

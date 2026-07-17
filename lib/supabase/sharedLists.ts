@@ -21,6 +21,8 @@ export interface SharedListItem extends MediaCardItem {
   addedBy: string;
   /** Display name (falling back to email) of whoever added this item. */
   addedByName: string;
+  addedByAvatarVariant: AvatarVariant;
+  addedByAvatarSeed: string | null;
   addedAt: string;
   /** Server-side primary key (uuid) of the list_items row. */
   rowId: string;
@@ -57,6 +59,10 @@ export class SharedListsError extends Error {
     | 'invalid_code'
     | 'not_owner'
     | 'rate_limited'
+    | 'poll_already_active'
+    | 'invalid_deadline'
+    | 'need_at_least_two_candidates'
+    | 'poll_closed'
     | 'unknown';
 
   constructor(code: SharedListsError['code'], message: string) {
@@ -102,6 +108,26 @@ function fromJoinCodeRpcError(err: unknown): never {
   throw new SharedListsError('unknown', message);
 }
 
+function fromPollRpcError(err: unknown): never {
+  const message = err instanceof Error ? err.message : String(err);
+  if (message.includes('poll_already_active')) {
+    throw new SharedListsError('poll_already_active', 'This list already has an active poll.');
+  }
+  if (message.includes('invalid_deadline')) {
+    throw new SharedListsError('invalid_deadline', 'Pick a deadline in the future.');
+  }
+  if (message.includes('need_at_least_two_candidates')) {
+    throw new SharedListsError(
+      'need_at_least_two_candidates',
+      'Pick at least two titles to vote on.',
+    );
+  }
+  if (message.includes('poll_closed')) {
+    throw new SharedListsError('poll_closed', 'This poll has already closed.');
+  }
+  throw new SharedListsError('unknown', message);
+}
+
 // ---------------------------------------------------------------------------
 // Lists
 // ---------------------------------------------------------------------------
@@ -131,10 +157,20 @@ function fromListRow(row: ListRow): SharedListSummary {
 // (status='pending'), so a direct `lists` query would blend "my lists"
 // together with "lists I've been invited to but not joined."
 export async function fetchMyLists(): Promise<SharedListSummary[]> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  // Same over-broad-RLS concern as fetchPendingInvites: without the
+  // explicit user_id filter, this would also return co-members' accepted
+  // rows for any shared list (harmless here since results are deduped by
+  // list.id downstream, but wasteful and fragile to rely on that).
   const { data, error } = await supabase
     .from('list_members')
     .select('list:lists(id, name, created_by, created_at, updated_at, join_code)')
     .eq('status', 'accepted')
+    .eq('user_id', user.id)
     .order('created_at', { referencedTable: 'lists', ascending: false });
 
   if (error) throw error;
@@ -145,12 +181,25 @@ export async function fetchMyLists(): Promise<SharedListSummary[]> {
 }
 
 export async function fetchPendingInvites(): Promise<PendingInvite[]> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  // list_members' SELECT RLS is deliberately broader than "my own row"
+  // (accepted members can see the whole roster, incl. co-members' pending
+  // invites, so the Members modal in lists/[id].tsx can show "who's
+  // pending"). Without this explicit filter, this query -- which is
+  // specifically "invites waiting for ME to respond to" -- would also
+  // return OTHER people's still-pending invites for any list the caller
+  // already belongs to.
   const { data, error } = await supabase
     .from('list_members')
     .select(
       'id, list_id, created_at, list:lists(name), inviter:profiles!list_members_invited_by_fkey(email)',
     )
     .eq('status', 'pending')
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
   if (error) throw error;
@@ -312,8 +361,14 @@ interface ItemRow {
   created_at: string;
   // Only present on the initial REST fetch (a PostgREST embed) -- realtime
   // postgres_changes payloads carry the raw row only, so this is absent
-  // there and the store backfills addedByName from its members map instead.
-  adder?: { display_name: string | null; email: string } | null;
+  // there and the store backfills the adder's name/avatar from its members
+  // map instead.
+  adder?: {
+    display_name: string | null;
+    email: string;
+    avatar_variant: string;
+    avatar_seed: string | null;
+  } | null;
 }
 
 function fromItemRow(row: ItemRow): SharedListItem {
@@ -328,6 +383,8 @@ function fromItemRow(row: ItemRow): SharedListItem {
     listId: row.list_id,
     addedBy: row.added_by,
     addedByName: row.adder?.display_name || row.adder?.email || '',
+    addedByAvatarVariant: (row.adder?.avatar_variant as AvatarVariant) ?? 'beam',
+    addedByAvatarSeed: row.adder?.avatar_seed ?? null,
     addedAt: row.created_at,
     rowId: row.id,
   };
@@ -337,7 +394,7 @@ export async function fetchListItems(listId: string): Promise<SharedListItem[]> 
   const { data, error } = await supabase
     .from('list_items')
     .select(
-      'id, list_id, media_id, media_type, title, poster_path, vote_average, year, genre, added_by, created_at, adder:profiles!list_items_added_by_fkey(display_name, email)',
+      'id, list_id, media_id, media_type, title, poster_path, vote_average, year, genre, added_by, created_at, adder:profiles!list_items_added_by_fkey(display_name, email, avatar_variant, avatar_seed)',
     )
     .eq('list_id', listId)
     .order('created_at', { ascending: false });
@@ -388,57 +445,76 @@ export async function removeListItem(
 }
 
 // ---------------------------------------------------------------------------
-// Votes
+// Polls
 // ---------------------------------------------------------------------------
 
-export interface ListItemVote {
+export interface PollCandidate {
   id: string;
   listItemId: string;
-  userId: string;
+  voteCount: number;
+  myVote: boolean;
 }
 
-interface VoteRow {
+export interface ListPoll {
   id: string;
+  deadline: string;
+  createdBy: string;
+  candidates: PollCandidate[];
+}
+
+interface PollRow {
+  poll_id: string;
+  deadline: string;
+  created_by: string;
+  candidate_id: string;
   list_item_id: string;
-  user_id: string;
+  vote_count: number;
+  my_vote: boolean;
 }
 
-function fromVoteRow(row: VoteRow): ListItemVote {
-  return { id: row.id, listItemId: row.list_item_id, userId: row.user_id };
-}
-
-// list_item_votes has no list_id column (see migration 0016's rationale for
-// not denormalizing it), so scope by list via an inner join through
-// list_items instead.
-export async function fetchListItemVotes(listId: string): Promise<ListItemVote[]> {
-  const { data, error } = await supabase
-    .from('list_item_votes')
-    .select('id, list_item_id, user_id, list_items!inner(list_id)')
-    .eq('list_items.list_id', listId);
-
+// Returns the most recent poll for the list (active or just-closed), or
+// null if one has never been started. Callers derive "active" themselves
+// by comparing `deadline` to the current time.
+export async function fetchActivePoll(listId: string): Promise<ListPoll | null> {
+  const { data, error } = await supabase.rpc('get_list_poll', { p_list_id: listId });
   if (error) throw error;
-  return (data ?? []).map((row) => fromVoteRow(row as unknown as VoteRow));
+
+  const rows = (data ?? []) as PollRow[];
+  if (rows.length === 0) return null;
+
+  return {
+    id: rows[0].poll_id,
+    deadline: rows[0].deadline,
+    createdBy: rows[0].created_by,
+    candidates: rows.map((row) => ({
+      id: row.candidate_id,
+      listItemId: row.list_item_id,
+      voteCount: row.vote_count,
+      myVote: row.my_vote,
+    })),
+  };
 }
 
-export async function castVote(listItemId: string): Promise<void> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not authenticated.');
-
-  const { error } = await supabase
-    .from('list_item_votes')
-    .insert({ list_item_id: listItemId, user_id: user.id });
-  if (error) throw error;
+export async function startPoll(
+  listId: string,
+  deadlineIso: string,
+  itemIds: string[],
+): Promise<string> {
+  const { data, error } = await supabase.rpc('start_list_poll', {
+    p_list_id: listId,
+    p_deadline: deadlineIso,
+    p_item_ids: itemIds,
+  });
+  if (error) fromPollRpcError(error);
+  return data as string;
 }
 
-export async function removeVote(listItemId: string, userId: string): Promise<void> {
-  const { error } = await supabase
-    .from('list_item_votes')
-    .delete()
-    .eq('list_item_id', listItemId)
-    .eq('user_id', userId);
-  if (error) throw error;
+export async function castPollVote(pollId: string, candidateId: string): Promise<void> {
+  const { error } = await supabase.rpc('cast_poll_vote', {
+    p_poll_id: pollId,
+    p_candidate_id: candidateId,
+  });
+  if (error) fromPollRpcError(error);
 }
 
 interface WatchSummaryRow {
@@ -474,7 +550,7 @@ export function subscribeToList(
     onItemsChange?: (payload: ChangePayload) => void;
     onMembersChange?: (payload: ChangePayload) => void;
     onListChange?: (payload: ChangePayload) => void;
-    onVotesChange?: (payload: ChangePayload) => void;
+    onPollChange?: (payload: ChangePayload) => void;
   },
 ): RealtimeChannel {
   // NOTE: list_items / list_members are subscribed WITHOUT a row-level
@@ -496,8 +572,16 @@ export function subscribeToList(
     .on('postgres_changes', { event: '*', schema: 'public', table: 'list_members' }, (payload) =>
       handlers.onMembersChange?.(payload),
     )
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'list_item_votes' }, (payload) =>
-      handlers.onVotesChange?.(payload),
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'list_polls' }, (payload) =>
+      handlers.onPollChange?.(payload),
+    )
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'list_poll_candidates' },
+      (payload) => handlers.onPollChange?.(payload),
+    )
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'list_poll_votes' }, (payload) =>
+      handlers.onPollChange?.(payload),
     )
     .on(
       'postgres_changes',

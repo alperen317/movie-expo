@@ -12,14 +12,17 @@ import {
   getGridColumns,
   padGridRow,
 } from '../../../components/home/MovieCard';
+import { ActivePollCard } from '../../../components/lists/ActivePollCard';
 import { InviteModal } from '../../../components/lists/InviteModal';
 import { ListItemCard } from '../../../components/lists/ListItemCard';
 import { ListNameModal } from '../../../components/lists/ListNameModal';
 import { MemberAvatarRow } from '../../../components/lists/MemberAvatarRow';
+import { StartPollModal } from '../../../components/lists/StartPollModal';
 import { ActionSheetModal } from '../../../components/ui/ActionSheetModal';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
 import { useThemeColors } from '../../../lib/theme/useThemeColors';
 import { BoringAvatar } from '../../../components/ui/BoringAvatar';
+import type { PollCandidate, SharedListItem } from '../../../lib/supabase/sharedLists';
 import { useAuthStore } from '../../../stores/auth.store';
 import { useSharedListsStore } from '../../../stores/sharedLists.store';
 
@@ -40,11 +43,12 @@ export default function SharedListDetailScreen() {
   const [isOverflowOpen, setIsOverflowOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isLeaveConfirmOpen, setIsLeaveConfirmOpen] = useState(false);
+  const [isStartPollOpen, setIsStartPollOpen] = useState(false);
 
   const activeList = useSharedListsStore((state) => state.activeList);
   const members = useSharedListsStore((state) => state.members);
   const items = useSharedListsStore((state) => state.items);
-  const voteUserIds = useSharedListsStore((state) => state.voteUserIds);
+  const activePoll = useSharedListsStore((state) => state.activePoll);
   const watchSummary = useSharedListsStore((state) => state.watchSummary);
   const isDetailLoading = useSharedListsStore((state) => state.isDetailLoading);
   const detailError = useSharedListsStore((state) => state.detailError);
@@ -57,7 +61,8 @@ export default function SharedListDetailScreen() {
   const removeMember = useSharedListsStore((state) => state.removeMember);
   const leaveList = useSharedListsStore((state) => state.leaveList);
   const removeItem = useSharedListsStore((state) => state.removeItem);
-  const toggleVote = useSharedListsStore((state) => state.toggleVote);
+  const startPoll = useSharedListsStore((state) => state.startPoll);
+  const castPollVote = useSharedListsStore((state) => state.castPollVote);
 
   useEffect(() => {
     if (!id) return;
@@ -73,6 +78,18 @@ export default function SharedListDetailScreen() {
 
   const numColumns = getGridColumns(windowWidth);
   const itemGridData = useMemo(() => padGridRow(itemList, numColumns), [itemList, numColumns]);
+
+  const pollCandidates: { candidate: PollCandidate; item: SharedListItem }[] = (
+    activePoll?.candidates ?? []
+  )
+    .map((candidate) => ({
+      candidate,
+      item: itemList.find((listItem) => listItem.rowId === candidate.listItemId),
+    }))
+    .filter((entry): entry is { candidate: PollCandidate; item: SharedListItem } =>
+      Boolean(entry.item),
+    );
+  const isPollActive = Boolean(activePoll && new Date(activePoll.deadline).getTime() > Date.now());
 
   const handleDelete = async () => {
     if (!activeList) return;
@@ -132,6 +149,14 @@ export default function SharedListDetailScreen() {
         </View>
       )}
 
+      {activePoll && pollCandidates.length > 0 && (
+        <ActivePollCard
+          deadline={activePoll.deadline}
+          candidates={pollCandidates}
+          onVote={castPollVote}
+        />
+      )}
+
       {isDetailLoading && itemList.length === 0 && (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color={colors.textPrimary} />
@@ -176,15 +201,11 @@ export default function SharedListDetailScreen() {
           }
           renderItem={({ item, index }) => {
             if (!item) return <View style={{ width: CARD_WIDTH }} />;
-            const votes = voteUserIds[item.rowId] ?? [];
             return (
               <ListItemCard
                 item={item}
                 index={index % numColumns}
                 currentUserId={currentUserId}
-                voteCount={votes.length}
-                votedByMe={Boolean(currentUserId && votes.includes(currentUserId))}
-                onToggleVote={() => currentUserId && toggleVote(item.rowId, currentUserId)}
                 watchedCount={watchSummary[`${item.mediaType}-${item.id}`] ?? 0}
                 memberCount={acceptedMemberCount}
                 onRemove={() => removeItem(item.listId, item.id, item.mediaType)}
@@ -223,6 +244,15 @@ export default function SharedListDetailScreen() {
       )}
 
       {activeList && (
+        <StartPollModal
+          visible={isStartPollOpen}
+          items={itemList}
+          onClose={() => setIsStartPollOpen(false)}
+          onSubmit={(deadlineIso, itemIds) => startPoll(activeList.id, deadlineIso, itemIds)}
+        />
+      )}
+
+      {activeList && (
         <ListNameModal
           visible={isRenameOpen}
           title={t('listDetail.renameTitle')}
@@ -241,6 +271,9 @@ export default function SharedListDetailScreen() {
         onClose={() => setIsOverflowOpen(false)}
         actions={[
           { label: t('listDetail.rename'), onPress: () => setIsRenameOpen(true) },
+          ...(!isPollActive && itemList.length >= 2
+            ? [{ label: t('listDetail.startPoll'), onPress: () => setIsStartPollOpen(true) }]
+            : []),
           isCreator
             ? {
                 label: t('listDetail.deleteList'),

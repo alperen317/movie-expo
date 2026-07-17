@@ -109,6 +109,30 @@
       "light": "Açık",
       "dark": "Koyu",
       "updated": "Tema güncellendi"
+    },
+    "startPoll": {
+      "title": "Oylama Başlat",
+      "candidatesLabel": "Adayları seç (en az 2)",
+      "deadlineLabel": "Ne zaman kapansın?",
+      "preset30m": "30 dk",
+      "preset1h": "1 sa",
+      "preset3h": "3 sa",
+      "presetTonight": "Bu akşam 21:00",
+      "presetTomorrow": "Yarın 21:00",
+      "presetCustom": "Özel",
+      "needTwoCandidates": "En az iki aday seçmelisin.",
+      "invalidDeadline": "Geçerli bir tarih ve saat gir (YYYY-AA-GG, SS:DD).",
+      "submit": "Oylamayı Başlat"
+    },
+    "activePoll": {
+      "title": "Oylama sürüyor",
+      "resultsTitle": "Oylama sonuçlandı",
+      "closed": "Sonuçlandı",
+      "remainingMinutes": "{{count}} dk kaldı",
+      "remainingHours": "{{count}} sa kaldı",
+      "remainingDays": "{{count}} gün kaldı",
+      "voteCount_one": "{{count}} oy",
+      "voteCount_other": "{{count}} oy"
     }
   }
 }
