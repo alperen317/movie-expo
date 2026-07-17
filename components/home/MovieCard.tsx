@@ -2,6 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 import { FadeInDown } from 'react-native-reanimated';
 
@@ -98,9 +99,11 @@ export function MovieCard({
   // `onPress` for multi-select style pickers.
   selected?: boolean;
 }) {
+  const { t } = useTranslation();
   const posterUri = getPosterUrl(item.posterPath, 'w342');
   const subtitle = [item.genre, item.year].filter(Boolean).join(' • ');
   const personalRating = useWatchLogStore((state) => state.ratingFor(item.mediaType, item.id));
+  const typeLabel = item.mediaType === 'tv' ? t('a11y.typeTv') : t('a11y.typeMovie');
 
   return (
     <AnimatedView entering={FadeInDown.delay(Math.min(index ?? 0, 8) * 40).duration(300)}>
@@ -113,6 +116,9 @@ export function MovieCard({
               params: { id: String(item.id), type: item.mediaType },
             }))
         }
+        accessibilityRole="button"
+        accessibilityLabel={t('a11y.openDetails', { title: item.title, type: typeLabel })}
+        accessibilityState={selected ? { selected: true } : undefined}
         style={{ width: CARD_WIDTH, aspectRatio: 2 / 3 }}
         className={`overflow-hidden rounded-2xl ${selected ? 'border-2 border-primary-container' : ''}`}
       >

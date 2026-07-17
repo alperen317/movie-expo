@@ -23,6 +23,8 @@ export function ListCard({ list }: { list: SharedListSummary }) {
   return (
     <AnimatedPressable
       onPress={() => router.push({ pathname: '/lists/[id]', params: { id: list.id } })}
+      accessibilityRole="button"
+      accessibilityLabel={list.name}
       className="flex-row items-center gap-3 rounded-xl border border-glass-border bg-surface-container-low px-4 py-stack-md"
     >
       <View className="h-11 w-11 items-center justify-center rounded-full bg-primary-container/20">

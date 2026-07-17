@@ -88,7 +88,15 @@ export function SeasonAccordion({ tvId, season, allSeasons }: SeasonAccordionPro
 
   return (
     <View className="overflow-hidden rounded-2xl border border-glass-border bg-background-blur">
-      <Pressable onPress={handleToggleExpand} className="flex-row items-center gap-3 p-3">
+      <Pressable
+        onPress={handleToggleExpand}
+        accessibilityRole="button"
+        accessibilityState={{ expanded }}
+        accessibilityLabel={t(expanded ? 'a11y.collapseSeason' : 'a11y.expandSeason', {
+          season: season.name,
+        })}
+        className="flex-row items-center gap-3 p-3"
+      >
         <View className="h-16 w-11 overflow-hidden rounded-lg bg-surface-container-high">
           {posterUri && (
             <Image
@@ -115,6 +123,8 @@ export function SeasonAccordion({ tvId, season, allSeasons }: SeasonAccordionPro
           <Pressable
             onPress={() => setIsMarkUpToHereConfirmOpen(true)}
             hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.markUpToHere', { season: season.name })}
             className="h-9 w-9 items-center justify-center rounded-full border border-glass-border"
           >
             <MaterialIcons name="playlist-add-check" size={18} color="#FFFFFF" />
@@ -124,6 +134,12 @@ export function SeasonAccordion({ tvId, season, allSeasons }: SeasonAccordionPro
           onPress={handleMarkSeason}
           disabled={!episodes}
           hitSlop={8}
+          accessibilityRole="button"
+          accessibilityState={{ checked: isFullyWatched }}
+          accessibilityLabel={t(
+            isFullyWatched ? 'a11y.markSeasonUnwatched' : 'a11y.markSeasonWatched',
+            { season: season.name },
+          )}
           className={`h-9 w-9 items-center justify-center rounded-full ${
             isFullyWatched ? 'bg-primary-container' : 'border border-glass-border'
           }`}
@@ -161,6 +177,12 @@ export function SeasonAccordion({ tvId, season, allSeasons }: SeasonAccordionPro
               <Pressable
                 key={episode.id}
                 onPress={() => toggleEpisode(tvId, season.seasonNumber, episode.episode_number)}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: watched }}
+                accessibilityLabel={t(
+                  watched ? 'a11y.markEpisodeUnwatched' : 'a11y.markEpisodeWatched',
+                  { episode: `${episode.episode_number}. ${episode.name}` },
+                )}
                 className="flex-row items-center gap-3 rounded-xl p-2"
               >
                 <View className="h-12 w-20 overflow-hidden rounded-lg bg-surface-container-high">

@@ -130,6 +130,8 @@ function ContinueWatchingCard({ item }: { item: ContinueWatchingItem }) {
       onPress={() =>
         router.push({ pathname: '/details/[id]', params: { id: String(item.showId), type: 'tv' } })
       }
+      accessibilityRole="button"
+      accessibilityLabel={t('a11y.openDetails', { title: item.title, type: t('a11y.typeTv') })}
       style={{ width: 180, aspectRatio: 2 / 3 }}
       className="overflow-hidden rounded-2xl"
     >

@@ -63,12 +63,16 @@ export default function ListsScreen() {
         <View className="flex-row gap-2">
           <AnimatedPressable
             onPress={() => setIsJoinOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.joinByCode')}
             className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
           >
             <MaterialIcons name="key" size={20} color="#f5c451" />
           </AnimatedPressable>
           <AnimatedPressable
             onPress={() => setIsCreateOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.createList')}
             className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
           >
             <MaterialIcons name="add" size={22} color="#f5c451" />

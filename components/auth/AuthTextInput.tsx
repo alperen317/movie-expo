@@ -1,5 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, TextInput, View, type TextInputProps } from 'react-native';
 
 interface AuthTextInputProps extends TextInputProps {
@@ -8,6 +9,7 @@ interface AuthTextInputProps extends TextInputProps {
 }
 
 export function AuthTextInput({ icon, isPassword, ...props }: AuthTextInputProps) {
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -29,6 +31,8 @@ export function AuthTextInput({ icon, isPassword, ...props }: AuthTextInputProps
       {isPassword && (
         <Pressable
           onPress={() => setShowPassword((value) => !value)}
+          accessibilityRole="button"
+          accessibilityLabel={t(showPassword ? 'a11y.hidePassword' : 'a11y.showPassword')}
           style={{ position: 'absolute', right: 16, top: 0, bottom: 0, justifyContent: 'center' }}
         >
           <MaterialIcons

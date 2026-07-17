@@ -71,6 +71,8 @@ export function TrailerModal({ visible, onClose, trailerKey }: TrailerModalProps
             onPress={() =>
               trailerKey && openUrlSafely(`https://www.youtube.com/watch?v=${trailerKey}`)
             }
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.openInYoutube')}
             className="h-10 flex-row items-center gap-2 rounded-full border border-glass-border bg-background-blur px-4"
           >
             <MaterialIcons name="open-in-new" size={16} color="#FFFFFF" />
@@ -80,6 +82,8 @@ export function TrailerModal({ visible, onClose, trailerKey }: TrailerModalProps
           </AnimatedPressable>
           <AnimatedPressable
             onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.close')}
             className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
           >
             <MaterialIcons name="close" size={24} color="#FFFFFF" />
