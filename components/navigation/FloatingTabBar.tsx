@@ -61,7 +61,7 @@ function TabBarButton({
       accessibilityRole="tab"
       accessibilityLabel={label}
       accessibilityState={{ selected: isFocused }}
-      className="h-12 w-12 items-center justify-center rounded-full"
+      className="h-14 w-14 items-center justify-center rounded-full"
     >
       <AnimatedView
         pointerEvents="none"
@@ -71,14 +71,14 @@ function TabBarButton({
           pillStyle,
         ]}
       />
-      <MaterialIcons name={icon} size={24} color={isFocused ? '#3f2e00' : colors.icon} />
+      <MaterialIcons name={icon} size={26} color={isFocused ? '#3f2e00' : colors.icon} />
       {Boolean(badgeCount) && (
         <View
           pointerEvents="none"
-          className="absolute right-1.5 top-1.5 min-w-[16px] items-center justify-center rounded-full bg-error px-1"
-          style={{ height: 16 }}
+          className="absolute right-2 top-2 min-w-[18px] items-center justify-center rounded-full bg-error px-1"
+          style={{ height: 18 }}
         >
-          <Text className="font-sans-bold text-[10px] text-on-error">
+          <Text className="font-sans-bold text-[11px] text-on-error">
             {badgeCount! > 9 ? '9+' : badgeCount}
           </Text>
         </View>
@@ -110,7 +110,7 @@ export function FloatingTabBar() {
         tint={colorScheme === 'light' ? 'light' : 'dark'}
         style={{ borderRadius: 999, overflow: 'hidden' }}
       >
-        <View className="flex-row items-center gap-1 border border-glass-border bg-background-blur p-2">
+        <View className="flex-row items-center gap-2 border border-glass-border bg-background-blur p-2.5">
           {TABS.map((tab) => (
             <TabBarButton
               key={tab.name}
