@@ -18,6 +18,7 @@ import {
   toTVCardItem,
 } from '../../../components/home/MovieCard';
 import { AnimatedPressable, AnimatedView } from '../../../components/ui/AnimatedPressable';
+import { useThemeColors } from '../../../lib/theme/useThemeColors';
 import { toPersonDetails } from '../../../lib/tmdb/details';
 import { discoverMoviesByGenre, getTrendingMovies } from '../../../lib/tmdb/movies';
 import { getPersonDetails } from '../../../lib/tmdb/person';
@@ -52,6 +53,7 @@ const SOURCE_CONFIG: Record<
 
 export default function ListScreen() {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const { source, personId, genreId, title } = useLocalSearchParams<{
     source: string;
     personId?: string;
@@ -153,7 +155,7 @@ export default function ListScreen() {
           accessibilityLabel={t('a11y.back')}
           className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
         >
-          <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />
+          <MaterialIcons name="arrow-back" size={22} color={colors.textPrimary} />
         </AnimatedPressable>
         <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
           {config.title}
@@ -162,7 +164,7 @@ export default function ListScreen() {
 
       {isLoading && (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#ffffff" />
+          <ActivityIndicator color={colors.textPrimary} />
         </View>
       )}
 
@@ -195,7 +197,7 @@ export default function ListScreen() {
           ListFooterComponent={
             isLoadingMore ? (
               <AnimatedView entering={FadeIn} style={{ alignItems: 'center', paddingVertical: 32 }}>
-                <ActivityIndicator color="#ffffff" />
+                <ActivityIndicator color={colors.textPrimary} />
               </AnimatedView>
             ) : null
           }

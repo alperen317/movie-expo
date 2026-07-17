@@ -1,6 +1,14 @@
-import { getLocales } from 'expo-localization';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+
+import {
+  detectDeviceLanguage,
+  getStoredLanguagePreference,
+  resolveLanguage,
+  setStoredLanguagePreference,
+  supportedLanguages,
+  type LanguagePreference,
+} from './languagePreference';
 
 import enA11y from './locales/en/a11y.json';
 import enActor from './locales/en/actor.json';
@@ -45,8 +53,8 @@ import trSearch from './locales/tr/search.json';
 import trStats from './locales/tr/stats.json';
 import trToasts from './locales/tr/toasts.json';
 
-export const supportedLanguages = ['en', 'tr'] as const;
-type SupportedLanguage = (typeof supportedLanguages)[number];
+export { supportedLanguages };
+export type { LanguagePreference };
 
 const resources = {
   en: {
@@ -101,19 +109,30 @@ const resources = {
   },
 };
 
-// Follow the device language when we support it, otherwise fall back to English.
-function detectLanguage(): SupportedLanguage {
-  const deviceLanguage = getLocales()[0]?.languageCode;
-  return supportedLanguages.includes(deviceLanguage as SupportedLanguage)
-    ? (deviceLanguage as SupportedLanguage)
-    : 'en';
-}
-
+// Init synchronously with the device language so the first render is already
+// localized; the stored preference (which may override it) is applied right
+// after via applyStoredLanguagePreference, since reading it is async.
 i18n.use(initReactI18next).init({
   resources,
-  lng: detectLanguage(),
+  lng: detectDeviceLanguage(),
   fallbackLng: 'en',
   interpolation: { escapeValue: false },
 });
+
+// Reads the saved language preference and switches to it if it differs from
+// the current language. Call once on startup (see app/_layout.tsx).
+export async function applyStoredLanguagePreference(): Promise<void> {
+  const preference = await getStoredLanguagePreference();
+  const language = resolveLanguage(preference);
+  if (i18n.language !== language) {
+    await i18n.changeLanguage(language);
+  }
+}
+
+// Persists the chosen preference and applies it immediately.
+export async function changeLanguagePreference(preference: LanguagePreference): Promise<void> {
+  await setStoredLanguagePreference(preference);
+  await i18n.changeLanguage(resolveLanguage(preference));
+}
 
 export default i18n;

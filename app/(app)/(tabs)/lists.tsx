@@ -10,10 +10,12 @@ import { ListCard } from '../../../components/lists/ListCard';
 import { ListNameModal } from '../../../components/lists/ListNameModal';
 import { PendingInviteCard } from '../../../components/lists/PendingInviteCard';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
+import { useThemeColors } from '../../../lib/theme/useThemeColors';
 import { useSharedListsStore } from '../../../stores/sharedLists.store';
 
 export default function ListsScreen() {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isJoinOpen, setIsJoinOpen] = useState(false);
   const [respondingId, setRespondingId] = useState<string | null>(null);
@@ -67,7 +69,7 @@ export default function ListsScreen() {
             accessibilityLabel={t('a11y.joinByCode')}
             className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
           >
-            <MaterialIcons name="key" size={20} color="#f5c451" />
+            <MaterialIcons name="key" size={20} color={colors.gold} />
           </AnimatedPressable>
           <AnimatedPressable
             onPress={() => setIsCreateOpen(true)}
@@ -75,14 +77,14 @@ export default function ListsScreen() {
             accessibilityLabel={t('a11y.createList')}
             className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
           >
-            <MaterialIcons name="add" size={22} color="#f5c451" />
+            <MaterialIcons name="add" size={22} color={colors.gold} />
           </AnimatedPressable>
         </View>
       </View>
 
       {isMyListsLoading && lists.length === 0 && (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#ffffff" />
+          <ActivityIndicator color={colors.textPrimary} />
         </View>
       )}
 
@@ -104,7 +106,7 @@ export default function ListsScreen() {
 
       {!myListsError && !isMyListsLoading && lists.length === 0 && invites.length === 0 && (
         <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
-          <MaterialIcons name="groups" size={32} color="#A1A1AA" />
+          <MaterialIcons name="groups" size={32} color={colors.icon} />
           <Text className="text-title-md font-sans-semibold text-text-primary">
             {t('lists.emptyTitle')}
           </Text>

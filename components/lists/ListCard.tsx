@@ -6,6 +6,7 @@ import { Text, View } from 'react-native';
 
 import type { SharedListSummary } from '../../lib/supabase/sharedLists';
 import { AnimatedPressable } from '../ui/AnimatedPressable';
+import { useThemeColors } from '../../lib/theme/useThemeColors';
 
 function formatUpdatedAt(dateString: string, t: TFunction): string {
   const diffMs = Date.now() - new Date(dateString).getTime();
@@ -20,6 +21,7 @@ function formatUpdatedAt(dateString: string, t: TFunction): string {
 
 export function ListCard({ list }: { list: SharedListSummary }) {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   return (
     <AnimatedPressable
       onPress={() => router.push({ pathname: '/lists/[id]', params: { id: list.id } })}
@@ -28,7 +30,7 @@ export function ListCard({ list }: { list: SharedListSummary }) {
       className="flex-row items-center gap-3 rounded-xl border border-glass-border bg-surface-container-low px-4 py-stack-md"
     >
       <View className="h-11 w-11 items-center justify-center rounded-full bg-primary-container/20">
-        <MaterialIcons name="movie-filter" size={20} color="#f5c451" />
+        <MaterialIcons name="movie-filter" size={20} color={colors.gold} />
       </View>
       <View className="flex-1 gap-0.5">
         <Text className="font-sans-semibold text-body-md text-text-primary" numberOfLines={1}>
@@ -38,7 +40,7 @@ export function ListCard({ list }: { list: SharedListSummary }) {
           {formatUpdatedAt(list.updatedAt, t)}
         </Text>
       </View>
-      <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
+      <MaterialIcons name="chevron-right" size={20} color={colors.icon} />
     </AnimatedPressable>
   );
 }

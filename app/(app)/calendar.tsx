@@ -8,6 +8,7 @@ import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AnimatedPressable } from '../../components/ui/AnimatedPressable';
+import { useThemeColors } from '../../lib/theme/useThemeColors';
 import { requestEpisodeReminderPermission } from '../../lib/notifications/episodeReminders';
 import { getPosterUrl } from '../../lib/tmdb/config';
 import { getTVShowDetails } from '../../lib/tmdb/tv';
@@ -36,6 +37,7 @@ function formatAirDate(airDate: string, t: TFunction, language: string): string 
 
 export default function CalendarScreen() {
   const { t, i18n } = useTranslation();
+  const colors = useThemeColors();
   const entries = useEpisodeProgressStore((state) => state.entries);
   const showIds = useMemo(() => useEpisodeProgressStore.getState().showIdsInProgress(), [entries]);
   const showIdsKey = showIds.join(',');
@@ -102,7 +104,7 @@ export default function CalendarScreen() {
           accessibilityLabel={t('a11y.back')}
           className="h-8 w-8 items-center justify-center"
         >
-          <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />
+          <MaterialIcons name="arrow-back" size={22} color={colors.textPrimary} />
         </AnimatedPressable>
         <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
           {t('calendar.title')}
@@ -111,13 +113,13 @@ export default function CalendarScreen() {
 
       {isLoading && (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#ffffff" />
+          <ActivityIndicator color={colors.textPrimary} />
         </View>
       )}
 
       {!isLoading && episodes.length === 0 && (
         <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
-          <MaterialIcons name="event-available" size={32} color="#A1A1AA" />
+          <MaterialIcons name="event-available" size={32} color={colors.icon} />
           <Text className="text-title-md font-sans-semibold text-text-primary">
             {t('calendar.emptyTitle')}
           </Text>

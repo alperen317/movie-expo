@@ -15,6 +15,7 @@ import {
   padGridRow,
 } from '../../../components/home/MovieCard';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
+import { useThemeColors } from '../../../lib/theme/useThemeColors';
 import { useListsStore } from '../../../stores/lists.store';
 import { dedupeWatchLog, useWatchLogStore } from '../../../stores/watchLog.store';
 
@@ -30,6 +31,7 @@ const EMPTY_ICONS: Record<Tab, React.ComponentProps<typeof MaterialIcons>['name'
 
 export default function FavoritesScreen() {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const { tab } = useLocalSearchParams<{ tab?: string }>();
   const [activeTab, setActiveTab] = useState<Tab>(
     tab === 'watchlist' || tab === 'watched' ? tab : 'favorites',
@@ -116,7 +118,7 @@ export default function FavoritesScreen() {
 
       {isLoading && items.length === 0 && (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#ffffff" />
+          <ActivityIndicator color={colors.textPrimary} />
         </View>
       )}
 
@@ -136,7 +138,7 @@ export default function FavoritesScreen() {
 
       {!isLoading && !error && items.length === 0 && (
         <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
-          <MaterialIcons name={EMPTY_ICONS[activeTab]} size={32} color="#A1A1AA" />
+          <MaterialIcons name={EMPTY_ICONS[activeTab]} size={32} color={colors.icon} />
           <Text className="text-title-md font-sans-semibold text-text-primary">
             {t(`myList.empty.${activeTab}.title`)}
           </Text>

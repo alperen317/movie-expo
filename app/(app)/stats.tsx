@@ -11,11 +11,13 @@ import { ShareableStatsCard } from '../../components/stats/ShareableStatsCard';
 import { AnimatedPressable } from '../../components/ui/AnimatedPressable';
 import { useStatsData } from '../../hooks/useStatsData';
 import { filterInputByYear, monthlyActivity, summarizeStats } from '../../lib/stats';
+import { useThemeColors } from '../../lib/theme/useThemeColors';
 
 type Period = 'all' | 'year';
 
 export default function StatsScreen() {
   const { t, i18n } = useTranslation();
+  const colors = useThemeColors();
   const currentYear = new Date().getFullYear();
   const isDecember = new Date().getMonth() === 11;
 
@@ -71,7 +73,7 @@ export default function StatsScreen() {
           accessibilityLabel={t('a11y.back')}
           className="h-8 w-8 items-center justify-center"
         >
-          <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />
+          <MaterialIcons name="arrow-back" size={22} color={colors.textPrimary} />
         </AnimatedPressable>
         <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
           {t('stats.title')}
@@ -93,7 +95,7 @@ export default function StatsScreen() {
 
       {!isLoading && !hasData && (
         <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
-          <MaterialIcons name="bar-chart" size={32} color="#A1A1AA" />
+          <MaterialIcons name="bar-chart" size={32} color={colors.icon} />
           <Text className="text-title-md font-sans-semibold text-text-primary">
             {t('stats.emptyTitle')}
           </Text>
@@ -110,7 +112,7 @@ export default function StatsScreen() {
         >
           {isDecember && (
             <View className="flex-row items-center gap-2 overflow-hidden rounded-xl border border-primary-container/40 bg-primary-container/10 p-4">
-              <MaterialIcons name="auto-awesome" size={20} color="#f5c451" />
+              <MaterialIcons name="auto-awesome" size={20} color={colors.gold} />
               <Text className="flex-1 font-sans-semibold text-body-md text-primary-container">
                 {t('stats.yearWrapped')}
               </Text>
@@ -220,7 +222,7 @@ export default function StatsScreen() {
               </Text>
               {peakMonth.count > 0 && (
                 <View className="flex-row items-center gap-1">
-                  <MaterialIcons name="local-fire-department" size={14} color="#f5c451" />
+                  <MaterialIcons name="local-fire-department" size={14} color={colors.gold} />
                   <Text className="font-sans text-caption text-primary-container">
                     {t('stats.peakIn', { month: monthLong(peakMonth.month) })}
                   </Text>

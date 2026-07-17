@@ -13,6 +13,7 @@ import { AnimatedPressable } from '../../components/ui/AnimatedPressable';
 import { parseLetterboxdExport } from '../../lib/importers/letterboxd';
 import { matchImportRecords, type MatchResult } from '../../lib/importers/match';
 import { parseTVTimeExport } from '../../lib/importers/tvtime';
+import { useThemeColors } from '../../lib/theme/useThemeColors';
 import { readZipEntries } from '../../lib/importers/zip';
 import { addSavedMediaBatch } from '../../lib/supabase/lists';
 import { addWatchLogEntriesBatch } from '../../lib/supabase/watchLog';
@@ -131,6 +132,7 @@ function ReviewRow({
   onPick: (item: MediaCardItem) => void;
 }) {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const { record, candidate, confidence } = result;
   const posterUrl = candidate ? getPosterUrl(candidate.posterPath, 'w185') : null;
 
@@ -168,7 +170,7 @@ function ReviewRow({
             {candidate?.mediaType === 'tv' ? t('import.showSuffix') : ''}
           </Text>
         </View>
-        {!candidate && <MaterialIcons name="search" size={20} color="#A1A1AA" />}
+        {!candidate && <MaterialIcons name="search" size={20} color={colors.icon} />}
       </AnimatedPressable>
       {isSearching && <ManualSearchBox initialQuery={record.title} onPick={onPick} />}
       {candidate && confidence === 'low' && !isSearching && (
@@ -184,6 +186,7 @@ function ReviewRow({
 
 export default function ImportScreen() {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const [step, setStep] = useState<Step>('source');
   const [error, setError] = useState<string | null>(null);
   const [matchProgress, setMatchProgress] = useState({ done: 0, total: 0 });
@@ -297,7 +300,7 @@ export default function ImportScreen() {
           accessibilityLabel={t('a11y.back')}
           className="h-8 w-8 items-center justify-center"
         >
-          <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />
+          <MaterialIcons name="arrow-back" size={22} color={colors.textPrimary} />
         </AnimatedPressable>
         <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
           {t('import.title')}
@@ -317,34 +320,34 @@ export default function ImportScreen() {
             onPress={() => pickSource('tvtime')}
             className="flex-row items-center gap-3 rounded-xl border border-glass-border bg-surface-container-low p-4"
           >
-            <MaterialIcons name="tv" size={22} color="#A1A1AA" />
+            <MaterialIcons name="tv" size={22} color={colors.icon} />
             <View className="flex-1">
               <Text className="font-sans-semibold text-body-md text-text-primary">TV Time</Text>
               <Text className="font-sans text-caption text-text-secondary">
                 {t('import.gdprExport')}
               </Text>
             </View>
-            <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
+            <MaterialIcons name="chevron-right" size={20} color={colors.icon} />
           </AnimatedPressable>
           <AnimatedPressable
             onPress={() => pickSource('letterboxd')}
             className="flex-row items-center gap-3 rounded-xl border border-glass-border bg-surface-container-low p-4"
           >
-            <MaterialIcons name="movie" size={22} color="#A1A1AA" />
+            <MaterialIcons name="movie" size={22} color={colors.icon} />
             <View className="flex-1">
               <Text className="font-sans-semibold text-body-md text-text-primary">Letterboxd</Text>
               <Text className="font-sans text-caption text-text-secondary">
                 {t('import.export')}
               </Text>
             </View>
-            <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
+            <MaterialIcons name="chevron-right" size={20} color={colors.icon} />
           </AnimatedPressable>
         </View>
       )}
 
       {step === 'matching' && (
         <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
-          <ActivityIndicator color="#ffffff" />
+          <ActivityIndicator color={colors.textPrimary} />
           <Text className="font-sans text-body-md text-text-secondary">
             {t('import.matching', { done: matchProgress.done, total: matchProgress.total })}
           </Text>
@@ -391,7 +394,7 @@ export default function ImportScreen() {
 
       {step === 'importing' && (
         <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
-          <ActivityIndicator color="#ffffff" />
+          <ActivityIndicator color={colors.textPrimary} />
           <Text className="font-sans text-body-md text-text-secondary">
             {t('import.importing')}
           </Text>
@@ -400,7 +403,7 @@ export default function ImportScreen() {
 
       {step === 'done' && summary && (
         <View className="flex-1 items-center justify-center gap-stack-md px-margin-mobile">
-          <MaterialIcons name="check-circle" size={48} color="#f5c451" />
+          <MaterialIcons name="check-circle" size={48} color={colors.gold} />
           <Text className="text-center font-sans-semibold text-title-md text-text-primary">
             {t('import.importedCount', { count: summary.imported })}
           </Text>

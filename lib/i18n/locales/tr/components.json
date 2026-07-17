@@ -93,6 +93,22 @@
     },
     "gallery": {
       "title": "Galeri"
+    },
+    "languagePicker": {
+      "title": "Dil",
+      "subtitle": "Uygulama genelinde kullanılan dili seç.",
+      "system": "Sistem varsayılanı",
+      "systemHint": "Cihaz dilini takip et",
+      "updated": "Dil güncellendi"
+    },
+    "themePicker": {
+      "title": "Tema",
+      "subtitle": "Uygulamanın görünümünü seç.",
+      "system": "Sistem varsayılanı",
+      "systemHint": "Cihaz görünümünü takip et",
+      "light": "Açık",
+      "dark": "Koyu",
+      "updated": "Tema güncellendi"
     }
   }
 }

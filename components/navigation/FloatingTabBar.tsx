@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { useTabTrigger } from 'expo-router/ui';
+import { useColorScheme } from 'nativewind';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
@@ -8,6 +9,7 @@ import { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reani
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AnimatedPressable, AnimatedView } from '../ui/AnimatedPressable';
+import { useThemeColors } from '../../lib/theme/useThemeColors';
 
 const TABS: {
   name: string;
@@ -30,6 +32,7 @@ function TabBarButton({
   icon: React.ComponentProps<typeof MaterialIcons>['name'];
   labelKey: string;
 }) {
+  const colors = useThemeColors();
   const { t } = useTranslation();
   const { trigger, triggerProps } = useTabTrigger({ name });
   const isFocused = Boolean(trigger?.isFocused);
@@ -61,13 +64,14 @@ function TabBarButton({
           pillStyle,
         ]}
       />
-      <MaterialIcons name={icon} size={24} color={isFocused ? '#3f2e00' : '#A1A1AA'} />
+      <MaterialIcons name={icon} size={24} color={isFocused ? '#3f2e00' : colors.icon} />
     </AnimatedPressable>
   );
 }
 
 export function FloatingTabBar() {
   const insets = useSafeAreaInsets();
+  const { colorScheme } = useColorScheme();
 
   return (
     <View
@@ -80,7 +84,11 @@ export function FloatingTabBar() {
       }}
       pointerEvents="box-none"
     >
-      <BlurView intensity={40} tint="dark" style={{ borderRadius: 999, overflow: 'hidden' }}>
+      <BlurView
+        intensity={40}
+        tint={colorScheme === 'light' ? 'light' : 'dark'}
+        style={{ borderRadius: 999, overflow: 'hidden' }}
+      >
         <View className="flex-row items-center gap-1 border border-glass-border bg-background-blur p-2">
           {TABS.map((tab) => (
             <TabBarButton key={tab.name} name={tab.name} icon={tab.icon} labelKey={tab.labelKey} />

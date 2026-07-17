@@ -6,6 +6,7 @@ import { ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AnimatedPressable } from '../../components/ui/AnimatedPressable';
+import { useThemeColors } from '../../lib/theme/useThemeColors';
 import { BoringAvatar } from '../../components/ui/BoringAvatar';
 import { AVATAR_VARIANTS, AvatarVariant } from '../../lib/avatar/generate';
 import { useAuthStore } from '../../stores/auth.store';
@@ -14,6 +15,7 @@ import { useToastStore } from '../../stores/toast.store';
 
 export default function EditProfileScreen() {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const email = useAuthStore((state) => state.session?.user?.email ?? '');
   const profile = useProfileStore((state) => state.profile);
   const updateProfile = useProfileStore((state) => state.updateProfile);
@@ -58,7 +60,7 @@ export default function EditProfileScreen() {
           accessibilityLabel={t('a11y.back')}
           className="h-8 w-8 items-center justify-center"
         >
-          <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />
+          <MaterialIcons name="arrow-back" size={22} color={colors.textPrimary} />
         </AnimatedPressable>
         <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">
           {t('editProfile.title')}
