@@ -36,6 +36,8 @@
     "clearRating": "Clear rating",
     "expandSeason": "Expand {{season}}",
     "collapseSeason": "Collapse {{season}}",
+    "expandPoll": "Expand poll",
+    "collapsePoll": "Collapse poll",
     "markSeasonWatched": "Mark {{season}} as watched",
     "markSeasonUnwatched": "Mark {{season}} as not watched",
     "markUpToHere": "Mark all episodes up to {{season}} as watched",

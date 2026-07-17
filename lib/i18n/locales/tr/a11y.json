@@ -36,6 +36,8 @@
     "clearRating": "Puanı temizle",
     "expandSeason": "{{season}} genişlet",
     "collapseSeason": "{{season}} daralt",
+    "expandPoll": "Anketi genişlet",
+    "collapsePoll": "Anketi daralt",
     "markSeasonWatched": "{{season}} izlendi olarak işaretle",
     "markSeasonUnwatched": "{{season}} izlenmedi olarak işaretle",
     "markUpToHere": "{{season}} dahil önceki tüm bölümleri izlendi işaretle",
