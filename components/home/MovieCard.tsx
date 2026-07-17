@@ -134,7 +134,7 @@ export function MovieCard({
 
         <View className="absolute left-2 top-2 rounded-full border border-glass-border bg-background-blur px-2 py-1">
           <Text className="font-sans-bold text-[10px] uppercase text-text-primary">
-            {item.mediaType === 'tv' ? 'TV Series' : 'Movie'}
+            {item.mediaType === 'tv' ? t('home.mediaTypeTv') : t('home.mediaTypeMovie')}
           </Text>
         </View>
 

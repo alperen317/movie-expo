@@ -26,7 +26,7 @@ export function MediaRow({
           className="flex-row items-center"
         >
           <Text className="font-sans-bold text-label-caps uppercase text-on-surface-variant">
-            View All
+            {t('home.viewAll')}
           </Text>
           <MaterialIcons name="chevron-right" size={16} color="#A1A1AA" />
         </AnimatedPressable>

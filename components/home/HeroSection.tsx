@@ -86,7 +86,7 @@ export function HeroSection({ movie, width }: { movie: TMDBMovie; width?: number
               >
                 <MaterialIcons name="play-arrow" size={20} color="#3f2e00" />
                 <Text className="font-sans-semibold text-title-md text-on-primary">
-                  Discover Now
+                  {t('home.discoverNow')}
                 </Text>
               </Pressable>
               <Pressable
