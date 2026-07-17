@@ -5,11 +5,14 @@ import type { MediaCardItem } from '../components/home/MovieCard';
 import i18n from '../lib/i18n';
 import {
   addListItem,
+  castVote,
   createSharedList,
   deleteSharedList,
   fetchListById,
   fetchListItems,
+  fetchListItemVotes,
   fetchListMembers,
+  fetchListWatchSummary,
   fetchMyLists,
   fetchPendingInvites,
   inviteMemberByEmail,
@@ -19,8 +22,10 @@ import {
   regenerateJoinCode as regenerateJoinCodeRequest,
   removeListItem,
   removeMember as removeMemberRequest,
+  removeVote,
   renameSharedList,
   respondToInvite as respondToInviteRequest,
+  sendInviteEmail,
   SharedListItem,
   sharedListItemFromRow,
   SharedListsError,
@@ -61,6 +66,7 @@ interface SharedListsState {
 
   openList: (listId: string) => Promise<void>;
   closeList: () => void;
+  refreshActiveList: () => Promise<void>;
 
   inviteMember: (listId: string, email: string) => Promise<void>;
   removeMember: (membershipId: string) => Promise<void>;
@@ -69,7 +75,23 @@ interface SharedListsState {
   addItem: (listId: string, item: MediaCardItem) => Promise<void>;
   removeItem: (listId: string, mediaId: number, mediaType: 'movie' | 'tv') => Promise<void>;
 
+  // Keyed by SharedListItem.rowId. The store doesn't know the current
+  // user's id (deliberately -- no cross-store import, see addedByName's
+  // resolution in _subscribeRealtime below); callers pass it into
+  // toggleVote and derive "did I vote" themselves from this raw list.
+  voteUserIds: Record<string, string[]>;
+  toggleVote: (listItemRowId: string, currentUserId: string) => Promise<void>;
+
+  // Keyed the same way as `items` (keyOf(mediaType, id)). Read-only, no
+  // realtime -- watch_log isn't in the realtime publication, and watching
+  // something happens outside this screen anyway; refreshed on open/resume.
+  watchSummary: Record<string, number>;
+
   _listItemsByRowId: Record<string, string>;
+  // Resolves realtime DELETE events on list_item_votes, whose payload.old
+  // carries only the vote row's own id -- same problem/solution as
+  // _listItemsByRowId above.
+  _voteRowsById: Record<string, { itemRowId: string; userId: string }>;
 
   _channel: RealtimeChannel | null;
   _subscribeRealtime: (listId: string) => void;
@@ -190,7 +212,10 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
   items: {},
   isDetailLoading: false,
   detailError: null,
+  voteUserIds: {},
+  watchSummary: {},
   _listItemsByRowId: {},
+  _voteRowsById: {},
 
   openList: async (listId) => {
     get()._unsubscribeRealtime();
@@ -199,16 +224,25 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
       activeList: null,
       members: {},
       items: {},
+      voteUserIds: {},
+      watchSummary: {},
       _listItemsByRowId: {},
+      _voteRowsById: {},
       isDetailLoading: true,
       detailError: null,
     });
     try {
-      const [list, members, items] = await Promise.all([
+      const [list, members, items, votes, watchSummary] = await Promise.all([
         fetchListById(listId),
         fetchListMembers(listId),
         fetchListItems(listId),
+        fetchListItemVotes(listId),
+        fetchListWatchSummary(listId),
       ]);
+      const voteUserIds: Record<string, string[]> = {};
+      for (const vote of votes) {
+        (voteUserIds[vote.listItemId] ??= []).push(vote.userId);
+      }
       set({
         activeList: list,
         members: Object.fromEntries(members.map((m) => [m.membershipId, m])),
@@ -216,6 +250,11 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
         _listItemsByRowId: Object.fromEntries(
           items.map((item) => [item.rowId, keyOf(item.mediaType, item.id)]),
         ),
+        voteUserIds,
+        _voteRowsById: Object.fromEntries(
+          votes.map((vote) => [vote.id, { itemRowId: vote.listItemId, userId: vote.userId }]),
+        ),
+        watchSummary,
         isDetailLoading: false,
       });
       get()._subscribeRealtime(listId);
@@ -234,9 +273,53 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
       activeList: null,
       members: {},
       items: {},
+      voteUserIds: {},
+      watchSummary: {},
       _listItemsByRowId: {},
+      _voteRowsById: {},
       detailError: null,
     });
+  },
+
+  // Called when the app returns to the foreground with a list screen open --
+  // mobile WebSockets drop easily in the background, so the realtime channel
+  // may be dead by the time the user comes back. Re-fetches without touching
+  // isDetailLoading/detailError (unlike openList) so the screen doesn't flash
+  // a spinner, then rebuilds the channel in case it went stale.
+  refreshActiveList: async () => {
+    const listId = get().activeListId;
+    if (!listId) return;
+    try {
+      const [list, members, items, votes, watchSummary] = await Promise.all([
+        fetchListById(listId),
+        fetchListMembers(listId),
+        fetchListItems(listId),
+        fetchListItemVotes(listId),
+        fetchListWatchSummary(listId),
+      ]);
+      const voteUserIds: Record<string, string[]> = {};
+      for (const vote of votes) {
+        (voteUserIds[vote.listItemId] ??= []).push(vote.userId);
+      }
+      set({
+        activeList: list,
+        members: Object.fromEntries(members.map((m) => [m.membershipId, m])),
+        items: Object.fromEntries(items.map((item) => [keyOf(item.mediaType, item.id), item])),
+        _listItemsByRowId: Object.fromEntries(
+          items.map((item) => [item.rowId, keyOf(item.mediaType, item.id)]),
+        ),
+        voteUserIds,
+        _voteRowsById: Object.fromEntries(
+          votes.map((vote) => [vote.id, { itemRowId: vote.listItemId, userId: vote.userId }]),
+        ),
+        watchSummary,
+      });
+      get()._unsubscribeRealtime();
+      get()._subscribeRealtime(listId);
+    } catch {
+      // Best-effort refresh; a transient failure just leaves the screen
+      // showing whatever it had before, same as onMembersChange/onListChange.
+    }
   },
 
   inviteMember: async (listId, email) => {
@@ -248,6 +331,10 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
           : {},
       );
       useToastStore.getState().show(i18n.t('toasts.inviteSent', { email }), 'person-add');
+      sendInviteEmail(member.membershipId).catch(() => {
+        // Best-effort: the invite already succeeded, so a notification-email
+        // failure shouldn't surface to the inviter.
+      });
     } catch (err) {
       const message =
         err instanceof SharedListsError ? err.message : 'Something went wrong. Please try again.';
@@ -284,7 +371,14 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
     set((state) => ({
       items: {
         ...state.items,
-        [key]: { ...item, listId, addedBy: '', addedAt: new Date().toISOString(), rowId: '' },
+        [key]: {
+          ...item,
+          listId,
+          addedBy: '',
+          addedByName: '',
+          addedAt: new Date().toISOString(),
+          rowId: '',
+        },
       },
     }));
     useToastStore
@@ -327,6 +421,34 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
     }
   },
 
+  toggleVote: async (listItemRowId, currentUserId) => {
+    const already = (get().voteUserIds[listItemRowId] ?? []).includes(currentUserId);
+    set((state) => {
+      const current = state.voteUserIds[listItemRowId] ?? [];
+      const next = already
+        ? current.filter((id) => id !== currentUserId)
+        : [...current, currentUserId];
+      return { voteUserIds: { ...state.voteUserIds, [listItemRowId]: next } };
+    });
+    try {
+      if (already) {
+        await removeVote(listItemRowId, currentUserId);
+      } else {
+        await castVote(listItemRowId);
+      }
+    } catch (err) {
+      set((state) => {
+        const current = state.voteUserIds[listItemRowId] ?? [];
+        const next = already
+          ? [...current, currentUserId]
+          : current.filter((id) => id !== currentUserId);
+        return { voteUserIds: { ...state.voteUserIds, [listItemRowId]: next } };
+      });
+      useToastStore.getState().show(i18n.t('toasts.genericError'), 'error-outline');
+      throw err;
+    }
+  },
+
   _channel: null,
   _subscribeRealtime: (listId) => {
     const channel = subscribeToList(listId, {
@@ -353,12 +475,65 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
         const row = payload.new as unknown as Parameters<typeof sharedListItemFromRow>[0];
         if (row.list_id !== get().activeListId) return;
 
+        // Realtime postgres_changes payloads carry raw columns only (no
+        // PostgREST embed), so `adder` -- and thus addedByName -- is empty
+        // here. Whoever added it must be an accepted member of this same
+        // list (insert RLS requires is_list_member), so they're already in
+        // the members map loaded by openList; resolve the name from there
+        // instead of an extra round-trip.
         const item = sharedListItemFromRow(row);
+        const adder = Object.values(get().members).find((m) => m.userId === item.addedBy);
+        if (adder) item.addedByName = adder.displayName || adder.email;
         const key = keyOf(item.mediaType, item.id);
         set((state) => ({
           items: { ...state.items, [key]: item },
           _listItemsByRowId: { ...state._listItemsByRowId, [item.rowId]: key },
         }));
+      },
+      onVotesChange: (payload) => {
+        if (payload.eventType === 'DELETE') {
+          // payload.old carries only the vote row's own id -- same
+          // REPLICA IDENTITY DEFAULT limitation as list_items' DELETE.
+          const oldId = (payload.old as { id?: string }).id;
+          if (!oldId) return;
+          const removed = get()._voteRowsById[oldId];
+          if (!removed) return;
+          set((state) => {
+            const voteRowsById = { ...state._voteRowsById };
+            delete voteRowsById[oldId];
+            return {
+              voteUserIds: {
+                ...state.voteUserIds,
+                [removed.itemRowId]: (state.voteUserIds[removed.itemRowId] ?? []).filter(
+                  (id) => id !== removed.userId,
+                ),
+              },
+              _voteRowsById: voteRowsById,
+            };
+          });
+          return;
+        }
+
+        const row = payload.new as { id: string; list_item_id: string; user_id: string };
+        // list_item_votes has no list_id to filter on directly; reuse
+        // _listItemsByRowId (already scoped to the open list) instead.
+        if (!get()._listItemsByRowId[row.list_item_id]) return;
+
+        set((state) => {
+          const current = state.voteUserIds[row.list_item_id] ?? [];
+          // Always (re)register the row id -> {item, user} mapping, even if
+          // this user's vote is already reflected (e.g. the realtime echo
+          // of our own optimistic insert) -- otherwise a later unvote's
+          // DELETE event can't be resolved back to this item/user.
+          const nextUserIds = current.includes(row.user_id) ? current : [...current, row.user_id];
+          return {
+            voteUserIds: { ...state.voteUserIds, [row.list_item_id]: nextUserIds },
+            _voteRowsById: {
+              ...state._voteRowsById,
+              [row.id]: { itemRowId: row.list_item_id, userId: row.user_id },
+            },
+          };
+        });
       },
       onMembersChange: async (payload) => {
         // Subscribed to the whole table; skip members of other lists.
@@ -404,6 +579,8 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
       activeList: null,
       members: {},
       items: {},
+      voteUserIds: {},
+      watchSummary: {},
       detailError: null,
     });
   },

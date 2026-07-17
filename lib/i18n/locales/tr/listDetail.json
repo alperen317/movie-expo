@@ -17,6 +17,13 @@
     "pending": "Bekliyor",
     "addToList": "Listeye Ekle",
     "searchPlaceholder": "Film veya dizi ara...",
-    "popularNow": "Şu an popüler"
+    "popularNow": "Şu an popüler",
+    "timeJustNow": "Az önce",
+    "timeMinutes": "{{count}} dk önce",
+    "timeHours": "{{count}} sa önce",
+    "timeDays": "{{count}} gün önce",
+    "addedByCaption": "{{name}} ekledi · {{time}}",
+    "addedByCaptionSelf": "Sen ekledin · {{time}}",
+    "watchedByCount": "{{watched}}/{{total}} üye izledi"
   }
 }

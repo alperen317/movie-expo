@@ -44,6 +44,8 @@ export default function SharedListDetailScreen() {
   const activeList = useSharedListsStore((state) => state.activeList);
   const members = useSharedListsStore((state) => state.members);
   const items = useSharedListsStore((state) => state.items);
+  const voteUserIds = useSharedListsStore((state) => state.voteUserIds);
+  const watchSummary = useSharedListsStore((state) => state.watchSummary);
   const isDetailLoading = useSharedListsStore((state) => state.isDetailLoading);
   const detailError = useSharedListsStore((state) => state.detailError);
   const openList = useSharedListsStore((state) => state.openList);
@@ -55,6 +57,7 @@ export default function SharedListDetailScreen() {
   const removeMember = useSharedListsStore((state) => state.removeMember);
   const leaveList = useSharedListsStore((state) => state.leaveList);
   const removeItem = useSharedListsStore((state) => state.removeItem);
+  const toggleVote = useSharedListsStore((state) => state.toggleVote);
 
   useEffect(() => {
     if (!id) return;
@@ -66,6 +69,7 @@ export default function SharedListDetailScreen() {
   const itemList = Object.values(items).sort((a, b) => b.addedAt.localeCompare(a.addedAt));
   const isCreator = Boolean(activeList && currentUserId && activeList.createdBy === currentUserId);
   const myMembership = memberList.find((member) => member.userId === currentUserId);
+  const acceptedMemberCount = memberList.filter((member) => member.status === 'accepted').length;
 
   const numColumns = getGridColumns(windowWidth);
   const itemGridData = useMemo(() => padGridRow(itemList, numColumns), [itemList, numColumns]);
@@ -170,17 +174,23 @@ export default function SharedListDetailScreen() {
           keyExtractor={(item, index) =>
             item ? `${item.mediaType}-${item.id}` : `filler-${index}`
           }
-          renderItem={({ item, index }) =>
-            item ? (
+          renderItem={({ item, index }) => {
+            if (!item) return <View style={{ width: CARD_WIDTH }} />;
+            const votes = voteUserIds[item.rowId] ?? [];
+            return (
               <ListItemCard
                 item={item}
                 index={index % numColumns}
+                currentUserId={currentUserId}
+                voteCount={votes.length}
+                votedByMe={Boolean(currentUserId && votes.includes(currentUserId))}
+                onToggleVote={() => currentUserId && toggleVote(item.rowId, currentUserId)}
+                watchedCount={watchSummary[`${item.mediaType}-${item.id}`] ?? 0}
+                memberCount={acceptedMemberCount}
                 onRemove={() => removeItem(item.listId, item.id, item.mediaType)}
               />
-            ) : (
-              <View style={{ width: CARD_WIDTH }} />
-            )
-          }
+            );
+          }}
           columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: GRID_GAP }}
           contentContainerStyle={{ paddingHorizontal: GRID_PADDING, paddingBottom: 120 }}
           showsVerticalScrollIndicator={false}

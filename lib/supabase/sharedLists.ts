@@ -19,6 +19,8 @@ export interface SharedListSummary {
 export interface SharedListItem extends MediaCardItem {
   listId: string;
   addedBy: string;
+  /** Display name (falling back to email) of whoever added this item. */
+  addedByName: string;
   addedAt: string;
   /** Server-side primary key (uuid) of the list_items row. */
   rowId: string;
@@ -75,6 +77,12 @@ function fromInviteRpcError(err: unknown): never {
     throw new SharedListsError(
       'already_invited_or_member',
       'This person is already invited or a member.',
+    );
+  }
+  if (message.includes('rate_limited')) {
+    throw new SharedListsError(
+      'rate_limited',
+      'Too many invites sent. Try again in a few minutes.',
     );
   }
   throw new SharedListsError('unknown', message);
@@ -261,6 +269,16 @@ export async function inviteMemberByEmail(listId: string, email: string): Promis
   return fromMemberRow({ ...(data as MemberRow), member: null });
 }
 
+// Fire-and-forget: the invite itself already succeeded via the RPC above by
+// the time this is called, so a failure here (network blip, Brevo outage)
+// shouldn't surface to the user -- see sharedLists.store.ts's inviteMember.
+export async function sendInviteEmail(membershipId: string): Promise<void> {
+  const { error } = await supabase.functions.invoke('send-list-invite-email', {
+    body: { membershipId },
+  });
+  if (error) throw error;
+}
+
 export async function respondToInvite(membershipId: string, accept: boolean): Promise<void> {
   const { error } = await supabase
     .from('list_members')
@@ -292,6 +310,10 @@ interface ItemRow {
   genre: string | null;
   added_by: string;
   created_at: string;
+  // Only present on the initial REST fetch (a PostgREST embed) -- realtime
+  // postgres_changes payloads carry the raw row only, so this is absent
+  // there and the store backfills addedByName from its members map instead.
+  adder?: { display_name: string | null; email: string } | null;
 }
 
 function fromItemRow(row: ItemRow): SharedListItem {
@@ -305,6 +327,7 @@ function fromItemRow(row: ItemRow): SharedListItem {
     genre: row.genre,
     listId: row.list_id,
     addedBy: row.added_by,
+    addedByName: row.adder?.display_name || row.adder?.email || '',
     addedAt: row.created_at,
     rowId: row.id,
   };
@@ -314,13 +337,13 @@ export async function fetchListItems(listId: string): Promise<SharedListItem[]> 
   const { data, error } = await supabase
     .from('list_items')
     .select(
-      'id, list_id, media_id, media_type, title, poster_path, vote_average, year, genre, added_by, created_at',
+      'id, list_id, media_id, media_type, title, poster_path, vote_average, year, genre, added_by, created_at, adder:profiles!list_items_added_by_fkey(display_name, email)',
     )
     .eq('list_id', listId)
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return (data ?? []).map(fromItemRow);
+  return (data ?? []).map((row) => fromItemRow(row as unknown as ItemRow));
 }
 
 export async function addListItem(listId: string, item: MediaCardItem): Promise<string> {
@@ -365,6 +388,81 @@ export async function removeListItem(
 }
 
 // ---------------------------------------------------------------------------
+// Votes
+// ---------------------------------------------------------------------------
+
+export interface ListItemVote {
+  id: string;
+  listItemId: string;
+  userId: string;
+}
+
+interface VoteRow {
+  id: string;
+  list_item_id: string;
+  user_id: string;
+}
+
+function fromVoteRow(row: VoteRow): ListItemVote {
+  return { id: row.id, listItemId: row.list_item_id, userId: row.user_id };
+}
+
+// list_item_votes has no list_id column (see migration 0016's rationale for
+// not denormalizing it), so scope by list via an inner join through
+// list_items instead.
+export async function fetchListItemVotes(listId: string): Promise<ListItemVote[]> {
+  const { data, error } = await supabase
+    .from('list_item_votes')
+    .select('id, list_item_id, user_id, list_items!inner(list_id)')
+    .eq('list_items.list_id', listId);
+
+  if (error) throw error;
+  return (data ?? []).map((row) => fromVoteRow(row as unknown as VoteRow));
+}
+
+export async function castVote(listItemId: string): Promise<void> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated.');
+
+  const { error } = await supabase
+    .from('list_item_votes')
+    .insert({ list_item_id: listItemId, user_id: user.id });
+  if (error) throw error;
+}
+
+export async function removeVote(listItemId: string, userId: string): Promise<void> {
+  const { error } = await supabase
+    .from('list_item_votes')
+    .delete()
+    .eq('list_item_id', listItemId)
+    .eq('user_id', userId);
+  if (error) throw error;
+}
+
+interface WatchSummaryRow {
+  media_id: number;
+  media_type: 'movie' | 'tv';
+  watched_count: number;
+}
+
+// Keyed the same way as the store's `keyOf` helper (list_items' unique
+// (list_id, media_id, media_type) constraint makes this unambiguous within
+// a single list). Items nobody has watched are simply absent from the RPC
+// result -- callers should treat a missing key as 0.
+export async function fetchListWatchSummary(listId: string): Promise<Record<string, number>> {
+  const { data, error } = await supabase.rpc('get_list_watch_summary', { p_list_id: listId });
+  if (error) throw error;
+
+  const summary: Record<string, number> = {};
+  for (const row of (data ?? []) as WatchSummaryRow[]) {
+    summary[`${row.media_type}-${row.media_id}`] = row.watched_count;
+  }
+  return summary;
+}
+
+// ---------------------------------------------------------------------------
 // Realtime
 // ---------------------------------------------------------------------------
 
@@ -376,6 +474,7 @@ export function subscribeToList(
     onItemsChange?: (payload: ChangePayload) => void;
     onMembersChange?: (payload: ChangePayload) => void;
     onListChange?: (payload: ChangePayload) => void;
+    onVotesChange?: (payload: ChangePayload) => void;
   },
 ): RealtimeChannel {
   // NOTE: list_items / list_members are subscribed WITHOUT a row-level
@@ -396,6 +495,9 @@ export function subscribeToList(
     )
     .on('postgres_changes', { event: '*', schema: 'public', table: 'list_members' }, (payload) =>
       handlers.onMembersChange?.(payload),
+    )
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'list_item_votes' }, (payload) =>
+      handlers.onVotesChange?.(payload),
     )
     .on(
       'postgres_changes',

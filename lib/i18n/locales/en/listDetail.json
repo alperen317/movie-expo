@@ -17,6 +17,13 @@
     "pending": "Pending",
     "addToList": "Add to List",
     "searchPlaceholder": "Search movies or shows...",
-    "popularNow": "Popular right now"
+    "popularNow": "Popular right now",
+    "timeJustNow": "Just now",
+    "timeMinutes": "{{count}}m ago",
+    "timeHours": "{{count}}h ago",
+    "timeDays": "{{count}}d ago",
+    "addedByCaption": "Added by {{name}} · {{time}}",
+    "addedByCaptionSelf": "You added this · {{time}}",
+    "watchedByCount": "{{watched}}/{{total}} members watched"
   }
 }
