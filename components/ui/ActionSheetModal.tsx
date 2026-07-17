@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Modal, Text, View } from 'react-native';
 
 import { AnimatedPressable } from './AnimatedPressable';
@@ -27,6 +28,7 @@ export function ActionSheetModal({
   actions,
   onClose,
 }: ActionSheetModalProps) {
+  const { t } = useTranslation();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View className="flex-1 items-center justify-center bg-background/80 px-margin-mobile">
@@ -63,7 +65,7 @@ export function ActionSheetModal({
           ))}
           <AnimatedPressable onPress={onClose} className="rounded-xl px-4 py-stack-md">
             <Text className="text-center font-sans-semibold text-body-md text-text-secondary">
-              Cancel
+              {t('common.cancel')}
             </Text>
           </AnimatedPressable>
         </View>

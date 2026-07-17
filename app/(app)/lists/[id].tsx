@@ -86,6 +86,8 @@ export default function SharedListDetailScreen() {
       <View className="flex-row items-center gap-3 px-margin-mobile py-stack-md">
         <AnimatedPressable
           onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel={t('a11y.back')}
           className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
         >
           <MaterialIcons name="arrow-back" size={22} color={colors.textPrimary} />

@@ -1,6 +1,15 @@
 {
   "home": {
     "trendingThisWeek": "Trending This Week",
-    "popularTvShows": "Popular TV Shows"
+    "popularTvShows": "Popular TV Shows",
+    "viewAll": "View All",
+    "discoverNow": "Discover Now",
+    "mediaTypeTv": "TV Series",
+    "mediaTypeMovie": "Movie",
+    "importPrompt": {
+      "title": "New here?",
+      "body": "Import your TV Time or Letterboxd history to pick up right where you left off.",
+      "cta": "Import Now"
+    }
   }
 }

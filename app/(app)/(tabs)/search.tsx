@@ -180,7 +180,12 @@ export default function SearchScreen() {
             className="flex-1 py-4 px-3 font-sans text-body-md text-text-primary"
           />
           {query.length > 0 && (
-            <Pressable onPress={() => setQuery('')} hitSlop={8}>
+            <Pressable
+              onPress={() => setQuery('')}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={t('a11y.clearSearch')}
+            >
               <MaterialIcons name="close" size={18} color={colors.icon} />
             </Pressable>
           )}

@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { toMovieCardItem } from './MovieCard';
@@ -16,6 +17,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HERO_HEIGHT = Math.round(SCREEN_HEIGHT * 0.7);
 
 export function HeroSection({ movie, width }: { movie: TMDBMovie; width?: number }) {
+  const { t } = useTranslation();
   const year = movie.release_date?.slice(0, 4);
   const genre = getPrimaryGenre(movie.genre_ids);
   const backdropUri = getBackdropUrl(movie.backdrop_path, 'w1280');
@@ -84,11 +86,17 @@ export function HeroSection({ movie, width }: { movie: TMDBMovie; width?: number
               >
                 <MaterialIcons name="play-arrow" size={20} color="#3f2e00" />
                 <Text className="font-sans-semibold text-title-md text-on-primary">
-                  Discover Now
+                  {t('home.discoverNow')}
                 </Text>
               </Pressable>
               <Pressable
                 onPress={() => toggleWatchlist(cardItem)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isWatchlisted }}
+                accessibilityLabel={t(
+                  isWatchlisted ? 'a11y.removeFromWatchlist' : 'a11y.addToWatchlist',
+                  { title: movie.title },
+                )}
                 className="h-12 w-12 items-center justify-center rounded-full border border-glass-border bg-surface/40"
               >
                 <MaterialIcons name={isWatchlisted ? 'check' : 'add'} size={22} color="#FFFFFF" />

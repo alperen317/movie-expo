@@ -99,6 +99,8 @@ export default function FavoritesScreen() {
               <AnimatedPressable
                 key={tabKey}
                 onPress={() => setActiveTab(tabKey)}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: isActive }}
                 className={`flex-1 items-center rounded-full py-2 ${isActive ? 'bg-primary-container' : ''}`}
               >
                 <Text

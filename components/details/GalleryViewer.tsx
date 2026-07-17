@@ -36,6 +36,11 @@ export function GalleryViewer({ backdrops }: GalleryViewerProps) {
                 <AnimatedPressable
                   key={path}
                   onPress={() => setViewerIndex(index)}
+                  accessibilityRole="imagebutton"
+                  accessibilityLabel={t('a11y.viewImage', {
+                    index: index + 1,
+                    total: backdrops.length,
+                  })}
                   className="overflow-hidden rounded-lg border border-glass-border"
                   style={{ width: 220, height: 124 }}
                 >
@@ -101,6 +106,8 @@ export function GalleryViewer({ backdrops }: GalleryViewerProps) {
           >
             <AnimatedPressable
               onPress={() => setViewerIndex(null)}
+              accessibilityRole="button"
+              accessibilityLabel={t('a11y.close')}
               className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
             >
               <MaterialIcons name="close" size={24} color="#FFFFFF" />

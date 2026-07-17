@@ -92,6 +92,8 @@ export default function ActorScreen() {
       >
         <AnimatedPressable
           onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel={t('a11y.back')}
           className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
         >
           <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />

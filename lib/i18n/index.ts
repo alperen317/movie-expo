@@ -10,6 +10,7 @@ import {
   type LanguagePreference,
 } from './languagePreference';
 
+import enA11y from './locales/en/a11y.json';
 import enActor from './locales/en/actor.json';
 import enAuth from './locales/en/auth.json';
 import enBrowse from './locales/en/browse.json';
@@ -30,6 +31,7 @@ import enProfile from './locales/en/profile.json';
 import enSearch from './locales/en/search.json';
 import enStats from './locales/en/stats.json';
 import enToasts from './locales/en/toasts.json';
+import trA11y from './locales/tr/a11y.json';
 import trActor from './locales/tr/actor.json';
 import trAuth from './locales/tr/auth.json';
 import trBrowse from './locales/tr/browse.json';
@@ -77,6 +79,7 @@ const resources = {
       ...enNotifications,
       ...enToasts,
       ...enGenres,
+      ...enA11y,
     },
   },
   tr: {
@@ -101,6 +104,7 @@ const resources = {
       ...trNotifications,
       ...trToasts,
       ...trGenres,
+      ...trA11y,
     },
   },
 };

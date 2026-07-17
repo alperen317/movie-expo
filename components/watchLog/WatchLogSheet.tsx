@@ -223,6 +223,13 @@ export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheet
                   key={star}
                   onPress={() => setRating(star === starCount ? null : star * 2)}
                   hitSlop={6}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: star <= starCount }}
+                  accessibilityLabel={
+                    star === starCount
+                      ? t('a11y.clearRating')
+                      : t('a11y.rateStars', { count: star })
+                  }
                 >
                   <MaterialIcons
                     name={star <= starCount ? 'star' : 'star-border'}
@@ -253,6 +260,9 @@ export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheet
             <View className="gap-1">
               <Pressable
                 onPress={() => setMarkAllEpisodes((value) => !value)}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: markAllEpisodes }}
+                accessibilityLabel={t('components.watchLog.markEveryEpisode')}
                 className="flex-row items-center gap-2"
               >
                 <View
@@ -277,6 +287,9 @@ export function WatchLogSheet({ visible, item, onClose, seasons }: WatchLogSheet
           {isInWatchlist && (
             <Pressable
               onPress={() => setDropFromWatchlist((value) => !value)}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: dropFromWatchlist }}
+              accessibilityLabel={t('components.watchLog.removeFromWatchlist')}
               className="flex-row items-center gap-2"
             >
               <View

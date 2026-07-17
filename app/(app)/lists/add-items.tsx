@@ -96,6 +96,8 @@ export default function AddItemsScreen() {
       <View className="flex-row items-center gap-2 px-margin-mobile py-stack-md">
         <AnimatedPressable
           onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel={t('a11y.back')}
           className="h-9 w-9 items-center justify-center"
         >
           <MaterialIcons name="arrow-back" size={22} color={colors.textPrimary} />
