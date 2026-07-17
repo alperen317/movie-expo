@@ -90,7 +90,9 @@ function TabBarButton({
 export function FloatingTabBar() {
   const insets = useSafeAreaInsets();
   const { colorScheme } = useColorScheme();
-  const pendingInviteCount = useSharedListsStore((state) => Object.keys(state.pendingInvites).length);
+  const pendingInviteCount = useSharedListsStore(
+    (state) => Object.keys(state.pendingInvites).length,
+  );
 
   return (
     <View
