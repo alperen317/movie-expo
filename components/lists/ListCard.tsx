@@ -4,19 +4,23 @@ import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 
+import { getRelativeTimeParts } from '../../lib/format/relativeTime';
 import type { SharedListSummary } from '../../lib/supabase/sharedLists';
 import { AnimatedPressable } from '../ui/AnimatedPressable';
 import { useThemeColors } from '../../lib/theme/useThemeColors';
 
 function formatUpdatedAt(dateString: string, t: TFunction): string {
-  const diffMs = Date.now() - new Date(dateString).getTime();
-  const diffMinutes = Math.floor(diffMs / 60000);
-  if (diffMinutes < 1) return t('components.listCard.updatedJustNow');
-  if (diffMinutes < 60) return t('components.listCard.updatedMinutes', { count: diffMinutes });
-  const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) return t('components.listCard.updatedHours', { count: diffHours });
-  const diffDays = Math.floor(diffHours / 24);
-  return t('components.listCard.updatedDays', { count: diffDays });
+  const { unit, count } = getRelativeTimeParts(dateString);
+  switch (unit) {
+    case 'now':
+      return t('components.listCard.updatedJustNow');
+    case 'minutes':
+      return t('components.listCard.updatedMinutes', { count });
+    case 'hours':
+      return t('components.listCard.updatedHours', { count });
+    case 'days':
+      return t('components.listCard.updatedDays', { count });
+  }
 }
 
 export function ListCard({ list }: { list: SharedListSummary }) {
