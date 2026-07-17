@@ -43,12 +43,18 @@ export const useAuthStore = create<AuthState>((set) => ({
       .finally(() => {
         supabase.auth
           .getSession()
-          .then(({ data }) => set({ session: data.session, isLoading: false }))
+          .then(({ data }) => {
+            set({ session: data.session, isLoading: false });
+            // Populates the Listeler tab badge on cold start, before the
+            // user ever opens that tab.
+            if (data.session) useSharedListsStore.getState().fetchPendingInvites();
+          })
           .catch(() => set({ session: null, isLoading: false }));
       });
 
     supabase.auth.onAuthStateChange((_event, session) => {
       set({ session });
+      if (session) useSharedListsStore.getState().fetchPendingInvites();
     });
   },
 
