@@ -72,6 +72,17 @@ export interface TMDBCastMember {
   profile_path: string | null;
 }
 
+export interface TMDBCrewMember {
+  id: number;
+  name: string;
+  job: string;
+}
+
+export interface TMDBCreator {
+  id: number;
+  name: string;
+}
+
 export interface TMDBImage {
   file_path: string;
   width: number;
@@ -120,7 +131,7 @@ export interface TMDBMovieDetails {
   release_date: string;
   runtime: number | null;
   genres: TMDBGenreDetail[];
-  credits: { cast: TMDBCastMember[] };
+  credits: { cast: TMDBCastMember[]; crew?: TMDBCrewMember[] };
   release_dates: {
     results: { iso_3166_1: string; release_dates: { certification: string }[] }[];
   };
@@ -158,7 +169,8 @@ export interface TMDBTVShowDetails {
   first_air_date: string;
   episode_run_time: number[];
   genres: TMDBGenreDetail[];
-  credits: { cast: TMDBCastMember[] };
+  credits: { cast: TMDBCastMember[]; crew?: TMDBCrewMember[] };
+  created_by?: TMDBCreator[];
   content_ratings: {
     results: { iso_3166_1: string; rating: string }[];
   };

@@ -40,6 +40,16 @@ export function getSimilarMovies(id: number, page = 1) {
   return tmdbFetch<TMDBDiscoverMovieResponse>(`/movie/${id}/similar`, { page: String(page) });
 }
 
+// Backs the "because you watch <person>" rail: everything TMDB credits the
+// person on (cast or crew), most popular first.
+export function discoverMoviesByPerson(personId: number, page = 1) {
+  return tmdbFetch<TMDBDiscoverMovieResponse>('/discover/movie', {
+    with_people: String(personId),
+    sort_by: 'popularity.desc',
+    page: String(page),
+  });
+}
+
 // The decade rows only want titles that are actually from that decade and have
 // enough votes to be worth recommending, hence the vote_count floor.
 export function discoverMoviesByDecade(decadeStart: number, page = 1) {
