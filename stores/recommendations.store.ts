@@ -7,6 +7,7 @@ import {
 } from '../lib/recommendations/friendsWatched';
 import { buildPersonAffinities, type PersonSignal } from '../lib/recommendations/personSignal';
 import { rankCandidates } from '../lib/recommendations/score';
+import { addDismissed, fetchDismissedKeys } from '../lib/supabase/recommendationFeedback';
 import { buildTasteProfile, type TasteSignal } from '../lib/recommendations/tasteProfile';
 import { getGenreIdByName, normalizeGenreName } from '../lib/tmdb/genres';
 import { getMediaMetadata } from '../lib/tmdb/mediaMetadataCache';
@@ -65,7 +66,15 @@ interface RecommendationsState {
   isPersonalizedLoading: boolean;
   fetchPersonalized: () => Promise<void>;
 
+  /** `${mediaType}-${id}` keys the user marked "not interested". */
+  dismissedKeys: Set<string>;
+  dismiss: (item: MediaCardItem) => void;
+
   reset: () => void;
+}
+
+function withoutKey<T extends MediaCardItem>(items: T[], key: string): T[] {
+  return items.filter((item) => `${item.mediaType}-${item.id}` !== key);
 }
 
 // Credits for the user's favorite titles come from the metadata cache; a
@@ -101,7 +110,7 @@ async function collectPersonSignals(
     .map((result) => result.value);
 }
 
-export const useRecommendationsStore = create<RecommendationsState>((set) => ({
+export const useRecommendationsStore = create<RecommendationsState>((set, get) => ({
   friendsWatched: [],
   isFriendsLoading: false,
   // Social row is optional content: any failure (no lists, RPC error, offline)
@@ -112,9 +121,13 @@ export const useRecommendationsStore = create<RecommendationsState>((set) => ({
       // The user's own watch log gates what the row may suggest, so make sure
       // it's loaded before aggregating.
       await useWatchLogStore.getState().fetchWatchLog();
-      const watchedByMe = new Set(
-        useWatchLogStore.getState().entries.map((entry) => `${entry.mediaType}-${entry.id}`),
-      );
+      const dismissedKeys = await fetchDismissedKeys().catch(() => get().dismissedKeys);
+      // The aggregate helper's exclusion set covers "never show this" keys,
+      // so dismissed titles ride along with the user's own watches.
+      const watchedByMe = new Set([
+        ...useWatchLogStore.getState().entries.map((entry) => `${entry.mediaType}-${entry.id}`),
+        ...dismissedKeys,
+      ]);
 
       const lists = await fetchMyLists();
       const listData = await Promise.all(
@@ -129,6 +142,7 @@ export const useRecommendationsStore = create<RecommendationsState>((set) => ({
 
       set({
         friendsWatched: aggregateFriendsWatched(listData, watchedByMe),
+        dismissedKeys,
         isFriendsLoading: false,
       });
     } catch {
@@ -148,10 +162,12 @@ export const useRecommendationsStore = create<RecommendationsState>((set) => ({
   fetchPersonalized: async () => {
     set({ isPersonalizedLoading: true });
     try {
-      await Promise.all([
+      const [, , dismissedKeys] = await Promise.all([
         useWatchLogStore.getState().fetchWatchLog(),
         useListsStore.getState().fetchWatchlist(),
+        fetchDismissedKeys().catch(() => get().dismissedKeys),
       ]);
+      set({ dismissedKeys });
       const entries = useWatchLogStore.getState().entries;
       if (entries.length < MIN_SIGNALS) {
         set({
@@ -177,6 +193,7 @@ export const useRecommendationsStore = create<RecommendationsState>((set) => ({
       const excludeKeys = new Set<string>([
         ...entries.map((entry) => `${entry.mediaType}-${entry.id}`),
         ...Object.keys(useListsStore.getState().watchlist),
+        ...dismissedKeys,
       ]);
 
       const topGenres = profile.topGenres.slice(0, 2);
@@ -253,6 +270,37 @@ export const useRecommendationsStore = create<RecommendationsState>((set) => ({
     }
   },
 
+  dismissedKeys: new Set<string>(),
+  // Optimistic: the title disappears from every rail immediately; the server
+  // write happens in the background and is tolerated to fail (the key stays
+  // excluded for this session either way).
+  dismiss: (item) => {
+    const key = `${item.mediaType}-${item.id}`;
+    set((state) => ({
+      dismissedKeys: new Set([...state.dismissedKeys, key]),
+      forYou: withoutKey(state.forYou, key),
+      friendsWatched: withoutKey(state.friendsWatched, key),
+      genreRows: state.genreRows
+        .map((row) => ({ ...row, items: withoutKey(row.items, key) }))
+        .filter((row) => row.items.length > 0),
+      decadeRow:
+        state.decadeRow === null
+          ? null
+          : (() => {
+              const items = withoutKey(state.decadeRow.items, key);
+              return items.length > 0 ? { ...state.decadeRow, items } : null;
+            })(),
+      personRow:
+        state.personRow === null
+          ? null
+          : (() => {
+              const items = withoutKey(state.personRow.items, key);
+              return items.length > 0 ? { ...state.personRow, items } : null;
+            })(),
+    }));
+    addDismissed(item.mediaType, item.id).catch(() => {});
+  },
+
   reset: () =>
     set({
       friendsWatched: [],
@@ -261,6 +309,7 @@ export const useRecommendationsStore = create<RecommendationsState>((set) => ({
       genreRows: [],
       decadeRow: null,
       personRow: null,
+      dismissedKeys: new Set<string>(),
       isPersonalizedLoading: false,
     }),
 }));

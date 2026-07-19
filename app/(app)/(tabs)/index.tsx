@@ -1,6 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -16,10 +16,16 @@ import { ContinueWatchingRow } from '../../../components/home/ContinueWatchingRo
 import { HeroCarousel } from '../../../components/home/HeroCarousel';
 import { ImportPromptCard } from '../../../components/home/ImportPromptCard';
 import { MediaRow } from '../../../components/home/MediaRow';
-import { toMovieCardItem, toTVCardItem } from '../../../components/home/MovieCard';
+import {
+  toMovieCardItem,
+  toTVCardItem,
+  type MediaCardItem,
+} from '../../../components/home/MovieCard';
+import { ActionSheetModal } from '../../../components/ui/ActionSheetModal';
 import { useEpisodeProgressStore } from '../../../stores/episodeProgress.store';
 import { useMovieStore } from '../../../stores/movie.store';
 import { useRecommendationsStore } from '../../../stores/recommendations.store';
+import { useToastStore } from '../../../stores/toast.store';
 import { useWatchLogStore } from '../../../stores/watchLog.store';
 
 export default function HomeScreen() {
@@ -48,6 +54,13 @@ export default function HomeScreen() {
   const genreRows = useRecommendationsStore((state) => state.genreRows);
   const decadeRow = useRecommendationsStore((state) => state.decadeRow);
   const personRow = useRecommendationsStore((state) => state.personRow);
+  // Long-pressed recommendation card awaiting a "not interested" confirm.
+  const [dismissTarget, setDismissTarget] = useState<MediaCardItem | null>(null);
+
+  const handleDismiss = (item: MediaCardItem) => {
+    useRecommendationsStore.getState().dismiss(item);
+    useToastStore.getState().show(t('toasts.notInterested', { title: item.title }), 'thumb-down');
+  };
 
   useEffect(() => {
     fetchTrendingMovies();
@@ -90,15 +103,22 @@ export default function HomeScreen() {
         >
           <HeroCarousel movies={heroSlides} />
           {hasEpisodeProgress || hasWatchLog ? <ContinueWatchingRow /> : <ImportPromptCard />}
-          {forYou.length > 0 && <MediaRow title={t('home.forYou')} items={forYou} />}
+          {forYou.length > 0 && (
+            <MediaRow title={t('home.forYou')} items={forYou} onItemLongPress={setDismissTarget} />
+          )}
           {friendsWatched.length > 0 && (
-            <MediaRow title={t('home.friendsWatched')} items={friendsWatched} />
+            <MediaRow
+              title={t('home.friendsWatched')}
+              items={friendsWatched}
+              onItemLongPress={setDismissTarget}
+            />
           )}
           {genreRows.map((row) => (
             <MediaRow
               key={row.genre}
               title={t('home.becauseYouLike', { genre: row.genre })}
               items={row.items}
+              onItemLongPress={setDismissTarget}
               onViewAll={
                 row.movieGenreId !== null
                   ? () =>
@@ -118,6 +138,7 @@ export default function HomeScreen() {
             <MediaRow
               title={t('home.becauseYouWatched', { name: personRow.personName })}
               items={personRow.items}
+              onItemLongPress={setDismissTarget}
               onViewAll={() =>
                 router.push({
                   pathname: '/list/[source]',
@@ -134,6 +155,7 @@ export default function HomeScreen() {
             <MediaRow
               title={t('home.decadePicks', { decade: decadeRow.decade })}
               items={decadeRow.items}
+              onItemLongPress={setDismissTarget}
             />
           )}
           {rest.length > 0 && (
@@ -183,6 +205,23 @@ export default function HomeScreen() {
           )}
         </ScrollView>
       )}
+
+      <ActionSheetModal
+        visible={dismissTarget !== null}
+        title={dismissTarget?.title}
+        onClose={() => setDismissTarget(null)}
+        actions={
+          dismissTarget
+            ? [
+                {
+                  label: t('home.notInterested'),
+                  destructive: true,
+                  onPress: () => handleDismiss(dismissTarget),
+                },
+              ]
+            : []
+        }
+      />
     </SafeAreaView>
   );
 }

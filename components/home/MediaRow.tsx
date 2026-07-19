@@ -9,10 +9,13 @@ export function MediaRow({
   title,
   items,
   onViewAll,
+  onItemLongPress,
 }: {
   title: string;
   items: MediaCardItem[];
   onViewAll?: () => void;
+  // Forwarded to each card; recommendation rails use it for "not interested".
+  onItemLongPress?: (item: MediaCardItem) => void;
 }) {
   const { t } = useTranslation();
   return (
@@ -41,7 +44,13 @@ export function MediaRow({
         keyExtractor={(item) => `${item.mediaType}-${item.id}`}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16, gap: 16 }}
-        renderItem={({ item, index }) => <MovieCard item={item} index={index} />}
+        renderItem={({ item, index }) => (
+          <MovieCard
+            item={item}
+            index={index}
+            onLongPress={onItemLongPress ? () => onItemLongPress(item) : undefined}
+          />
+        )}
       />
     </View>
   );

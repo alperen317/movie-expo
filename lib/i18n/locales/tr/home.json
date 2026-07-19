@@ -18,6 +18,7 @@
     "becauseYouLike": "{{genre}} Sevdiğin İçin",
     "decadePicks": "{{decade}}'lar Tam Senlik",
     "friendsWatched": "Liste Arkadaşların İzledi",
-    "becauseYouWatched": "{{name}} İzlediğin İçin"
+    "becauseYouWatched": "{{name}} İzlediğin İçin",
+    "notInterested": "İlgilenmiyorum"
   }
 }
