@@ -19,6 +19,7 @@ import { MediaRow } from '../../../components/home/MediaRow';
 import { toMovieCardItem, toTVCardItem } from '../../../components/home/MovieCard';
 import { useEpisodeProgressStore } from '../../../stores/episodeProgress.store';
 import { useMovieStore } from '../../../stores/movie.store';
+import { useRecommendationsStore } from '../../../stores/recommendations.store';
 import { useWatchLogStore } from '../../../stores/watchLog.store';
 
 export default function HomeScreen() {
@@ -42,12 +43,14 @@ export default function HomeScreen() {
     (state) => Object.keys(state.entries).length > 0,
   );
   const hasWatchLog = useWatchLogStore((state) => state.entries.length > 0);
+  const friendsWatched = useRecommendationsStore((state) => state.friendsWatched);
 
   useEffect(() => {
     fetchTrendingMovies();
     fetchPopularTVShows();
     fetchDiscoverRows();
     useEpisodeProgressStore.getState().fetchProgress();
+    useRecommendationsStore.getState().fetchFriendsWatched();
   }, [fetchTrendingMovies, fetchPopularTVShows, fetchDiscoverRows]);
 
   const heroSlides = trendingMovies.slice(0, 5);
@@ -82,6 +85,9 @@ export default function HomeScreen() {
         >
           <HeroCarousel movies={heroSlides} />
           {hasEpisodeProgress || hasWatchLog ? <ContinueWatchingRow /> : <ImportPromptCard />}
+          {friendsWatched.length > 0 && (
+            <MediaRow title={t('home.friendsWatched')} items={friendsWatched} />
+          )}
           {rest.length > 0 && (
             <MediaRow
               title={t('home.trendingThisWeek')}

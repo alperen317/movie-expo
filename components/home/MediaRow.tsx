@@ -19,22 +19,26 @@ export function MediaRow({
     <View className="mt-section-gap">
       <View className="mb-stack-md flex-row items-end justify-between px-margin-mobile">
         <Text className="text-headline-lg-mobile font-sans-bold text-text-primary">{title}</Text>
-        <AnimatedPressable
-          onPress={onViewAll}
-          accessibilityRole="button"
-          accessibilityLabel={t('a11y.viewAll', { title })}
-          className="flex-row items-center"
-        >
-          <Text className="font-sans-bold text-label-caps uppercase text-on-surface-variant">
-            {t('home.viewAll')}
-          </Text>
-          <MaterialIcons name="chevron-right" size={16} color="#A1A1AA" />
-        </AnimatedPressable>
+        {onViewAll && (
+          <AnimatedPressable
+            onPress={onViewAll}
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.viewAll', { title })}
+            className="flex-row items-center"
+          >
+            <Text className="font-sans-bold text-label-caps uppercase text-on-surface-variant">
+              {t('home.viewAll')}
+            </Text>
+            <MaterialIcons name="chevron-right" size={16} color="#A1A1AA" />
+          </AnimatedPressable>
+        )}
       </View>
       <FlatList
         horizontal
         data={items}
-        keyExtractor={(item) => String(item.id)}
+        // Mixed rows (e.g. friends-watched) can hold a movie and a show with
+        // the same TMDB id, so the key needs the media type too.
+        keyExtractor={(item) => `${item.mediaType}-${item.id}`}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16, gap: 16 }}
         renderItem={({ item, index }) => <MovieCard item={item} index={index} />}
