@@ -14,6 +14,12 @@
         "title": "Henüz izlenen yapım yok",
         "subtitle": "Bir yapımı detay sayfasından izlendi olarak işaretleyince burada görünür."
       }
-    }
+    },
+    "sortTitleLabel": "Sırala",
+    "sortRecent": "Son eklenen",
+    "sortOldest": "En eski",
+    "sortTitle": "Başlık A-Z",
+    "sortRating": "En yüksek puan",
+    "sortYear": "En yeni yıl"
   }
 }

@@ -14,6 +14,12 @@
         "title": "No watched titles yet",
         "subtitle": "Mark a title as watched from its details page to see it here."
       }
-    }
+    },
+    "sortTitleLabel": "Sort by",
+    "sortRecent": "Recently added",
+    "sortOldest": "Oldest first",
+    "sortTitle": "Title A-Z",
+    "sortRating": "Highest rated",
+    "sortYear": "Newest year"
   }
 }
