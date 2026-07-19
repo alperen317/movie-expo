@@ -21,3 +21,33 @@ export function discoverMoviesByGenre(genreId: number, page = 1) {
     page: String(page),
   });
 }
+
+export function getTopRatedMovies(page = 1) {
+  return tmdbFetch<TMDBDiscoverMovieResponse>('/movie/top_rated', { page: String(page) });
+}
+
+export function getUpcomingMovies(page = 1) {
+  return tmdbFetch<TMDBDiscoverMovieResponse>('/movie/upcoming', { page: String(page) });
+}
+
+export function getMovieRecommendations(id: number, page = 1) {
+  return tmdbFetch<TMDBDiscoverMovieResponse>(`/movie/${id}/recommendations`, {
+    page: String(page),
+  });
+}
+
+export function getSimilarMovies(id: number, page = 1) {
+  return tmdbFetch<TMDBDiscoverMovieResponse>(`/movie/${id}/similar`, { page: String(page) });
+}
+
+// The decade rows only want titles that are actually from that decade and have
+// enough votes to be worth recommending, hence the vote_count floor.
+export function discoverMoviesByDecade(decadeStart: number, page = 1) {
+  return tmdbFetch<TMDBDiscoverMovieResponse>('/discover/movie', {
+    'primary_release_date.gte': `${decadeStart}-01-01`,
+    'primary_release_date.lte': `${decadeStart + 9}-12-31`,
+    sort_by: 'popularity.desc',
+    'vote_count.gte': '200',
+    page: String(page),
+  });
+}

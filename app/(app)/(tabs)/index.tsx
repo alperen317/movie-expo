@@ -19,6 +19,7 @@ import { MediaRow } from '../../../components/home/MediaRow';
 import { toMovieCardItem, toTVCardItem } from '../../../components/home/MovieCard';
 import { useEpisodeProgressStore } from '../../../stores/episodeProgress.store';
 import { useMovieStore } from '../../../stores/movie.store';
+import { useRecommendationsStore } from '../../../stores/recommendations.store';
 import { useWatchLogStore } from '../../../stores/watchLog.store';
 
 export default function HomeScreen() {
@@ -31,6 +32,10 @@ export default function HomeScreen() {
     popularTVShows,
     isTVLoading,
     fetchPopularTVShows,
+    topRatedMovies,
+    upcomingMovies,
+    topRatedTVShows,
+    fetchDiscoverRows,
   } = useMovieStore();
   const { height: windowHeight } = useWindowDimensions();
 
@@ -38,12 +43,19 @@ export default function HomeScreen() {
     (state) => Object.keys(state.entries).length > 0,
   );
   const hasWatchLog = useWatchLogStore((state) => state.entries.length > 0);
+  const friendsWatched = useRecommendationsStore((state) => state.friendsWatched);
+  const forYou = useRecommendationsStore((state) => state.forYou);
+  const genreRows = useRecommendationsStore((state) => state.genreRows);
+  const decadeRow = useRecommendationsStore((state) => state.decadeRow);
 
   useEffect(() => {
     fetchTrendingMovies();
     fetchPopularTVShows();
+    fetchDiscoverRows();
     useEpisodeProgressStore.getState().fetchProgress();
-  }, [fetchTrendingMovies, fetchPopularTVShows]);
+    useRecommendationsStore.getState().fetchFriendsWatched();
+    useRecommendationsStore.getState().fetchPersonalized();
+  }, [fetchTrendingMovies, fetchPopularTVShows, fetchDiscoverRows]);
 
   const heroSlides = trendingMovies.slice(0, 5);
   const rest = trendingMovies.slice(5);
@@ -77,6 +89,36 @@ export default function HomeScreen() {
         >
           <HeroCarousel movies={heroSlides} />
           {hasEpisodeProgress || hasWatchLog ? <ContinueWatchingRow /> : <ImportPromptCard />}
+          {forYou.length > 0 && <MediaRow title={t('home.forYou')} items={forYou} />}
+          {friendsWatched.length > 0 && (
+            <MediaRow title={t('home.friendsWatched')} items={friendsWatched} />
+          )}
+          {genreRows.map((row) => (
+            <MediaRow
+              key={row.genre}
+              title={t('home.becauseYouLike', { genre: row.genre })}
+              items={row.items}
+              onViewAll={
+                row.movieGenreId !== null
+                  ? () =>
+                      router.push({
+                        pathname: '/list/[source]',
+                        params: {
+                          source: 'genre-movies',
+                          genreId: String(row.movieGenreId),
+                          title: t('home.becauseYouLike', { genre: row.genre }),
+                        },
+                      })
+                  : undefined
+              }
+            />
+          ))}
+          {decadeRow && (
+            <MediaRow
+              title={t('home.decadePicks', { decade: decadeRow.decade })}
+              items={decadeRow.items}
+            />
+          )}
           {rest.length > 0 && (
             <MediaRow
               title={t('home.trendingThisWeek')}
@@ -92,6 +134,33 @@ export default function HomeScreen() {
               items={popularTVShows.map(toTVCardItem)}
               onViewAll={() =>
                 router.push({ pathname: '/list/[source]', params: { source: 'popular-tv' } })
+              }
+            />
+          )}
+          {topRatedMovies.length > 0 && (
+            <MediaRow
+              title={t('home.topRatedMovies')}
+              items={topRatedMovies.map(toMovieCardItem)}
+              onViewAll={() =>
+                router.push({ pathname: '/list/[source]', params: { source: 'top-rated-movies' } })
+              }
+            />
+          )}
+          {topRatedTVShows.length > 0 && (
+            <MediaRow
+              title={t('home.topRatedTvShows')}
+              items={topRatedTVShows.map(toTVCardItem)}
+              onViewAll={() =>
+                router.push({ pathname: '/list/[source]', params: { source: 'top-rated-tv' } })
+              }
+            />
+          )}
+          {upcomingMovies.length > 0 && (
+            <MediaRow
+              title={t('home.upcomingMovies')}
+              items={upcomingMovies.map(toMovieCardItem)}
+              onViewAll={() =>
+                router.push({ pathname: '/list/[source]', params: { source: 'upcoming-movies' } })
               }
             />
           )}

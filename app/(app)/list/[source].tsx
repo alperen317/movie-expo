@@ -20,11 +20,33 @@ import {
 import { AnimatedPressable, AnimatedView } from '../../../components/ui/AnimatedPressable';
 import { useThemeColors } from '../../../lib/theme/useThemeColors';
 import { toPersonDetails } from '../../../lib/tmdb/details';
-import { discoverMoviesByGenre, getTrendingMovies } from '../../../lib/tmdb/movies';
+import {
+  discoverMoviesByGenre,
+  getMovieRecommendations,
+  getSimilarMovies,
+  getTopRatedMovies,
+  getTrendingMovies,
+  getUpcomingMovies,
+} from '../../../lib/tmdb/movies';
 import { getPersonDetails } from '../../../lib/tmdb/person';
-import { getPopularTVShows } from '../../../lib/tmdb/tv';
+import {
+  getPopularTVShows,
+  getSimilarTVShows,
+  getTopRatedTVShows,
+  getTVRecommendations,
+} from '../../../lib/tmdb/tv';
 
-type Source = 'trending-movies' | 'popular-tv' | 'person-credits' | 'genre-movies';
+type Source =
+  | 'trending-movies'
+  | 'popular-tv'
+  | 'top-rated-movies'
+  | 'top-rated-tv'
+  | 'upcoming-movies'
+  | 'person-credits'
+  | 'genre-movies'
+  | 'recommendations';
+
+type DynamicSource = 'person-credits' | 'genre-movies' | 'recommendations';
 
 interface SourcePage {
   results: MediaCardItem[];
@@ -32,7 +54,7 @@ interface SourcePage {
 }
 
 const SOURCE_CONFIG: Record<
-  Exclude<Source, 'person-credits' | 'genre-movies'>,
+  Exclude<Source, DynamicSource>,
   { titleKey: string; fetchPage: (page: number) => Promise<SourcePage> }
 > = {
   'trending-movies': {
@@ -49,15 +71,38 @@ const SOURCE_CONFIG: Record<
       return { results: data.results.map(toTVCardItem), totalPages: data.total_pages };
     },
   },
+  'top-rated-movies': {
+    titleKey: 'home.topRatedMovies',
+    fetchPage: async (page) => {
+      const data = await getTopRatedMovies(page);
+      return { results: data.results.map(toMovieCardItem), totalPages: data.total_pages };
+    },
+  },
+  'top-rated-tv': {
+    titleKey: 'home.topRatedTvShows',
+    fetchPage: async (page) => {
+      const data = await getTopRatedTVShows(page);
+      return { results: data.results.map(toTVCardItem), totalPages: data.total_pages };
+    },
+  },
+  'upcoming-movies': {
+    titleKey: 'home.upcomingMovies',
+    fetchPage: async (page) => {
+      const data = await getUpcomingMovies(page);
+      return { results: data.results.map(toMovieCardItem), totalPages: data.total_pages };
+    },
+  },
 };
 
 export default function ListScreen() {
   const { t } = useTranslation();
   const colors = useThemeColors();
-  const { source, personId, genreId, title } = useLocalSearchParams<{
+  const { source, personId, genreId, mediaId, mediaType, title } = useLocalSearchParams<{
     source: string;
     personId?: string;
     genreId?: string;
+    mediaId?: string;
+    mediaType?: string;
     title?: string;
   }>();
   const { width: windowWidth } = useWindowDimensions();
@@ -84,11 +129,32 @@ export default function ListScreen() {
         },
       };
     }
+    if (source === 'recommendations' && mediaId) {
+      const isTV = mediaType === 'tv';
+      return {
+        title: title || t('details.moreLikeThis'),
+        fetchPage: async (page) => {
+          // Recommendations dry up for niche titles; fall back to `similar`
+          // on the first page so the screen never opens empty.
+          if (isTV) {
+            let data = await getTVRecommendations(Number(mediaId), page);
+            if (data.results.length === 0 && page === 1) {
+              data = await getSimilarTVShows(Number(mediaId), page);
+            }
+            return { results: data.results.map(toTVCardItem), totalPages: data.total_pages };
+          }
+          let data = await getMovieRecommendations(Number(mediaId), page);
+          if (data.results.length === 0 && page === 1) {
+            data = await getSimilarMovies(Number(mediaId), page);
+          }
+          return { results: data.results.map(toMovieCardItem), totalPages: data.total_pages };
+        },
+      };
+    }
     const staticConfig =
-      SOURCE_CONFIG[source as Exclude<Source, 'person-credits' | 'genre-movies'>] ??
-      SOURCE_CONFIG['trending-movies'];
+      SOURCE_CONFIG[source as Exclude<Source, DynamicSource>] ?? SOURCE_CONFIG['trending-movies'];
     return { title: t(staticConfig.titleKey), fetchPage: staticConfig.fetchPage };
-  }, [source, personId, genreId, title, t]);
+  }, [source, personId, genreId, mediaId, mediaType, title, t]);
 
   const numColumns = getGridColumns(windowWidth);
 

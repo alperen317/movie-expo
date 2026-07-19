@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
-import { getTrendingMovies } from '../lib/tmdb/movies';
-import { getPopularTVShows } from '../lib/tmdb/tv';
+import { getTopRatedMovies, getTrendingMovies, getUpcomingMovies } from '../lib/tmdb/movies';
+import { getPopularTVShows, getTopRatedTVShows } from '../lib/tmdb/tv';
 import type { TMDBMovie, TMDBTVShow } from '../lib/tmdb/types';
 
 interface MovieState {
@@ -14,6 +14,12 @@ interface MovieState {
   isTVLoading: boolean;
   tvError: string | null;
   fetchPopularTVShows: () => Promise<void>;
+
+  topRatedMovies: TMDBMovie[];
+  upcomingMovies: TMDBMovie[];
+  topRatedTVShows: TMDBTVShow[];
+  isDiscoverLoading: boolean;
+  fetchDiscoverRows: () => Promise<void>;
 }
 
 export const useMovieStore = create<MovieState>((set) => ({
@@ -46,6 +52,31 @@ export const useMovieStore = create<MovieState>((set) => ({
         tvError: err instanceof Error ? err.message : 'Failed to load popular TV shows.',
         isTVLoading: false,
       });
+    }
+  },
+
+  topRatedMovies: [],
+  upcomingMovies: [],
+  topRatedTVShows: [],
+  isDiscoverLoading: false,
+  // Discovery rows are secondary content below the fold: they load together
+  // and fail silently (the rest of the home screen still renders).
+  fetchDiscoverRows: async () => {
+    set({ isDiscoverLoading: true });
+    try {
+      const [topRated, upcoming, topRatedTV] = await Promise.all([
+        getTopRatedMovies(),
+        getUpcomingMovies(),
+        getTopRatedTVShows(),
+      ]);
+      set({
+        topRatedMovies: topRated.results,
+        upcomingMovies: upcoming.results,
+        topRatedTVShows: topRatedTV.results,
+        isDiscoverLoading: false,
+      });
+    } catch {
+      set({ isDiscoverLoading: false });
     }
   },
 }));

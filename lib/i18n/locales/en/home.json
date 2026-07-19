@@ -10,6 +10,13 @@
       "title": "New here?",
       "body": "Import your TV Time or Letterboxd history to pick up right where you left off.",
       "cta": "Import Now"
-    }
+    },
+    "topRatedMovies": "Top Rated Movies",
+    "topRatedTvShows": "Top Rated TV Shows",
+    "upcomingMovies": "Coming Soon",
+    "forYou": "Top Picks for You",
+    "becauseYouLike": "Because You Like {{genre}}",
+    "decadePicks": "The {{decade}}s Are Your Thing",
+    "friendsWatched": "Your List Friends Watched"
   }
 }
