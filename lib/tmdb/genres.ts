@@ -1,4 +1,5 @@
 import i18n from '../i18n';
+import { supportedLanguages } from '../i18n/languagePreference';
 
 export const TMDB_GENRE_MAP: Record<number, string> = {
   28: 'Action',
@@ -57,4 +58,32 @@ export function getPrimaryGenre(
   scope: 'movie' | 'tv' = 'movie',
 ): string | null {
   return getAllGenres(genreIds, scope)[0] ?? null;
+}
+
+// Stored genre names (watch_log/saved_media/list_items rows) are localized to
+// whatever the UI language was when the row was written, so the reverse lookup
+// checks the English map plus every supported language's translation.
+export function getGenreIdByName(name: string, scope: 'movie' | 'tv' = 'movie'): number | null {
+  const map = scope === 'tv' ? TMDB_TV_GENRE_MAP : TMDB_GENRE_MAP;
+  for (const [idStr, english] of Object.entries(map)) {
+    const id = Number(idStr);
+    if (english === name) return id;
+    for (const lng of supportedLanguages) {
+      if (i18n.t(`genres.${scope}.${id}`, { defaultValue: english, lng }) === name) return id;
+    }
+  }
+  return null;
+}
+
+// Re-expresses a stored (possibly stale-locale) genre name in the active UI
+// language so taste-profile keys line up with freshly mapped TMDB candidates.
+export function normalizeGenreName(name: string): string {
+  for (const scope of ['movie', 'tv'] as const) {
+    const id = getGenreIdByName(name, scope);
+    if (id !== null) {
+      const map = scope === 'tv' ? TMDB_TV_GENRE_MAP : TMDB_GENRE_MAP;
+      return i18n.t(`genres.${scope}.${id}`, { defaultValue: map[id] });
+    }
+  }
+  return name;
 }
