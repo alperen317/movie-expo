@@ -17,6 +17,7 @@
     "forYou": "Top Picks for You",
     "becauseYouLike": "Because You Like {{genre}}",
     "decadePicks": "The {{decade}}s Are Your Thing",
-    "friendsWatched": "Your List Friends Watched"
+    "friendsWatched": "Your List Friends Watched",
+    "becauseYouWatched": "Because You Watch {{name}}"
   }
 }

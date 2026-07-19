@@ -22,6 +22,7 @@ import { useThemeColors } from '../../../lib/theme/useThemeColors';
 import { toPersonDetails } from '../../../lib/tmdb/details';
 import {
   discoverMoviesByGenre,
+  discoverMoviesByPerson,
   getMovieRecommendations,
   getSimilarMovies,
   getTopRatedMovies,
@@ -43,10 +44,11 @@ type Source =
   | 'top-rated-tv'
   | 'upcoming-movies'
   | 'person-credits'
+  | 'person-movies'
   | 'genre-movies'
   | 'recommendations';
 
-type DynamicSource = 'person-credits' | 'genre-movies' | 'recommendations';
+type DynamicSource = 'person-credits' | 'person-movies' | 'genre-movies' | 'recommendations';
 
 interface SourcePage {
   results: MediaCardItem[];
@@ -117,6 +119,15 @@ export default function ListScreen() {
         fetchPage: async () => {
           const person = toPersonDetails(await getPersonDetails(Number(personId)));
           return { results: person.knownFor, totalPages: 1 };
+        },
+      };
+    }
+    if (source === 'person-movies' && personId) {
+      return {
+        title: title || t('actor.knownFor'),
+        fetchPage: async (page) => {
+          const data = await discoverMoviesByPerson(Number(personId), page);
+          return { results: data.results.map(toMovieCardItem), totalPages: data.total_pages };
         },
       };
     }

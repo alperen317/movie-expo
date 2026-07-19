@@ -17,6 +17,7 @@
     "forYou": "Sana Özel Seçimler",
     "becauseYouLike": "{{genre}} Sevdiğin İçin",
     "decadePicks": "{{decade}}'lar Tam Senlik",
-    "friendsWatched": "Liste Arkadaşların İzledi"
+    "friendsWatched": "Liste Arkadaşların İzledi",
+    "becauseYouWatched": "{{name}} İzlediğin İçin"
   }
 }

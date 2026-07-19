@@ -47,6 +47,7 @@ export default function HomeScreen() {
   const forYou = useRecommendationsStore((state) => state.forYou);
   const genreRows = useRecommendationsStore((state) => state.genreRows);
   const decadeRow = useRecommendationsStore((state) => state.decadeRow);
+  const personRow = useRecommendationsStore((state) => state.personRow);
 
   useEffect(() => {
     fetchTrendingMovies();
@@ -113,6 +114,22 @@ export default function HomeScreen() {
               }
             />
           ))}
+          {personRow && (
+            <MediaRow
+              title={t('home.becauseYouWatched', { name: personRow.personName })}
+              items={personRow.items}
+              onViewAll={() =>
+                router.push({
+                  pathname: '/list/[source]',
+                  params: {
+                    source: 'person-movies',
+                    personId: String(personRow.personId),
+                    title: t('home.becauseYouWatched', { name: personRow.personName }),
+                  },
+                })
+              }
+            />
+          )}
           {decadeRow && (
             <MediaRow
               title={t('home.decadePicks', { decade: decadeRow.decade })}

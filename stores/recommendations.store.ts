@@ -5,10 +5,16 @@ import {
   aggregateFriendsWatched,
   type FriendsWatchedItem,
 } from '../lib/recommendations/friendsWatched';
+import { buildPersonAffinities, type PersonSignal } from '../lib/recommendations/personSignal';
 import { rankCandidates } from '../lib/recommendations/score';
 import { buildTasteProfile, type TasteSignal } from '../lib/recommendations/tasteProfile';
 import { getGenreIdByName, normalizeGenreName } from '../lib/tmdb/genres';
-import { discoverMoviesByDecade, discoverMoviesByGenre } from '../lib/tmdb/movies';
+import { getMediaMetadata } from '../lib/tmdb/mediaMetadataCache';
+import {
+  discoverMoviesByDecade,
+  discoverMoviesByGenre,
+  discoverMoviesByPerson,
+} from '../lib/tmdb/movies';
 import { discoverTVShowsByGenre } from '../lib/tmdb/tv';
 import { fetchListItems, fetchListWatchSummary, fetchMyLists } from '../lib/supabase/sharedLists';
 import { useListsStore } from './lists.store';
@@ -28,6 +34,16 @@ export interface DecadeRow {
   items: MediaCardItem[];
 }
 
+export interface PersonRow {
+  personId: number;
+  personName: string;
+  items: MediaCardItem[];
+}
+
+// How many of the user's highest-rated titles get their credits pulled (via
+// the metadata cache, so repeat visits cost zero TMDB requests).
+const PERSON_SAMPLE_SIZE = 20;
+
 // Personalization needs at least a few watches before genre weights mean
 // anything; below this the home screen sticks to the cold-start rows.
 const MIN_SIGNALS = 3;
@@ -45,10 +61,44 @@ interface RecommendationsState {
   forYou: MediaCardItem[];
   genreRows: GenreRow[];
   decadeRow: DecadeRow | null;
+  personRow: PersonRow | null;
   isPersonalizedLoading: boolean;
   fetchPersonalized: () => Promise<void>;
 
   reset: () => void;
+}
+
+// Credits for the user's favorite titles come from the metadata cache; a
+// missing/failed lookup just drops that title from the person sample.
+async function collectPersonSignals(
+  entries: { mediaType: 'movie' | 'tv'; id: number; rating: number | null }[],
+): Promise<PersonSignal[]> {
+  const seen = new Set<string>();
+  const sample = entries
+    .filter((entry) => {
+      const key = `${entry.mediaType}-${entry.id}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+    .slice(0, PERSON_SAMPLE_SIZE);
+
+  const results = await Promise.allSettled(
+    sample.map(async (entry) => {
+      const metadata = await getMediaMetadata(entry.mediaType, entry.id);
+      return {
+        rating: entry.rating,
+        topCast: metadata.topCast ?? [],
+        director: metadata.director ?? null,
+      };
+    }),
+  );
+  return results
+    .filter((result): result is PromiseFulfilledResult<PersonSignal> => {
+      return result.status === 'fulfilled';
+    })
+    .map((result) => result.value);
 }
 
 export const useRecommendationsStore = create<RecommendationsState>((set) => ({
@@ -89,6 +139,7 @@ export const useRecommendationsStore = create<RecommendationsState>((set) => ({
   forYou: [],
   genreRows: [],
   decadeRow: null,
+  personRow: null,
   isPersonalizedLoading: false,
   // Builds the taste profile from the watch log, pulls candidate pools from
   // TMDB discover for the strongest genres (and a retro decade when one
@@ -103,7 +154,13 @@ export const useRecommendationsStore = create<RecommendationsState>((set) => ({
       ]);
       const entries = useWatchLogStore.getState().entries;
       if (entries.length < MIN_SIGNALS) {
-        set({ forYou: [], genreRows: [], decadeRow: null, isPersonalizedLoading: false });
+        set({
+          forYou: [],
+          genreRows: [],
+          decadeRow: null,
+          personRow: null,
+          isPersonalizedLoading: false,
+        });
         return;
       }
 
@@ -146,6 +203,14 @@ export const useRecommendationsStore = create<RecommendationsState>((set) => ({
       const decadePool =
         decade !== null ? (await discoverMoviesByDecade(decade)).results.map(toMovieCardItem) : [];
 
+      // Favorite-person rail: derive person affinities from the credits of the
+      // user's highest-rated titles, then pull that person's filmography.
+      const personSignals = await collectPersonSignals(entries);
+      const topPerson = buildPersonAffinities(personSignals)[0] ?? null;
+      const personPool = topPerson
+        ? (await discoverMoviesByPerson(topPerson.id)).results.map(toMovieCardItem)
+        : [];
+
       const genreRows: GenreRow[] = genrePools
         .map(({ genre, movieGenreId, pool }) => ({
           genre,
@@ -159,13 +224,28 @@ export const useRecommendationsStore = create<RecommendationsState>((set) => ({
           ? { decade, items: rankCandidates(decadePool, profile, { excludeKeys, limit: 12 }) }
           : null;
 
-      const combinedPool = [...genrePools.flatMap(({ pool }) => pool), ...decadePool];
+      // The person pool is already tightly themed, so rank it purely for
+      // exclusions/diversity; genre affinity ordering still applies within it.
+      const personItems = topPerson
+        ? rankCandidates(personPool, profile, { excludeKeys, limit: 12 })
+        : [];
+      const personRow: PersonRow | null =
+        topPerson && personItems.length > 0
+          ? { personId: topPerson.id, personName: topPerson.name, items: personItems }
+          : null;
+
+      const combinedPool = [
+        ...genrePools.flatMap(({ pool }) => pool),
+        ...decadePool,
+        ...personPool,
+      ];
       const forYou = rankCandidates(combinedPool, profile, { excludeKeys, limit: 20 });
 
       set({
         forYou,
         genreRows,
         decadeRow: decadeRow && decadeRow.items.length > 0 ? decadeRow : null,
+        personRow,
         isPersonalizedLoading: false,
       });
     } catch {
@@ -180,6 +260,7 @@ export const useRecommendationsStore = create<RecommendationsState>((set) => ({
       forYou: [],
       genreRows: [],
       decadeRow: null,
+      personRow: null,
       isPersonalizedLoading: false,
     }),
 }));
