@@ -5,6 +5,26 @@ export function getPopularTVShows(page = 1) {
   return tmdbFetch<TMDBPopularTVResponse>('/tv/popular', { page: String(page) });
 }
 
+export function getTopRatedTVShows(page = 1) {
+  return tmdbFetch<TMDBPopularTVResponse>('/tv/top_rated', { page: String(page) });
+}
+
+export function getTVRecommendations(id: number, page = 1) {
+  return tmdbFetch<TMDBPopularTVResponse>(`/tv/${id}/recommendations`, { page: String(page) });
+}
+
+export function getSimilarTVShows(id: number, page = 1) {
+  return tmdbFetch<TMDBPopularTVResponse>(`/tv/${id}/similar`, { page: String(page) });
+}
+
+export function discoverTVShowsByGenre(genreId: number, page = 1) {
+  return tmdbFetch<TMDBPopularTVResponse>('/discover/tv', {
+    with_genres: String(genreId),
+    sort_by: 'popularity.desc',
+    page: String(page),
+  });
+}
+
 export function getTVShowDetails(id: number) {
   return tmdbFetch<TMDBTVShowDetails>(`/tv/${id}`, {
     append_to_response: 'credits,content_ratings,images,videos,watch/providers',

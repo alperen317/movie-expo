@@ -20,15 +20,24 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GalleryViewer } from '../../../components/details/GalleryViewer';
 import i18n from '../../../lib/i18n';
 import { TrailerModal } from '../../../components/details/TrailerModal';
-import type { MediaCardItem } from '../../../components/home/MovieCard';
+import { MediaRow } from '../../../components/home/MediaRow';
+import {
+  toMovieCardItem,
+  toTVCardItem,
+  type MediaCardItem,
+} from '../../../components/home/MovieCard';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
 import { SeasonAccordion } from '../../../components/watchLog/SeasonAccordion';
 import { WatchLogSheet } from '../../../components/watchLog/WatchLogSheet';
 import { getBackdropUrl, getLogoUrl, getProfileUrl } from '../../../lib/tmdb/config';
 import { MediaDetails, toMovieDetails, toTVDetails } from '../../../lib/tmdb/details';
-import { getMovieDetails } from '../../../lib/tmdb/movies';
+import {
+  getMovieDetails,
+  getMovieRecommendations,
+  getSimilarMovies,
+} from '../../../lib/tmdb/movies';
 import { getEffectiveRegion } from '../../../lib/tmdb/region';
-import { getTVShowDetails } from '../../../lib/tmdb/tv';
+import { getSimilarTVShows, getTVRecommendations, getTVShowDetails } from '../../../lib/tmdb/tv';
 import { useEpisodeProgressStore } from '../../../stores/episodeProgress.store';
 import { useListsStore } from '../../../stores/lists.store';
 import { useProfileStore } from '../../../stores/profile.store';
@@ -53,6 +62,7 @@ export default function DetailsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [isTrailerOpen, setIsTrailerOpen] = useState(false);
   const [isWatchSheetOpen, setIsWatchSheetOpen] = useState(false);
+  const [similarItems, setSimilarItems] = useState<MediaCardItem[]>([]);
 
   const isFavorite = useListsStore((state) =>
     details ? state.isFavorite(details.mediaType, details.id) : false,
@@ -110,6 +120,33 @@ export default function DetailsScreen() {
       cancelled = true;
     };
   }, [id, mediaType, region]);
+
+  // "More Like This" loads independently of the main details request and
+  // fails silently -- the row simply doesn't render when TMDB has nothing.
+  useEffect(() => {
+    let cancelled = false;
+    setSimilarItems([]);
+
+    (async () => {
+      try {
+        if (mediaType === 'tv') {
+          let data = await getTVRecommendations(Number(id));
+          if (data.results.length === 0) data = await getSimilarTVShows(Number(id));
+          if (!cancelled) setSimilarItems(data.results.map(toTVCardItem));
+        } else {
+          let data = await getMovieRecommendations(Number(id));
+          if (data.results.length === 0) data = await getSimilarMovies(Number(id));
+          if (!cancelled) setSimilarItems(data.results.map(toMovieCardItem));
+        }
+      } catch {
+        // Non-critical row; ignore failures.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, mediaType]);
 
   const backdropUri = getBackdropUrl(details?.backdropPath ?? null, 'w1280');
   const metaParts = [details?.year, details?.runtimeLabel, details?.certification].filter(
@@ -390,6 +427,24 @@ export default function DetailsScreen() {
               </View>
             </BlurView>
           </View>
+
+          {similarItems.length > 0 && (
+            <MediaRow
+              title={t('details.moreLikeThis')}
+              items={similarItems.slice(0, 12)}
+              onViewAll={() =>
+                router.push({
+                  pathname: '/list/[source]',
+                  params: {
+                    source: 'recommendations',
+                    mediaId: String(details.id),
+                    mediaType: details.mediaType,
+                    title: t('details.moreLikeThis'),
+                  },
+                })
+              }
+            />
+          )}
         </ScrollView>
       )}
 

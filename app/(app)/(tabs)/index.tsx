@@ -31,6 +31,10 @@ export default function HomeScreen() {
     popularTVShows,
     isTVLoading,
     fetchPopularTVShows,
+    topRatedMovies,
+    upcomingMovies,
+    topRatedTVShows,
+    fetchDiscoverRows,
   } = useMovieStore();
   const { height: windowHeight } = useWindowDimensions();
 
@@ -42,8 +46,9 @@ export default function HomeScreen() {
   useEffect(() => {
     fetchTrendingMovies();
     fetchPopularTVShows();
+    fetchDiscoverRows();
     useEpisodeProgressStore.getState().fetchProgress();
-  }, [fetchTrendingMovies, fetchPopularTVShows]);
+  }, [fetchTrendingMovies, fetchPopularTVShows, fetchDiscoverRows]);
 
   const heroSlides = trendingMovies.slice(0, 5);
   const rest = trendingMovies.slice(5);
@@ -92,6 +97,33 @@ export default function HomeScreen() {
               items={popularTVShows.map(toTVCardItem)}
               onViewAll={() =>
                 router.push({ pathname: '/list/[source]', params: { source: 'popular-tv' } })
+              }
+            />
+          )}
+          {topRatedMovies.length > 0 && (
+            <MediaRow
+              title={t('home.topRatedMovies')}
+              items={topRatedMovies.map(toMovieCardItem)}
+              onViewAll={() =>
+                router.push({ pathname: '/list/[source]', params: { source: 'top-rated-movies' } })
+              }
+            />
+          )}
+          {topRatedTVShows.length > 0 && (
+            <MediaRow
+              title={t('home.topRatedTvShows')}
+              items={topRatedTVShows.map(toTVCardItem)}
+              onViewAll={() =>
+                router.push({ pathname: '/list/[source]', params: { source: 'top-rated-tv' } })
+              }
+            />
+          )}
+          {upcomingMovies.length > 0 && (
+            <MediaRow
+              title={t('home.upcomingMovies')}
+              items={upcomingMovies.map(toMovieCardItem)}
+              onViewAll={() =>
+                router.push({ pathname: '/list/[source]', params: { source: 'upcoming-movies' } })
               }
             />
           )}

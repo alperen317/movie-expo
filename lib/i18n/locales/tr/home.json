@@ -10,6 +10,13 @@
       "title": "Yeni misin?",
       "body": "TV Time veya Letterboxd geçmişini içe aktar, kaldığın yerden devam et.",
       "cta": "Şimdi İçe Aktar"
-    }
+    },
+    "topRatedMovies": "En Yüksek Puanlı Filmler",
+    "topRatedTvShows": "En Yüksek Puanlı Diziler",
+    "upcomingMovies": "Yakında Gelenler",
+    "forYou": "Sana Özel Seçimler",
+    "becauseYouLike": "{{genre}} Sevdiğin İçin",
+    "decadePicks": "{{decade}}'lar Tam Senlik",
+    "friendsWatched": "Liste Arkadaşların İzledi"
   }
 }
