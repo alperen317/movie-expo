@@ -13,19 +13,23 @@ belge kalanları önceliklendirilmiş halde tutar.
 ## 1. Derin bağlantı + içerik paylaşımı
 
 **Efor:** Orta · **Değer:** Yüksek (büyüme/viral döngü)
+**Durum (2026-07-20):** Scheme tabanlı kısım uygulandı — kalan iş yalnızca
+web fallback (aşağıya bakın).
 
-Altyapı hazır ama kullanılmıyor: `app.json`'da `previously` scheme'i tanımlı,
-`expo-linking` ve `expo-sharing` kurulu; buna rağmen hiçbir ekran
-paylaşılabilir link üretmiyor.
-
-- Detay ekranına "Paylaş" butonu: `previously://details/{id}?type={movie|tv}`
-  + uygulaması olmayanlar için web fallback URL'i.
-- Paylaşımlı liste davetlerinde koda ek olarak tıklanabilir davet linki
-  (`previously://join/{code}`); `InviteModal.tsx` zaten `Share.share`
-  kullanıyor, yalnızca mesaja link eklemek kalıyor.
-- Expo Router derin bağlantıları dosya-tabanlı rotalarla otomatik eşler;
-  yapılacak iş çoğunlukla gelen linki karşılayıp doğru ekrana düşürmek ve
-  oturum yoksa girişten sonra hedefe devam etmek.
+- ✅ Detay ekranına "Paylaş" butonu: `previously://details/{id}?type={movie|tv}`.
+- ✅ Davet linki: `InviteModal.tsx`'in paylaşım mesajına kod yanında
+  tıklanabilir `previously://join/{code}` linki eklendi.
+- ✅ Gelen linki karşılayan `app/(app)/join/[code].tsx` rotası eklendi
+  (koda göre listeye katılıp `lists/[id]`'e yönlendiriyor).
+- ✅ Oturum yoksa girişten sonra hedefe devam: `(app)/_layout.tsx` artık
+  `pendingRedirect`'i auth store'a yazıyor, `login.tsx`/`sign-up.tsx` girişten
+  sonra oraya yönlendiriyor (önceden her zaman ana ekrana düşüyordu).
+- ⏸️ **Web fallback URL'i uygulanmadı.** Bunun için gerçek bir domain +
+  universal links altyapısı (iOS `associatedDomains` + hosted
+  `apple-app-site-association`, Android `assetlinks.json`, `app.json`
+  değişikliği + native rebuild) gerekiyor — ayrı, daha büyük bir iş. Domain
+  hazır olduğunda ele alınacak; şimdilik uygulaması olmayan biri linke
+  tıklarsa hiçbir şey olmaz.
 
 ## 2. Davet/anket push bildirimleri
 

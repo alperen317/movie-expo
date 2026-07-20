@@ -22,6 +22,7 @@
     "removeFromWatchlist": "{{title}} izleme listesinden çıkar",
     "addToFavorites": "{{title}} favorilere ekle",
     "removeFromFavorites": "{{title}} favorilerden çıkar",
+    "share": "{{title}} paylaş",
     "openActor": "{{name}}",
     "openDetails": "{{title}}, {{type}}",
     "typeMovie": "film",

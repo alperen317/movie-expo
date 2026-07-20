@@ -22,6 +22,7 @@
     "removeFromWatchlist": "Remove {{title}} from watchlist",
     "addToFavorites": "Add {{title}} to favorites",
     "removeFromFavorites": "Remove {{title}} from favorites",
+    "share": "Share {{title}}",
     "openActor": "{{name}}",
     "openDetails": "{{title}}, {{type}}",
     "typeMovie": "movie",

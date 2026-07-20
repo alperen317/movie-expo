@@ -16,6 +16,9 @@ interface AuthState {
   isSubmitting: boolean;
   error: string | null;
   needsEmailConfirmation: boolean;
+  pendingRedirect: string | null;
+  setPendingRedirect: (path: string) => void;
+  consumePendingRedirect: () => string | null;
   initialize: () => void;
   signIn: (email: string, password: string, rememberMe: boolean) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
@@ -26,12 +29,21 @@ interface AuthState {
   signOut: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   session: null,
   isLoading: true,
   isSubmitting: false,
   error: null,
   needsEmailConfirmation: false,
+  pendingRedirect: null,
+
+  setPendingRedirect: (path) => set({ pendingRedirect: path }),
+
+  consumePendingRedirect: () => {
+    const path = get().pendingRedirect;
+    if (path) set({ pendingRedirect: null });
+    return path;
+  },
 
   initialize: () => {
     // Restore the "remember me" choice before reading the stored session, then
@@ -168,7 +180,13 @@ export const useAuthStore = create<AuthState>((set) => ({
     // Explicitly clear the session. Relying solely on the onAuthStateChange
     // listener can leave a stale truthy session momentarily, which makes the
     // login screen immediately redirect back into the app (sign-out "not working").
-    set({ session: null, isLoading: false, error: null, needsEmailConfirmation: false });
+    set({
+      session: null,
+      isLoading: false,
+      error: null,
+      needsEmailConfirmation: false,
+      pendingRedirect: null,
+    });
     useListsStore.getState().reset();
     useSharedListsStore.getState().reset();
     useWatchLogStore.getState().reset();

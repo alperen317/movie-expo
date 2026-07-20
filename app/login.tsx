@@ -1,5 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { Redirect, router } from 'expo-router';
+import { Redirect, router, type Href } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
@@ -17,11 +17,14 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  // Captured once on mount so a re-render after the first consumption (e.g.
+  // React StrictMode's double-invoke) can't reset the redirect target to '/'.
+  const [redirectTarget] = useState(() => useAuthStore.getState().consumePendingRedirect() ?? '/');
 
   const canSubmit = email.length > 0 && password.length > 0 && !isSubmitting;
 
   if (session) {
-    return <Redirect href="/" />;
+    return <Redirect href={redirectTarget as Href} />;
   }
 
   return (

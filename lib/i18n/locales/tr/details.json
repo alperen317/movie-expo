@@ -11,6 +11,7 @@
     "seasons": "Sezonlar",
     "synopsis": "Özet",
     "cast": "Oyuncular",
-    "moreLikeThis": "Buna Benzerler"
+    "moreLikeThis": "Buna Benzerler",
+    "shareMessage": "Previously'de {{title}} yapımına göz at — {{link}}"
   }
 }

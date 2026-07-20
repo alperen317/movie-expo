@@ -11,6 +11,7 @@
     "seasons": "Seasons",
     "synopsis": "Synopsis",
     "cast": "Cast",
-    "moreLikeThis": "More Like This"
+    "moreLikeThis": "More Like This",
+    "shareMessage": "Check out {{title}} on Previously — {{link}}"
   }
 }

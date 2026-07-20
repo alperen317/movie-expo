@@ -2,6 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as ExpoLinking from 'expo-linking';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +12,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  Share,
   Text,
   useWindowDimensions,
   View,
@@ -76,6 +78,14 @@ export default function DetailsScreen() {
     details ? state.isWatched(details.mediaType, details.id) : false,
   );
   const region = getEffectiveRegion(useProfileStore((state) => state.profile?.watchRegion));
+
+  const handleShare = () => {
+    if (!details) return;
+    const link = ExpoLinking.createURL(`details/${details.id}`, {
+      queryParams: { type: details.mediaType },
+    });
+    Share.share({ message: t('details.shareMessage', { title: details.title, link }) });
+  };
 
   const cardItem: MediaCardItem | null = useMemo(() => {
     if (!details) return null;
@@ -193,21 +203,32 @@ export default function DetailsScreen() {
         >
           <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />
         </AnimatedPressable>
-        <AnimatedPressable
-          onPress={() => cardItem && toggleFavorite(cardItem)}
-          accessibilityRole="button"
-          accessibilityState={{ selected: isFavorite }}
-          accessibilityLabel={t(isFavorite ? 'a11y.removeFromFavorites' : 'a11y.addToFavorites', {
-            title: details?.title ?? '',
-          })}
-          className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
-        >
-          <MaterialIcons
-            name={isFavorite ? 'favorite' : 'favorite-border'}
-            size={20}
-            color="#FF6B6B"
-          />
-        </AnimatedPressable>
+        <View className="flex-row gap-2">
+          <AnimatedPressable
+            onPress={handleShare}
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.share', { title: details?.title ?? '' })}
+            className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
+          >
+            <MaterialIcons name="ios-share" size={18} color="#FFFFFF" />
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => cardItem && toggleFavorite(cardItem)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isFavorite }}
+            accessibilityLabel={t(
+              isFavorite ? 'a11y.removeFromFavorites' : 'a11y.addToFavorites',
+              { title: details?.title ?? '' },
+            )}
+            className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
+          >
+            <MaterialIcons
+              name={isFavorite ? 'favorite' : 'favorite-border'}
+              size={20}
+              color="#FF6B6B"
+            />
+          </AnimatedPressable>
+        </View>
       </View>
 
       {isLoading && (

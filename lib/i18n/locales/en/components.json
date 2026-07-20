@@ -13,14 +13,15 @@
       "enterEmail": "Enter an email address.",
       "sendFailed": "Failed to send invite.",
       "sendInvite": "Send Invite",
-      "shareMessage": "Join my list on Previously — use code {{code}}"
+      "shareMessage": "Join my list on Previously — use code {{code}}\n{{link}}"
     },
     "joinCode": {
       "title": "Join a List",
       "subtitle": "Enter the code someone shared with you.",
       "enterCode": "Enter a list code.",
       "joinFailed": "Failed to join list.",
-      "join": "Join"
+      "join": "Join",
+      "backToApp": "Back to Previously"
     },
     "listName": {
       "placeholder": "e.g. Movies to watch together",

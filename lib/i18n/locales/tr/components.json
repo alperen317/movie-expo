@@ -13,14 +13,15 @@
       "enterEmail": "Bir e-posta adresi gir.",
       "sendFailed": "Davet gönderilemedi.",
       "sendInvite": "Davet Gönder",
-      "shareMessage": "Previously'de listeme katıl — kod: {{code}}"
+      "shareMessage": "Previously'de listeme katıl — kod: {{code}}\n{{link}}"
     },
     "joinCode": {
       "title": "Bir Listeye Katıl",
       "subtitle": "Birinin seninle paylaştığı kodu gir.",
       "enterCode": "Bir liste kodu gir.",
       "joinFailed": "Listeye katılınamadı.",
-      "join": "Katıl"
+      "join": "Katıl",
+      "backToApp": "Previously'e Dön"
     },
     "listName": {
       "placeholder": "ör. Birlikte izlenecek filmler",
