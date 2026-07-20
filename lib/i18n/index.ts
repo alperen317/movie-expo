@@ -18,6 +18,7 @@ import enCalendar from './locales/en/calendar.json';
 import enCommon from './locales/en/common.json';
 import enComponents from './locales/en/components.json';
 import enDetails from './locales/en/details.json';
+import enDiary from './locales/en/diary.json';
 import enEditProfile from './locales/en/editProfile.json';
 import enGenres from './locales/en/genres.json';
 import enHome from './locales/en/home.json';
@@ -39,6 +40,7 @@ import trCalendar from './locales/tr/calendar.json';
 import trCommon from './locales/tr/common.json';
 import trComponents from './locales/tr/components.json';
 import trDetails from './locales/tr/details.json';
+import trDiary from './locales/tr/diary.json';
 import trEditProfile from './locales/tr/editProfile.json';
 import trGenres from './locales/tr/genres.json';
 import trHome from './locales/tr/home.json';
@@ -70,6 +72,7 @@ const resources = {
       ...enStats,
       ...enLegal,
       ...enDetails,
+      ...enDiary,
       ...enActor,
       ...enImport,
       ...enEditProfile,
@@ -95,6 +98,7 @@ const resources = {
       ...trStats,
       ...trLegal,
       ...trDetails,
+      ...trDiary,
       ...trActor,
       ...trImport,
       ...trEditProfile,

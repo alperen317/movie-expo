@@ -87,6 +87,7 @@ export function MovieCard({
   item,
   index,
   onPress,
+  onLongPress,
   selected,
 }: {
   item: MediaCardItem;
@@ -95,6 +96,9 @@ export function MovieCard({
   // (e.g. picking items for a shared list) where tapping a card should
   // trigger a different action instead of leaving the screen.
   onPress?: () => void;
+  // Optional long-press action (e.g. "not interested" on recommendation
+  // rails); no-op when omitted.
+  onLongPress?: () => void;
   // Draws a selected-state ring/checkmark overlay. Used together with
   // `onPress` for multi-select style pickers.
   selected?: boolean;
@@ -116,6 +120,7 @@ export function MovieCard({
               params: { id: String(item.id), type: item.mediaType },
             }))
         }
+        onLongPress={onLongPress}
         accessibilityRole="button"
         accessibilityLabel={t('a11y.openDetails', { title: item.title, type: typeLabel })}
         accessibilityState={selected ? { selected: true } : undefined}

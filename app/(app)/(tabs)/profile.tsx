@@ -201,6 +201,17 @@ export default function ProfileScreen() {
             </AnimatedPressable>
             <View className="h-px bg-glass-border" />
             <AnimatedPressable
+              onPress={() => router.push('/diary')}
+              className="flex-row items-center gap-3 px-4 py-stack-md"
+            >
+              <MaterialIcons name="auto-stories" size={20} color={colors.icon} />
+              <Text className="flex-1 font-sans text-body-md text-text-primary">
+                {t('profile.diary')}
+              </Text>
+              <MaterialIcons name="chevron-right" size={20} color={colors.icon} />
+            </AnimatedPressable>
+            <View className="h-px bg-glass-border" />
+            <AnimatedPressable
               onPress={() => router.push('/calendar')}
               className="flex-row items-center gap-3 px-4 py-stack-md"
             >

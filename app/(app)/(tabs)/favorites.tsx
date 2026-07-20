@@ -1,6 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,7 +14,10 @@ import {
   getGridColumns,
   padGridRow,
 } from '../../../components/home/MovieCard';
+import { ActionSheetModal } from '../../../components/ui/ActionSheetModal';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
+import { MediaFilterBar } from '../../../components/ui/MediaFilterBar';
+import { useMediaTypeGenreFilter } from '../../../lib/hooks/useMediaTypeGenreFilter';
 import { useThemeColors } from '../../../lib/theme/useThemeColors';
 import { useListsStore } from '../../../stores/lists.store';
 import { dedupeWatchLog, useWatchLogStore } from '../../../stores/watchLog.store';
@@ -27,6 +30,16 @@ const EMPTY_ICONS: Record<Tab, React.ComponentProps<typeof MaterialIcons>['name'
   favorites: 'favorite-border',
   watchlist: 'bookmark-border',
   watched: 'history',
+};
+
+type SortOption = 'recent' | 'oldest' | 'title' | 'rating' | 'year';
+
+const SORT_LABEL_KEYS: Record<SortOption, string> = {
+  recent: 'myList.sortRecent',
+  oldest: 'myList.sortOldest',
+  title: 'myList.sortTitle',
+  rating: 'myList.sortRating',
+  year: 'myList.sortYear',
 };
 
 export default function FavoritesScreen() {
@@ -53,15 +66,56 @@ export default function FavoritesScreen() {
   const watchedError = useWatchLogStore((state) => state.error);
   const fetchWatchLog = useWatchLogStore((state) => state.fetchWatchLog);
 
-  const items = useMemo((): MediaCardItem[] => {
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const [sortOption, setSortOption] = useState<SortOption>('recent');
+
+  // Carry the tab-specific "when did this land here" date through as sortDate
+  // so recent/oldest sorting works uniformly across all three tabs.
+  const items = useMemo((): (MediaCardItem & { sortDate: string })[] => {
     if (activeTab === 'favorites') {
-      return Object.values(favorites).sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+      return Object.values(favorites).map((item) => ({ ...item, sortDate: item.savedAt }));
     }
     if (activeTab === 'watchlist') {
-      return Object.values(watchlist).sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+      return Object.values(watchlist).map((item) => ({ ...item, sortDate: item.savedAt }));
     }
-    return dedupeWatchLog(watchLogEntries);
+    return dedupeWatchLog(watchLogEntries).map((item) => ({ ...item, sortDate: item.watchedAt }));
   }, [activeTab, favorites, watchlist, watchLogEntries]);
+
+  const {
+    mediaTypeFilter,
+    setMediaTypeFilter,
+    genreFilter,
+    setGenreFilter,
+    availableGenres,
+    filteredItems,
+    clearFilters,
+  } = useMediaTypeGenreFilter(items);
+
+  // Each tab has its own genre universe; a filter picked on one tab would
+  // silently blank out another.
+  useEffect(() => {
+    clearFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  const sortedItems = useMemo(() => {
+    return [...filteredItems].sort((a, b) => {
+      switch (sortOption) {
+        case 'recent':
+          return b.sortDate.localeCompare(a.sortDate);
+        case 'oldest':
+          return a.sortDate.localeCompare(b.sortDate);
+        case 'title':
+          return a.title.localeCompare(b.title);
+        case 'rating':
+          return b.voteAverage - a.voteAverage;
+        case 'year':
+          return (b.year ?? '').localeCompare(a.year ?? '');
+        default:
+          return 0;
+      }
+    });
+  }, [filteredItems, sortOption]);
 
   const isLoading =
     activeTab === 'favorites'
@@ -83,7 +137,7 @@ export default function FavoritesScreen() {
         : fetchWatchLog;
 
   const numColumns = getGridColumns(windowWidth);
-  const gridData = useMemo(() => padGridRow(items, numColumns), [items, numColumns]);
+  const gridData = useMemo(() => padGridRow(sortedItems, numColumns), [sortedItems, numColumns]);
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
@@ -114,6 +168,29 @@ export default function FavoritesScreen() {
             );
           })}
         </View>
+
+        {items.length > 0 && (
+          <MediaFilterBar
+            mediaTypeFilter={mediaTypeFilter}
+            onMediaTypeFilterChange={setMediaTypeFilter}
+            genreFilter={genreFilter}
+            onGenreFilterChange={setGenreFilter}
+            availableGenres={availableGenres}
+            rightAccessory={
+              <AnimatedPressable
+                onPress={() => setIsSortOpen(true)}
+                accessibilityRole="button"
+                accessibilityLabel={t('a11y.openSortMenu')}
+                className="h-9 flex-row items-center gap-1 rounded-full border border-glass-border bg-surface-container-low px-3"
+              >
+                <MaterialIcons name="sort" size={16} color={colors.textSecondary} />
+                <Text className="font-sans-semibold text-caption text-text-secondary">
+                  {t(SORT_LABEL_KEYS[sortOption])}
+                </Text>
+              </AnimatedPressable>
+            }
+          />
+        )}
       </View>
 
       {isLoading && items.length === 0 && (
@@ -148,7 +225,24 @@ export default function FavoritesScreen() {
         </View>
       )}
 
-      {!error && items.length > 0 && (
+      {!error && items.length > 0 && sortedItems.length === 0 && (
+        <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
+          <MaterialIcons name="filter-alt-off" size={32} color={colors.icon} />
+          <Text className="text-title-md font-sans-semibold text-text-primary">
+            {t('common.noFilterMatches')}
+          </Text>
+          <AnimatedPressable
+            onPress={clearFilters}
+            className="rounded-full border border-glass-border bg-background-blur px-6 py-3"
+          >
+            <Text className="font-sans-semibold text-primary-container">
+              {t('common.clearFilters')}
+            </Text>
+          </AnimatedPressable>
+        </View>
+      )}
+
+      {!error && sortedItems.length > 0 && (
         <FlatList
           key={numColumns}
           data={gridData}
@@ -170,6 +264,16 @@ export default function FavoritesScreen() {
           refreshing={isLoading}
         />
       )}
+
+      <ActionSheetModal
+        visible={isSortOpen}
+        title={t('myList.sortTitleLabel')}
+        onClose={() => setIsSortOpen(false)}
+        actions={(Object.keys(SORT_LABEL_KEYS) as SortOption[]).map((option) => ({
+          label: t(SORT_LABEL_KEYS[option]),
+          onPress: () => setSortOption(option),
+        }))}
+      />
     </SafeAreaView>
   );
 }

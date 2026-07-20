@@ -12,6 +12,7 @@
     "watchLogUpdated": "İzleme kaydı güncellendi",
     "inviteSent": "{{email}} adresine davet gönderildi",
     "addedToSharedList": "{{title}} listeye eklendi",
-    "removedFromSharedList": "{{title}} listeden çıkarıldı"
+    "removedFromSharedList": "{{title}} listeden çıkarıldı",
+    "notInterested": "Anlaşıldı — \"{{title}}\" benzerlerini daha az önereceğiz"
   }
 }

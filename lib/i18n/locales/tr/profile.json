@@ -17,6 +17,7 @@
     "signOut": "Çıkış Yap",
     "deleteAccount": "Hesabı Sil",
     "crashRestart": "Bunun etkili olması için uygulamayı yeniden başlat",
-    "tmdbAttribution": "This product uses the TMDB API but is not endorsed or certified by TMDB."
+    "tmdbAttribution": "This product uses the TMDB API but is not endorsed or certified by TMDB.",
+    "diary": "İzleme Günlüğü"
   }
 }

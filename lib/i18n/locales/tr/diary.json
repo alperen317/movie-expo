@@ -1,0 +1,10 @@
+{
+  "diary": {
+    "title": "İzleme Günlüğü",
+    "rewatch": "Tekrar izleme",
+    "empty": {
+      "title": "Henüz izleme kaydı yok",
+      "subtitle": "Bir şeyi izlendi olarak işaretle, gün gün burada görünsün."
+    }
+  }
+}

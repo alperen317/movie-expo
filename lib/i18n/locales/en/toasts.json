@@ -12,6 +12,7 @@
     "watchLogUpdated": "Watch log updated",
     "inviteSent": "Invite sent to {{email}}",
     "addedToSharedList": "{{title}} added to list",
-    "removedFromSharedList": "{{title}} removed from list"
+    "removedFromSharedList": "{{title}} removed from list",
+    "notInterested": "Got it — we'll recommend fewer titles like \"{{title}}\""
   }
 }

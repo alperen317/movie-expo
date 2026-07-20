@@ -1,0 +1,10 @@
+{
+  "diary": {
+    "title": "Watch Diary",
+    "rewatch": "Rewatch",
+    "empty": {
+      "title": "No watches logged yet",
+      "subtitle": "Mark something as watched and it will show up here, day by day."
+    }
+  }
+}

@@ -17,6 +17,7 @@
     "signOut": "Sign Out",
     "deleteAccount": "Delete Account",
     "crashRestart": "Restart the app for this to take effect",
-    "tmdbAttribution": "This product uses the TMDB API but is not endorsed or certified by TMDB."
+    "tmdbAttribution": "This product uses the TMDB API but is not endorsed or certified by TMDB.",
+    "diary": "Watch Diary"
   }
 }
