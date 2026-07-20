@@ -216,10 +216,9 @@ export default function DetailsScreen() {
             onPress={() => cardItem && toggleFavorite(cardItem)}
             accessibilityRole="button"
             accessibilityState={{ selected: isFavorite }}
-            accessibilityLabel={t(
-              isFavorite ? 'a11y.removeFromFavorites' : 'a11y.addToFavorites',
-              { title: details?.title ?? '' },
-            )}
+            accessibilityLabel={t(isFavorite ? 'a11y.removeFromFavorites' : 'a11y.addToFavorites', {
+              title: details?.title ?? '',
+            })}
             className="h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-background-blur"
           >
             <MaterialIcons

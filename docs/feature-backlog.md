@@ -72,14 +72,21 @@ anket yalnızca uygulama açıkken (realtime) görünüyor.
 ## 5. Offline dayanıklılık
 
 **Efor:** Orta · **Değer:** Sessiz ama gerçek kalite artışı
+**Durum (2026-07-20):** İlk adım (salt-okunur cache) uygulandı — kalan iş
+isteğe bağlı offline yazma kuyruğu (aşağıya bakın).
 
-- Favoriler / izleme listesi / izleme günlüğü yalnızca Supabase'den
-  okunuyor; bağlantısızken bu ekranlar boş kalıyor.
-- Zustand store'larına AsyncStorage persist katmanı (uygulamada yerleşik
-  desen: `languagePreference`, `themePreference`, `mediaMetadataCache`).
-- İkinci adım (isteğe bağlı): offline yazma kuyruğu — bağlantı gelince
-  izleme kayıtlarını sırayla gönder. İlk adım salt-okunur cache'dir ve tek
-  başına yeterli değer üretir.
+- ✅ `stores/lists.store.ts` (favorites, watchlist) ve
+  `stores/watchLog.store.ts` (entries) artık zustand `persist` middleware'i
+  ile AsyncStorage'a yazılıyor (`createJSONStorage`, yalnızca veri alanları
+  `partialize` edilip loading/error state'i hariç tutuluyor). Bağlantısızken
+  bu ekranlar artık en son bilinen veriyi gösteriyor, boş kalmıyor —
+  `fetchFavorites`/`fetchWatchlist`/`fetchWatchLog` başarısız olduğunda
+  mevcut kod zaten state'i temizlemediği için rehydrate edilen cache olduğu
+  gibi kalıyor. `reset()` (sign-out) çağrısı persisted cache'i de otomatik
+  temizliyor.
+- ⏸️ İkinci adım (isteğe bağlı): offline yazma kuyruğu — bağlantı gelince
+  izleme kayıtlarını sırayla gönder. Şimdilik uygulanmadı; ilk adım
+  salt-okunur cache tek başına yeterli değer üretiyor.
 
 ---
 
