@@ -53,9 +53,8 @@ export interface PendingInvite {
 
 export class SharedListsError extends Error {
   code:
-    | 'user_not_found'
+    | 'invite_failed'
     | 'cannot_invite_self'
-    | 'already_invited_or_member'
     | 'invalid_code'
     | 'not_owner'
     | 'rate_limited'
@@ -73,17 +72,15 @@ export class SharedListsError extends Error {
 
 function fromInviteRpcError(err: unknown): never {
   const message = err instanceof Error ? err.message : String(err);
-  if (message.includes('user_not_found')) {
-    throw new SharedListsError('user_not_found', 'No account found with that email.');
+  // 'invite_failed' covers both "no account with that email" and "already
+  // invited/a member" -- deliberately indistinguishable so a list owner
+  // can't enumerate registered emails by probing arbitrary addresses. See
+  // 0021_invite_enumeration_fix.sql and docs/shared-lists-improvements.md.
+  if (message.includes('invite_failed')) {
+    throw new SharedListsError('invite_failed', "Couldn't send that invite — double-check the email.");
   }
   if (message.includes('cannot_invite_self')) {
     throw new SharedListsError('cannot_invite_self', "You can't invite yourself.");
-  }
-  if (message.includes('already_invited_or_member')) {
-    throw new SharedListsError(
-      'already_invited_or_member',
-      'This person is already invited or a member.',
-    );
   }
   if (message.includes('rate_limited')) {
     throw new SharedListsError(

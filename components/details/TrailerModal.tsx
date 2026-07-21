@@ -28,6 +28,28 @@ function openUrlSafely(url: string) {
   });
 }
 
+// Loading the embed URL directly via source.uri sends no Referer header,
+// which YouTube's player now rejects with error 153. Loading it as an
+// <iframe> with a baseUrl makes the WebView present a valid youtube.com
+// origin/Referer, regardless of RN WebView version header support.
+function buildTrailerHtml(trailerKey: string) {
+  return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>html,body{margin:0;padding:0;background:#000;height:100%;}iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;}</style>
+  </head>
+  <body>
+    <iframe
+      src="https://www.youtube-nocookie.com/embed/${trailerKey}?autoplay=1&playsinline=1&modestbranding=1&rel=0"
+      allow="autoplay; encrypted-media; fullscreen"
+      allowfullscreen
+      referrerpolicy="strict-origin-when-cross-origin"
+    ></iframe>
+  </body>
+</html>`;
+}
+
 export function TrailerModal({ visible, onClose, trailerKey }: TrailerModalProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -41,10 +63,13 @@ export function TrailerModal({ visible, onClose, trailerKey }: TrailerModalProps
             <View style={{ width: windowWidth, height: (windowWidth * 9) / 16 }}>
               <WebView
                 source={{
-                  uri: `https://www.youtube.com/embed/${trailerKey}?autoplay=1&playsinline=1&modestbranding=1&rel=0`,
+                  html: buildTrailerHtml(trailerKey),
+                  baseUrl: 'https://www.youtube.com',
                 }}
+                originWhitelist={['*']}
                 style={{ flex: 1, backgroundColor: '#000000' }}
                 allowsFullscreenVideo
+                allowsInlineMediaPlayback
                 mediaPlaybackRequiresUserAction={false}
                 startInLoadingState
                 renderLoading={() => (

@@ -76,7 +76,7 @@ Auth and data live in Supabase (Postgres + Row Level Security); see `supabase/mi
    npm run web     # web only
    ```
 
-7. **(Store builds only)** `eas.json` defines `development`/`preview`/`production` build profiles, but isn't yet linked to an Expo account/project. Run `npx eas login` then `eas init` once to link one — this writes `extra.eas.projectId` into `app.json`.
+7. **(Store builds only)** `eas.json` defines `development`/`preview`/`production` build profiles. The project is already linked to an Expo account (`extra.eas.projectId` in `app.json`); run `npx eas login` to authenticate before building. If you're forking this into your own Expo project, run `eas init` once to relink `extra.eas.projectId` to your own project.
 
 ## Development
 

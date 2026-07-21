@@ -5,6 +5,11 @@ Bu belge, mevcut paylaşımlı liste özelliğinin (`lists`, `list_members`,
 çıkan, önceliklendirilmiş geliştirme önerilerini içerir. Kapsam yalnızca
 paylaşımlı listelerdir.
 
+> **Durum (2026-07-21):** Listelenen 6 maddeden 5'i uygulandı (aşağıda ✅
+> işaretli). Güvenlik maddesi `0021_invite_enumeration_fix.sql` +
+> `0022_revoke_find_user_id_by_email.sql` ile kapatıldı — bu belgede açık
+> kalan madde kalmadı, geri kalanı geçmiş karar bağlamı olarak tutuluyor.
+
 ## Bağlam
 
 İncelenen dosyalar: `supabase/migrations/0003_shared_lists.sql`,
@@ -24,9 +29,28 @@ temelin üzerine inşa edilir.
 
 ---
 
-## 🔴 Güvenlik — öncelikli
+## ✅ Güvenlik — öncelikli (tamamlandı)
 
 ### E-posta enumeration açığı: `invite_to_list`
+
+**Durum: tamamlandı, iki parça halinde.**
+
+1. `0021_invite_enumeration_fix.sql` — `invite_to_list` içindeki
+   `user_not_found` ve `already_invited_or_member` artık aynı
+   `invite_failed` exception'ını fırlatıyor; istemci de
+   (`lib/supabase/sharedLists.ts`) ikisine tek bir jenerik mesaj döndürüyor.
+2. `0022_revoke_find_user_id_by_email.sql` — **asıl kapatılması gereken
+   delikti.** `find_user_id_by_email` (`0002_profiles.sql`) `authenticated`
+   rolüne doğrudan `grant execute` edilmişti; hiçbir client kodu bunu
+   çağırmıyordu (yalnızca `invite_to_list` içinden SQL-to-SQL çağrılıyordu,
+   ki `security definer` bir fonksiyon sahibinin yetkisiyle çalıştığı için bu
+   grant'a gerek bile yoktu). Sonuç: herhangi bir oturum açmış kullanıcı
+   `supabase.rpc('find_user_id_by_email', { p_email })`'i doğrudan çağırıp
+   rate limit'siz, tek adımda bir e-postanın kayıtlı olup olmadığını
+   öğrenebiliyordu — 1. maddenin düzeltmesi bunu kapsamıyordu, çünkü
+   `invite_to_list`'i hiç uğramadan RPC'ye direkt gidiliyordu.
+
+Aşağıdaki bölüm 1. maddenin orijinal analizini koruyor.
 
 `0003_shared_lists.sql`'deki `invite_to_list` RPC'si (satır 255-287) üç
 farklı sonuç döndürür:
@@ -55,9 +79,13 @@ olduğu unutulmamalı.
 
 ---
 
-## 🟡 Orta öncelik — düşük efor, yüksek ürün değeri
+## 🟡 Orta öncelik — düşük efor, yüksek ürün değeri (tümü tamamlandı)
 
 ### 1. Davet için proaktif bildirim yok
+
+**Durum: tamamlandı.** Davet e-postası `send-list-invite-email` Edge
+Function'ı üzerinden Brevo ile gönderiliyor (`sendInviteEmail`,
+`stores/sharedLists.store.ts`), Listeler sekmesinde bekleyen davet rozeti var.
 
 Bir kullanıcı davet edildiğinde bunu öğrenmenin tek yolu Listeler
 sekmesini açıp "Pending Invites" kartını görmektir
@@ -73,6 +101,9 @@ yok).
 
 ### 2. Öğeye kim/ne zaman eklediği UI'de hiç gösterilmiyor
 
+**Durum: tamamlandı.** `ListItemCard.tsx` artık `addedByFullText` ile
+ekleyen kişinin adını/avatarını ve göreli zamanı gösteriyor.
+
 `SharedListItem.addedBy` ve `addedAt` alanları çekiliyor
 (`lib/supabase/sharedLists.ts:19-25`) ama `ListItemCard` bunları render
 etmiyor. Paylaşımlı bir listede "bunu kim önerdi" sosyal bağlamın önemli
@@ -83,6 +114,9 @@ bir parçası.
 önce" alt metni.
 
 ### 3. Uygulama arka plandan öne gelince realtime yeniden senkronize olmuyor
+
+**Durum: tamamlandı.** `app/_layout.tsx`'teki `AppState` dinleyicisi artık
+`active` olunca `refreshActiveList()` ve `fetchPendingInvites()` çağırıyor.
 
 `openList`/`closeList` yalnızca ekran mount/unmount olduğunda çalışır
 (`app/(app)/lists/[id].tsx:59-63`). Root layout'taki `AppState` dinleyicisi
@@ -97,9 +131,12 @@ yeniden çağırıp store'u tazelemek.
 
 ---
 
-## 🟢 Daha büyük yatırımlar
+## 🟢 Daha büyük yatırımlar (tümü tamamlandı)
 
 ### 4. "Kaçınız izledi?" bilgisi yok
+
+**Durum: tamamlandı.** `get_list_watch_summary` RPC'si
+(`0017_list_watch_summary.sql`) ve `fetchListWatchSummary` ile bağlandı.
 
 Paylaşımlı bir listenin en doğal ihtiyacı: "bu filmi grubun kaçı zaten
 izlemiş" göstermek. `watch_log` kişisel veri olduğu için (RLS ile her
@@ -110,11 +147,17 @@ kullanıcıyı kendi satırlarına kilitliyor), bu README'de belgelenen
 
 ### 5. Sıralama / filtreleme yok
 
+**Durum: tamamlandı.** Liste detay ekranına tür/puan/ekleyen bazlı
+sıralama ve filtre eklendi (commit `ca14c86`).
+
 `fetchListItems` her zaman `created_at desc` sırasıyla döner
 (`lib/supabase/sharedLists.ts:313-324`). Büyüyen bir listede türe, puana
 veya "kim ekledi"ye göre filtreleme/sıralama imkanı yok.
 
 ### 6. "Ne izleyeceğiz?" karar mekanizması yok
+
+**Durum: tamamlandı.** `list_item_votes` yerine zaman sınırlı anketler
+uygulandı (`0018_replace_item_voting_with_polls.sql`, `ActivePollCard.tsx`).
 
 Paylaşımlı liste + basit bir oylama sistemi ("bu akşam ne izleyelim"
 tartışmasını çözen bir özellik) eklenebilir. Küçük bir
@@ -124,14 +167,14 @@ tartışmasını çözen bir özellik) eklenebilir. Küçük bir
 
 ---
 
-## Önerilen sıra
+## Önerilen sıra (tarihsel — tümü tamamlandı)
 
-1. **Güvenlik açığı** (enumeration) — küçük, izole, öncelikli.
+1. **Güvenlik açığı** (enumeration) — küçük, izole, öncelikli. ✅ `0021`
 2. **Realtime resync** (#3) — küçük bir `AppState` düzeltmesi, sessiz veri
-   kaybını önler.
+   kaybını önler. ✅
 3. **Ekleyen kişi gösterimi** (#2) — zaten çekilen veriyi UI'ye taşımak,
-   şema değişikliği gerektirmiyor.
+   şema değişikliği gerektirmiyor. ✅
 4. **Davet bildirimi** (#1) — orta efor, davet kabul oranını doğrudan
-   etkiler.
+   etkiler. ✅
 5. **İzleme özeti** (#4) ve **oylama** (#6) — yeni şema + RPC gerektiren,
-   daha büyük özellikler; kullanıcı geri bildirimine göre önceliklendirilir.
+   daha büyük özellikler; kullanıcı geri bildirimine göre önceliklendirilir. ✅

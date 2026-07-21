@@ -1,0 +1,12 @@
+-- find_user_id_by_email (0002_profiles.sql) was granted directly to
+-- `authenticated`, but it's only ever called from inside invite_to_list
+-- (security definer, executes as its owner -- no grant to `authenticated`
+-- was actually needed for that internal call). No client code calls this
+-- RPC directly (grep across lib/supabase confirms zero references), so the
+-- grant served no purpose except letting any signed-in user run
+-- supabase.rpc('find_user_id_by_email', { p_email }) themselves: an
+-- unthrottled, unambiguous email -> account-exists oracle that completely
+-- bypassed 0021's invite_to_list enumeration fix and 0014's rate limit.
+-- Revoking it is a no-op for the app (nothing client-side used this path)
+-- and closes the real hole -- 0021 only closed a side channel to it.
+revoke execute on function public.find_user_id_by_email(text) from authenticated;
