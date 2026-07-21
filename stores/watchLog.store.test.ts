@@ -159,13 +159,11 @@ describe('watchLog.store', () => {
       const saved: WatchLogEntry = { ...existing, rating: 5, note: 'rewatch, even better' };
       mockUpdateWatchLogEntry.mockResolvedValue(saved);
 
-      await useWatchLogStore
-        .getState()
-        .updateWatch('log-1', {
-          watchedAt: new Date(existing.watchedAt),
-          rating: 5,
-          note: 'rewatch, even better',
-        });
+      await useWatchLogStore.getState().updateWatch('log-1', {
+        watchedAt: new Date(existing.watchedAt),
+        rating: 5,
+        note: 'rewatch, even better',
+      });
 
       expect(useWatchLogStore.getState().entries).toEqual([saved]);
     });
