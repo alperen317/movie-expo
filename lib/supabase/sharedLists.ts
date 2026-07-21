@@ -77,7 +77,10 @@ function fromInviteRpcError(err: unknown): never {
   // can't enumerate registered emails by probing arbitrary addresses. See
   // 0021_invite_enumeration_fix.sql and docs/shared-lists-improvements.md.
   if (message.includes('invite_failed')) {
-    throw new SharedListsError('invite_failed', "Couldn't send that invite — double-check the email.");
+    throw new SharedListsError(
+      'invite_failed',
+      "Couldn't send that invite — double-check the email.",
+    );
   }
   if (message.includes('cannot_invite_self')) {
     throw new SharedListsError('cannot_invite_self', "You can't invite yourself.");

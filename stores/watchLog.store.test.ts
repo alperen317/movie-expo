@@ -92,7 +92,9 @@ describe('watchLog.store', () => {
       mockAddWatchLogEntry.mockRejectedValue(new Error('network down'));
 
       await expect(
-        useWatchLogStore.getState().logWatch(item, { watchedAt: new Date('2026-07-01'), rating: 4 }),
+        useWatchLogStore
+          .getState()
+          .logWatch(item, { watchedAt: new Date('2026-07-01'), rating: 4 }),
       ).rejects.toThrow('network down');
 
       expect(useWatchLogStore.getState().entries).toEqual([]);
@@ -159,7 +161,11 @@ describe('watchLog.store', () => {
 
       await useWatchLogStore
         .getState()
-        .updateWatch('log-1', { watchedAt: new Date(existing.watchedAt), rating: 5, note: 'rewatch, even better' });
+        .updateWatch('log-1', {
+          watchedAt: new Date(existing.watchedAt),
+          rating: 5,
+          note: 'rewatch, even better',
+        });
 
       expect(useWatchLogStore.getState().entries).toEqual([saved]);
     });
@@ -179,7 +185,7 @@ describe('watchLog.store', () => {
   });
 
   describe('derived getters', () => {
-    it('ratingFor returns the most recently watched entry\'s rating', () => {
+    it("ratingFor returns the most recently watched entry's rating", () => {
       useWatchLogStore.setState({
         entries: [
           { ...item, logId: 'log-2', watchedAt: '2026-07-05T00:00:00.000Z', rating: 5, note: null },

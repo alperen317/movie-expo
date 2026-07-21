@@ -2,7 +2,11 @@ import { addDismissed, fetchDismissedKeys } from '../lib/supabase/recommendation
 import { fetchListItems, fetchListWatchSummary, fetchMyLists } from '../lib/supabase/sharedLists';
 import { getGenreIdByName, normalizeGenreName } from '../lib/tmdb/genres';
 import { getMediaMetadata } from '../lib/tmdb/mediaMetadataCache';
-import { discoverMoviesByDecade, discoverMoviesByGenre, discoverMoviesByPerson } from '../lib/tmdb/movies';
+import {
+  discoverMoviesByDecade,
+  discoverMoviesByGenre,
+  discoverMoviesByPerson,
+} from '../lib/tmdb/movies';
 import { discoverTVShowsByGenre } from '../lib/tmdb/tv';
 import { useListsStore } from './lists.store';
 import { useRecommendationsStore } from './recommendations.store';
@@ -112,7 +116,9 @@ describe('recommendations.store', () => {
     it('aggregates watch summaries across every shared list, excluding titles the user already watched', async () => {
       mockUseWatchLogStoreGetState.mockReturnValue({
         fetchWatchLog: jest.fn().mockResolvedValue(undefined),
-        entries: [{ ...item, id: 99, logId: 'log-99', watchedAt: '2026-01-01', rating: null, note: null }],
+        entries: [
+          { ...item, id: 99, logId: 'log-99', watchedAt: '2026-01-01', rating: null, note: null },
+        ],
       });
       mockFetchMyLists.mockResolvedValue([{ id: 'list-1' }]);
       mockFetchListItems.mockResolvedValue([item, { ...item, id: 99, title: 'Already Watched' }]);
@@ -167,18 +173,20 @@ describe('recommendations.store', () => {
     it('builds genre and decade rows from the taste profile and combines them into forYou', async () => {
       mockUseWatchLogStoreGetState.mockReturnValue({
         fetchWatchLog: jest.fn().mockResolvedValue(undefined),
-        entries: [
-          watchLogEntry({ id: 1 }),
-          watchLogEntry({ id: 2 }),
-          watchLogEntry({ id: 3 }),
-        ],
+        entries: [watchLogEntry({ id: 1 }), watchLogEntry({ id: 2 }), watchLogEntry({ id: 3 })],
       });
       mockGetGenreIdByName.mockImplementation((_name: string, scope: string) =>
         scope === 'movie' ? 18 : 118,
       );
       const genreMovie = { ...item, id: 10, title: 'Genre Movie', genres: ['Drama'], year: '1990' };
       const genreShow = { ...item, id: 11, title: 'Genre Show', genres: ['Drama'], year: '1991' };
-      const decadeMovie = { ...item, id: 12, title: 'Decade Movie', genres: ['Drama'], year: '1993' };
+      const decadeMovie = {
+        ...item,
+        id: 12,
+        title: 'Decade Movie',
+        genres: ['Drama'],
+        year: '1993',
+      };
       mockDiscoverMoviesByGenre.mockResolvedValue({ results: [genreMovie] });
       mockDiscoverTVShowsByGenre.mockResolvedValue({ results: [genreShow] });
       mockDiscoverMoviesByDecade.mockResolvedValue({ results: [decadeMovie] });
@@ -189,7 +197,14 @@ describe('recommendations.store', () => {
       const state = useRecommendationsStore.getState();
       expect(state.isPersonalizedLoading).toBe(false);
       expect(state.genreRows).toEqual([
-        { genre: 'Drama', movieGenreId: 18, items: expect.arrayContaining([expect.objectContaining({ id: 10 }), expect.objectContaining({ id: 11 })]) },
+        {
+          genre: 'Drama',
+          movieGenreId: 18,
+          items: expect.arrayContaining([
+            expect.objectContaining({ id: 10 }),
+            expect.objectContaining({ id: 11 }),
+          ]),
+        },
       ]);
       expect(state.decadeRow).toEqual({
         decade: 1990,

@@ -162,9 +162,9 @@ describe('sharedLists.store', () => {
       useSharedListsStore.setState({ items: { 'movie-1': existing } });
       mockRemoveListItem.mockRejectedValue(new Error('network down'));
 
-      await expect(
-        useSharedListsStore.getState().removeItem('list-1', 1, 'movie'),
-      ).rejects.toThrow('network down');
+      await expect(useSharedListsStore.getState().removeItem('list-1', 1, 'movie')).rejects.toThrow(
+        'network down',
+      );
 
       expect(useSharedListsStore.getState().items['movie-1']).toEqual(existing);
     });
@@ -196,9 +196,9 @@ describe('sharedLists.store', () => {
       useSharedListsStore.setState({ pendingInvites: { 'inv-1': invite } });
       mockRespondToInviteRequest.mockRejectedValue(new Error('network down'));
 
-      await expect(
-        useSharedListsStore.getState().respondToInvite('inv-1', false),
-      ).rejects.toThrow('network down');
+      await expect(useSharedListsStore.getState().respondToInvite('inv-1', false)).rejects.toThrow(
+        'network down',
+      );
 
       expect(useSharedListsStore.getState().pendingInvites['inv-1']).toEqual(invite);
     });

@@ -107,9 +107,9 @@ describe('episodeProgress.store', () => {
       useEpisodeProgressStore.setState({ entries: { [episodeKey(2, 1, 1)]: unrelatedEntry } });
       mockMarkEpisodesWatchedBatch.mockRejectedValue(new Error('network down'));
 
-      await expect(
-        useEpisodeProgressStore.getState().markSeason(1, 1, [1, 2, 3]),
-      ).rejects.toThrow('network down');
+      await expect(useEpisodeProgressStore.getState().markSeason(1, 1, [1, 2, 3])).rejects.toThrow(
+        'network down',
+      );
 
       // The optimistic season-1 entries for show 1 are gone, and the
       // pre-existing entry for an unrelated show is exactly as it was --
