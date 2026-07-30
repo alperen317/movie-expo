@@ -1,0 +1,7 @@
+# Normalize line endings: LF in the repo *and* in the working tree on every OS.
+#
+# Without this, `core.autocrlf=true` on Windows checks files out as CRLF while
+# Prettier's `endOfLine` default stays "lf" — so `npm run format:check` flags
+# every source file locally even though CI (Linux, LF checkout) passes.
+# `text=auto` lets git keep detecting binary files and leave them untouched.
+* text=auto eol=lf
