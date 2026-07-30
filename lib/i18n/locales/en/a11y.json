@@ -45,7 +45,6 @@
     "markUpToHere": "Mark all episodes up to {{season}} as watched",
     "markEpisodeWatched": "Mark {{episode}} as watched",
     "markEpisodeUnwatched": "Mark {{episode}} as not watched",
-    "openInYoutube": "Open trailer in YouTube",
     "unmarkWatchedHint": "Press and hold to remove the watched mark"
   }
 }

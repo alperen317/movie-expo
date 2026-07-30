@@ -9,7 +9,6 @@ import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Linking,
-  Platform,
   Pressable,
   ScrollView,
   Share,
@@ -21,7 +20,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GalleryViewer } from '../../../components/details/GalleryViewer';
 import i18n from '../../../lib/i18n';
-import { TrailerModal } from '../../../components/details/TrailerModal';
 import { MediaRow } from '../../../components/home/MediaRow';
 import {
   toMovieCardItem,
@@ -64,7 +62,6 @@ export default function DetailsScreen() {
   const [details, setDetails] = useState<MediaDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isTrailerOpen, setIsTrailerOpen] = useState(false);
   const [isWatchSheetOpen, setIsWatchSheetOpen] = useState(false);
   const [isUnwatchConfirmOpen, setIsUnwatchConfirmOpen] = useState(false);
   const [similarItems, setSimilarItems] = useState<MediaCardItem[]>([]);
@@ -92,6 +89,8 @@ export default function DetailsScreen() {
     });
     Share.share({ message: t('details.shareMessage', { title: details.title, link }) });
   };
+
+  const trailerUrl = details?.trailerKey ? youtubeWatchUrl(details.trailerKey) : null;
 
   const cardItem: MediaCardItem | null = useMemo(() => {
     if (!details) return null;
@@ -287,15 +286,13 @@ export default function DetailsScreen() {
             </View>
 
             <View className="gap-stack-sm">
-              {details.trailerKeys.length > 0 && (
+              {trailerUrl && (
                 <Pressable
-                  onPress={() => {
-                    if (Platform.OS === 'web') {
-                      openUrlSafely(youtubeWatchUrl(details.trailerKeys[0]));
-                    } else {
-                      setIsTrailerOpen(true);
-                    }
-                  }}
+                  // Handed to YouTube rather than embedded: three different
+                  // in-app embed setups were all refused by the player (153,
+                  // then 152 twice), and a youtube.com watch page carries no
+                  // embedding restrictions at all.
+                  onPress={() => openUrlSafely(trailerUrl)}
                   className="flex-row items-center justify-center gap-2 rounded-full bg-primary-container py-4"
                 >
                   <MaterialIcons name="play-arrow" size={22} color="#3f2e00" />
@@ -480,12 +477,6 @@ export default function DetailsScreen() {
           )}
         </ScrollView>
       )}
-
-      <TrailerModal
-        visible={isTrailerOpen}
-        onClose={() => setIsTrailerOpen(false)}
-        trailerKeys={details?.trailerKeys ?? []}
-      />
 
       {cardItem && (
         <WatchLogSheet

@@ -9,7 +9,7 @@ import type {
   TMDBWatchProviderRegion,
   TMDBWatchProviders,
 } from './types';
-import { getTrailerCandidates } from './trailer';
+import { getBestTrailerKey } from './trailer';
 
 export interface MediaCastMember {
   id: number;
@@ -60,8 +60,8 @@ export interface MediaDetails {
   genres: string[];
   cast: MediaCastMember[];
   backdrops: string[];
-  /** YouTube keys to try in order; see lib/tmdb/trailer.ts. Empty when none. */
-  trailerKeys: string[];
+  /** Best YouTube trailer, opened on youtube.com; see lib/tmdb/trailer.ts. */
+  trailerKey: string | null;
   // tv-only; empty/null for movies
   seasons: MediaSeasonSummary[];
   numberOfSeasons: number | null;
@@ -136,7 +136,7 @@ export function toMovieDetails(movie: TMDBMovieDetails, region: string): MediaDe
     genres: movie.genres.map((genre) => genre.name),
     cast: mapCast(movie.credits.cast),
     backdrops: mapBackdrops(movie.images),
-    trailerKeys: getTrailerCandidates(movie.videos),
+    trailerKey: getBestTrailerKey(movie.videos),
     seasons: [],
     numberOfSeasons: null,
     nextEpisodeToAir: null,
@@ -161,7 +161,7 @@ export function toTVDetails(show: TMDBTVShowDetails, region: string): MediaDetai
     genres: show.genres.map((genre) => genre.name),
     cast: mapCast(show.credits.cast),
     backdrops: mapBackdrops(show.images),
-    trailerKeys: getTrailerCandidates(show.videos),
+    trailerKey: getBestTrailerKey(show.videos),
     seasons: (show.seasons ?? [])
       .filter((season) => season.episode_count > 0)
       .map((season) => ({

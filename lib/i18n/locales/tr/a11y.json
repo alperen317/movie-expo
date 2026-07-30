@@ -45,7 +45,6 @@
     "markUpToHere": "{{season}} dahil önceki tüm bölümleri izlendi işaretle",
     "markEpisodeWatched": "{{episode}} izlendi olarak işaretle",
     "markEpisodeUnwatched": "{{episode}} izlenmedi olarak işaretle",
-    "openInYoutube": "Fragmanı YouTube'da aç",
     "unmarkWatchedHint": "İzlendi işaretini kaldırmak için basılı tut"
   }
 }

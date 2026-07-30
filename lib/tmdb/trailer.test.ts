@@ -1,9 +1,4 @@
-import {
-  getTrailerCandidates,
-  MAX_EMBED_ATTEMPTS,
-  nextTrailerAction,
-  youtubeWatchUrl,
-} from './trailer';
+import { getBestTrailerKey, getTrailerCandidates, youtubeWatchUrl } from './trailer';
 
 import type { TMDBVideo, TMDBVideos } from './types';
 
@@ -56,28 +51,18 @@ describe('getTrailerCandidates', () => {
   });
 });
 
-describe('nextTrailerAction', () => {
-  it('advances to the next candidate', () => {
-    expect(nextTrailerAction(['a', 'b', 'c'], 0)).toEqual({ type: 'retry', index: 1 });
+describe('getBestTrailerKey', () => {
+  it('picks the highest-ranked candidate', () => {
+    expect(
+      getBestTrailerKey(
+        videos([video({ key: 'teaser', type: 'Teaser' }), video({ key: 'official' })]),
+      ),
+    ).toBe('official');
   });
 
-  // Regression: a title with many clips used to burn a load-and-fail cycle on
-  // every one of them (7 observed) before handing off, because 15x errors reject
-  // the embedding context rather than the individual video.
-  it('stops retrying after MAX_EMBED_ATTEMPTS even with candidates left', () => {
-    expect(MAX_EMBED_ATTEMPTS).toBe(2);
-    expect(nextTrailerAction(['a', 'b', 'c', 'd', 'e'], 1)).toEqual({ type: 'external', key: 'a' });
-  });
-
-  // The last candidate failing means embedding is not the fixable part any
-  // more, so hand off to YouTube itself.
-  it('falls back to the first candidate externally once retries are exhausted', () => {
-    expect(nextTrailerAction(['a', 'b'], 1)).toEqual({ type: 'external', key: 'a' });
-    expect(nextTrailerAction(['only'], 0)).toEqual({ type: 'external', key: 'only' });
-  });
-
-  it('gives up when there was never a candidate', () => {
-    expect(nextTrailerAction([], 0)).toEqual({ type: 'give-up' });
+  it('is null when nothing is playable', () => {
+    expect(getBestTrailerKey(undefined)).toBeNull();
+    expect(getBestTrailerKey(videos([video({ key: 'vimeo', site: 'Vimeo' })]))).toBeNull();
   });
 });
 
