@@ -11,10 +11,11 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { useColorScheme } from 'nativewind';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { SplashVideo } from '../components/splash/SplashVideo';
 import { applyStoredLanguagePreference } from '../lib/i18n';
 import { applyStoredThemePreference } from '../lib/theme/themePreference';
 import { supabase } from '../lib/supabase/client';
@@ -33,8 +34,10 @@ export default function RootLayout() {
   });
   const isAuthLoading = useAuthStore((state) => state.isLoading);
   const [arePrefsReady, setArePrefsReady] = useState(false);
+  const [isIntroDone, setIsIntroDone] = useState(false);
   const { colorScheme } = useColorScheme();
   const isReady = fontsLoaded && !isAuthLoading && arePrefsReady;
+  const handleIntroFinish = useCallback(() => setIsIntroDone(true), []);
 
   useEffect(() => {
     useAuthStore.getState().initialize();
@@ -61,24 +64,28 @@ export default function RootLayout() {
     return () => subscription.remove();
   }, []);
 
+  // Hand the native splash over to the video overlay as soon as JS is running,
+  // not when everything is ready: both are painted on the same background
+  // colour so the swap has no visible seam, and this way the clip plays *while*
+  // fonts/auth/preferences load behind it instead of adding 2.5s on top.
   useEffect(() => {
-    if (isReady) {
-      SplashScreen.hideAsync();
-    }
-  }, [isReady]);
-
-  if (!isReady) {
-    return null;
-  }
+    SplashScreen.hideAsync();
+  }, []);
 
   return (
     <SafeAreaProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(app)" />
-        <Stack.Screen name="login" />
-        <Stack.Screen name="sign-up" />
-        <Stack.Screen name="forgot-password" />
-      </Stack>
+      {/* Mounted behind the overlay so the first screen is warm by the time the
+          intro clears. Still gated on isReady: a stored language/theme must be
+          applied before any UI renders, or the wrong one flashes first. */}
+      {isReady && (
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(app)" />
+          <Stack.Screen name="login" />
+          <Stack.Screen name="sign-up" />
+          <Stack.Screen name="forgot-password" />
+        </Stack>
+      )}
+      {!(isReady && isIntroDone) && <SplashVideo onFinish={handleIntroFinish} />}
       <StatusBar style={colorScheme === 'light' ? 'dark' : 'light'} />
     </SafeAreaProvider>
   );
