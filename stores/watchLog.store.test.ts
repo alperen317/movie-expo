@@ -1,6 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { addWatchLogEntry, updateWatchLogEntry } from '../lib/supabase/watchLog';
+import {
+  addWatchLogEntry,
+  deleteWatchLogEntries,
+  updateWatchLogEntry,
+} from '../lib/supabase/watchLog';
 import { useListsStore } from './lists.store';
 import { useToastStore } from './toast.store';
 import { dedupeWatchLog, useWatchLogStore } from './watchLog.store';
@@ -22,6 +26,7 @@ jest.mock('../lib/supabase/watchLog', () => ({
   fetchWatchLog: jest.fn(),
   addWatchLogEntry: jest.fn(),
   updateWatchLogEntry: jest.fn(),
+  deleteWatchLogEntries: jest.fn(),
 }));
 
 // The store's dropFromWatchlist branch reaches into lists.store -- mocked as
@@ -33,6 +38,7 @@ jest.mock('./lists.store', () => ({
 
 const mockAddWatchLogEntry = addWatchLogEntry as jest.Mock;
 const mockUpdateWatchLogEntry = updateWatchLogEntry as jest.Mock;
+const mockDeleteWatchLogEntries = deleteWatchLogEntries as jest.Mock;
 const mockUseListsStoreGetState = useListsStore.getState as jest.Mock;
 
 const item: MediaCardItem = {
@@ -51,6 +57,8 @@ describe('watchLog.store', () => {
     useWatchLogStore.setState({ entries: [], isLoading: false, error: null });
     mockAddWatchLogEntry.mockReset();
     mockUpdateWatchLogEntry.mockReset();
+    mockDeleteWatchLogEntries.mockReset();
+    mockDeleteWatchLogEntries.mockResolvedValue(undefined);
     mockUseListsStoreGetState.mockReset();
     mockUseListsStoreGetState.mockReturnValue({
       isInWatchlist: jest.fn(() => false),
@@ -182,6 +190,93 @@ describe('watchLog.store', () => {
     });
   });
 
+  describe('unlogWatch', () => {
+    const first: WatchLogEntry = {
+      ...item,
+      logId: 'log-1',
+      watchedAt: '2026-06-01T00:00:00.000Z',
+      rating: 7,
+      note: 'first watch',
+    };
+    const rewatch: WatchLogEntry = {
+      ...item,
+      logId: 'log-2',
+      watchedAt: '2026-07-01T00:00:00.000Z',
+      rating: 9,
+      note: null,
+    };
+    const otherTitle: WatchLogEntry = {
+      ...item,
+      id: 2,
+      logId: 'log-3',
+      title: 'Dune',
+      watchedAt: '2026-07-02T00:00:00.000Z',
+      rating: null,
+      note: null,
+    };
+
+    // isWatched is "has any row", so a leftover rewatch would keep the title
+    // flagged as watched and the undo would look like it silently failed.
+    it('deletes every entry for the title so isWatched flips back to false', async () => {
+      useWatchLogStore.setState({ entries: [rewatch, first, otherTitle] });
+
+      await useWatchLogStore.getState().unlogWatch(item);
+
+      expect(mockDeleteWatchLogEntries).toHaveBeenCalledWith(['log-2', 'log-1']);
+      expect(useWatchLogStore.getState().entries).toEqual([otherTitle]);
+      expect(useWatchLogStore.getState().isWatched('movie', 1)).toBe(false);
+    });
+
+    it('leaves other titles untouched', async () => {
+      useWatchLogStore.setState({ entries: [rewatch, otherTitle] });
+
+      await useWatchLogStore.getState().unlogWatch(item);
+
+      expect(useWatchLogStore.getState().isWatched('movie', 2)).toBe(true);
+    });
+
+    it('restores the full previous snapshot when the request fails', async () => {
+      useWatchLogStore.setState({ entries: [rewatch, first, otherTitle] });
+      mockDeleteWatchLogEntries.mockRejectedValue(new Error('network down'));
+
+      await expect(useWatchLogStore.getState().unlogWatch(item)).rejects.toThrow('network down');
+
+      expect(useWatchLogStore.getState().entries).toEqual([rewatch, first, otherTitle]);
+      expect(useWatchLogStore.getState().isWatched('movie', 1)).toBe(true);
+    });
+
+    it('is a no-op when the title was never logged', async () => {
+      useWatchLogStore.setState({ entries: [otherTitle] });
+
+      await useWatchLogStore.getState().unlogWatch(item);
+
+      expect(mockDeleteWatchLogEntries).not.toHaveBeenCalled();
+      expect(useWatchLogStore.getState().entries).toEqual([otherTitle]);
+    });
+
+    // A row whose insert is still in flight has no server id to delete; the
+    // optimistic removal hides it and logWatch's own rollback covers failure.
+    it('does not send a pending optimistic id to the server', async () => {
+      useWatchLogStore.setState({
+        entries: [
+          {
+            ...item,
+            logId: 'pending-123',
+            watchedAt: '2026-07-03T00:00:00.000Z',
+            rating: null,
+            note: null,
+          },
+          first,
+        ],
+      });
+
+      await useWatchLogStore.getState().unlogWatch(item);
+
+      expect(mockDeleteWatchLogEntries).toHaveBeenCalledWith(['log-1']);
+      expect(useWatchLogStore.getState().entries).toEqual([]);
+    });
+  });
+
   describe('derived getters', () => {
     it("ratingFor returns the most recently watched entry's rating", () => {
       useWatchLogStore.setState({
@@ -192,6 +287,39 @@ describe('watchLog.store', () => {
       });
 
       expect(useWatchLogStore.getState().ratingFor('movie', 1)).toBe(5);
+    });
+
+    it('watchCountFor counts only the rows for that title', () => {
+      useWatchLogStore.setState({
+        entries: [
+          {
+            ...item,
+            logId: 'log-1',
+            watchedAt: '2026-07-01T00:00:00.000Z',
+            rating: null,
+            note: null,
+          },
+          {
+            ...item,
+            logId: 'log-2',
+            watchedAt: '2026-07-05T00:00:00.000Z',
+            rating: null,
+            note: null,
+          },
+          {
+            ...item,
+            id: 2,
+            logId: 'log-3',
+            watchedAt: '2026-07-06T00:00:00.000Z',
+            rating: null,
+            note: null,
+          },
+        ],
+      });
+
+      expect(useWatchLogStore.getState().watchCountFor('movie', 1)).toBe(2);
+      expect(useWatchLogStore.getState().watchCountFor('movie', 2)).toBe(1);
+      expect(useWatchLogStore.getState().watchCountFor('tv', 1)).toBe(0);
     });
   });
 });

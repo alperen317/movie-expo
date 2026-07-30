@@ -7,6 +7,7 @@
     "addedToWatchlist": "{{title}} added to Watchlist",
     "removedFromWatchlist": "{{title}} removed from Watchlist",
     "markedAsWatched": "{{title}} marked as watched",
+    "unmarkedAsWatched": "{{title}} is no longer marked as watched",
     "seasonMarkedWatched": "Season {{season}} marked as watched",
     "markedThroughSeason": "Marked through Season {{season}}",
     "watchLogUpdated": "Watch log updated",

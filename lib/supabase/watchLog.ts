@@ -117,6 +117,16 @@ export async function addWatchLogEntriesBatch(
   }
 }
 
+// Undoing a "watched" mark deletes every row for that title, not just the
+// latest: the flag the UI shows is "has any watch_log row", so leaving an
+// earlier rewatch behind would keep the title marked watched. RLS scopes the
+// delete to the caller's own rows (see 0006_watch_log.sql).
+export async function deleteWatchLogEntries(logIds: string[]): Promise<void> {
+  if (logIds.length === 0) return;
+  const { error } = await supabase.from('watch_log').delete().in('id', logIds);
+  if (error) throw error;
+}
+
 export async function updateWatchLogEntry(
   logId: string,
   options: { watchedAt: Date; rating: number | null; note?: string | null },

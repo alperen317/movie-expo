@@ -9,6 +9,7 @@
     "markedAsWatched": "{{title}} izlendi olarak işaretlendi",
     "seasonMarkedWatched": "{{season}}. sezon izlendi olarak işaretlendi",
     "markedThroughSeason": "{{season}}. sezona kadar işaretlendi",
+    "unmarkedAsWatched": "{{title}} artık izlendi olarak işaretli değil",
     "watchLogUpdated": "İzleme kaydı güncellendi",
     "inviteSent": "{{email}} adresine davet gönderildi",
     "addedToSharedList": "{{title}} listeye eklendi",

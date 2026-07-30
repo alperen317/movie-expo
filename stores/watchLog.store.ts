@@ -6,6 +6,7 @@ import type { MediaCardItem } from '../components/home/MovieCard';
 import i18n from '../lib/i18n';
 import {
   addWatchLogEntry,
+  deleteWatchLogEntries,
   fetchWatchLog,
   updateWatchLogEntry,
   WatchLogEntry,
@@ -30,6 +31,9 @@ interface WatchLogState {
   ratingFor: (mediaType: 'movie' | 'tv', id: number) => number | null;
   logWatch: (item: MediaCardItem, options: LogWatchOptions) => Promise<void>;
   updateWatch: (logId: string, options: LogWatchOptions) => Promise<void>;
+  /** Count of watch_log rows for a title -- 0, or >1 once rewatched. */
+  watchCountFor: (mediaType: 'movie' | 'tv', id: number) => number;
+  unlogWatch: (item: MediaCardItem) => Promise<void>;
   reset: () => void;
 }
 
@@ -135,6 +139,43 @@ export const useWatchLogStore = create<WatchLogState>()(
           ) {
             await useListsStore.getState().toggleWatchlist(saved, { silent: true });
           }
+        } catch (err) {
+          set({ entries: previous });
+          useToastStore.getState().show(i18n.t('toasts.genericError'), 'error-outline');
+          throw err;
+        }
+      },
+      watchCountFor: (mediaType, id) =>
+        get().entries.filter((entry) => entry.mediaType === mediaType && entry.id === id).length,
+      // Undoes a watched mark. Optimistic like logWatch, and symmetric with it:
+      // isWatched is "has any row", so every row for the title goes, otherwise
+      // an older rewatch would keep the title flagged as watched. Episode
+      // progress is deliberately left alone -- it's a separate concept with its
+      // own screen, and clearing a whole show's progress here would be a much
+      // bigger, unasked-for deletion.
+      unlogWatch: async (item) => {
+        const previous = get().entries;
+        const removed = previous.filter(
+          (entry) => entry.mediaType === item.mediaType && entry.id === item.id,
+        );
+        if (removed.length === 0) return;
+
+        set((state) => ({
+          entries: state.entries.filter(
+            (entry) => !(entry.mediaType === item.mediaType && entry.id === item.id),
+          ),
+        }));
+        useToastStore
+          .getState()
+          .show(i18n.t('toasts.unmarkedAsWatched', { title: item.title }), 'undo');
+
+        try {
+          // A row still pending its insert has no server id yet; the optimistic
+          // removal above already hides it, and logWatch's own rollback covers
+          // the failure case.
+          await deleteWatchLogEntries(
+            removed.map((entry) => entry.logId).filter((logId) => !logId.startsWith('pending-')),
+          );
         } catch (err) {
           set({ entries: previous });
           useToastStore.getState().show(i18n.t('toasts.genericError'), 'error-outline');

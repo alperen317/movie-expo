@@ -28,6 +28,7 @@ import {
   toTVCardItem,
   type MediaCardItem,
 } from '../../../components/home/MovieCard';
+import { ActionSheetModal } from '../../../components/ui/ActionSheetModal';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
 import { SeasonAccordion } from '../../../components/watchLog/SeasonAccordion';
 import { WatchLogSheet } from '../../../components/watchLog/WatchLogSheet';
@@ -64,6 +65,7 @@ export default function DetailsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [isTrailerOpen, setIsTrailerOpen] = useState(false);
   const [isWatchSheetOpen, setIsWatchSheetOpen] = useState(false);
+  const [isUnwatchConfirmOpen, setIsUnwatchConfirmOpen] = useState(false);
   const [similarItems, setSimilarItems] = useState<MediaCardItem[]>([]);
 
   const isFavorite = useListsStore((state) =>
@@ -76,6 +78,9 @@ export default function DetailsScreen() {
   const toggleWatchlist = useListsStore((state) => state.toggleWatchlist);
   const isWatched = useWatchLogStore((state) =>
     details ? state.isWatched(details.mediaType, details.id) : false,
+  );
+  const watchCount = useWatchLogStore((state) =>
+    details ? state.watchCountFor(details.mediaType, details.id) : 0,
   );
   const region = getEffectiveRegion(useProfileStore((state) => state.profile?.watchRegion));
 
@@ -300,6 +305,11 @@ export default function DetailsScreen() {
               )}
               <Pressable
                 onPress={() => setIsWatchSheetOpen(true)}
+                // Long-press undoes the mark. Only offered once something is
+                // logged -- on an unwatched title there is nothing to undo.
+                onLongPress={isWatched ? () => setIsUnwatchConfirmOpen(true) : undefined}
+                accessibilityRole="button"
+                accessibilityHint={isWatched ? t('a11y.unmarkWatchedHint') : undefined}
                 className={`flex-row items-center justify-center gap-2 rounded-full py-4 ${
                   isWatched
                     ? 'bg-primary-container'
@@ -482,6 +492,35 @@ export default function DetailsScreen() {
           item={cardItem}
           onClose={() => setIsWatchSheetOpen(false)}
           seasons={details?.mediaType === 'tv' ? details.seasons : undefined}
+        />
+      )}
+
+      {cardItem && (
+        <ActionSheetModal
+          visible={isUnwatchConfirmOpen}
+          title={t('details.unmarkWatchedTitle')}
+          // Spelled out when rewatches exist: undoing the mark drops all of
+          // them, along with their ratings and notes.
+          message={
+            watchCount > 1
+              ? t('details.unmarkWatchedMessagePlural', { count: watchCount })
+              : t('details.unmarkWatchedMessage')
+          }
+          actions={[
+            {
+              label: t('details.unmarkWatched'),
+              destructive: true,
+              onPress: () => {
+                useWatchLogStore
+                  .getState()
+                  .unlogWatch(cardItem)
+                  // The store already rolled the removal back and raised an
+                  // error toast; nothing left for the screen to do.
+                  .catch(() => {});
+              },
+            },
+          ]}
+          onClose={() => setIsUnwatchConfirmOpen(false)}
         />
       )}
     </View>
