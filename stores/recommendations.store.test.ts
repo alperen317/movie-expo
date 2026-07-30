@@ -74,6 +74,20 @@ const item: MediaCardItem = {
   genres: ['Sci-Fi'],
 };
 
+// Candidates that all share one primary genre (the shape a genre-scoped
+// discover call returns) with descending voteAverage, so ranking order is
+// simply ascending id.
+function dramaPool(count: number): MediaCardItem[] {
+  return Array.from({ length: count }, (_, index) => ({
+    ...item,
+    id: 100 + index,
+    title: `Drama ${index}`,
+    genres: ['Drama'],
+    year: '1995',
+    voteAverage: 10 - index * 0.5,
+  }));
+}
+
 function watchLogEntry(overrides: Partial<WatchLogEntry> = {}): WatchLogEntry {
   return {
     ...item,
@@ -109,6 +123,7 @@ describe('recommendations.store', () => {
       watchlist: {},
     });
     mockFetchDismissedKeys.mockResolvedValue(new Set());
+    mockAddDismissed.mockResolvedValue(undefined);
     mockGetMediaMetadata.mockResolvedValue({ topCast: [], director: null });
   });
 
@@ -129,6 +144,24 @@ describe('recommendations.store', () => {
       const { friendsWatched, isFriendsLoading } = useRecommendationsStore.getState();
       expect(isFriendsLoading).toBe(false);
       expect(friendsWatched).toEqual([{ ...item, friendCount: 2 }]);
+    });
+
+    // Regression: same wholesale-replace race as fetchPersonalized -- the row is
+    // rebuilt at the end from an exclusion set snapshotted before the awaits.
+    it('does not resurrect a title dismissed while the fetch was in flight', async () => {
+      const shared = { ...item, id: 42 };
+      mockFetchMyLists.mockResolvedValue([{ id: 'list-1' }]);
+      mockFetchListItems.mockImplementation(async () => {
+        useRecommendationsStore.getState().dismiss(shared);
+        return [shared];
+      });
+      mockFetchListWatchSummary.mockResolvedValue({ 'movie-42': 3 });
+
+      await useRecommendationsStore.getState().fetchFriendsWatched();
+
+      const state = useRecommendationsStore.getState();
+      expect(state.dismissedKeys.has('movie-42')).toBe(true);
+      expect(state.friendsWatched).toEqual([]);
     });
 
     it('fails silently and clears isFriendsLoading when the request throws', async () => {
@@ -170,7 +203,7 @@ describe('recommendations.store', () => {
       expect(useRecommendationsStore.getState().isPersonalizedLoading).toBe(false);
     });
 
-    it('builds genre and decade rows from the taste profile and combines them into forYou', async () => {
+    it('builds genre and decade rows from the taste profile, leaving forYou empty when every candidate is already in a row', async () => {
       mockUseWatchLogStoreGetState.mockReturnValue({
         fetchWatchLog: jest.fn().mockResolvedValue(undefined),
         entries: [watchLogEntry({ id: 1 }), watchLogEntry({ id: 2 }), watchLogEntry({ id: 3 })],
@@ -210,9 +243,117 @@ describe('recommendations.store', () => {
         decade: 1990,
         items: [expect.objectContaining({ id: 12 })],
       });
-      const forYouIds = state.forYou.map((entry) => entry.id);
-      expect(forYouIds).toEqual(expect.arrayContaining([10, 11, 12]));
+      // All three candidates are spoken for by the genre and decade rows, so
+      // the catch-all rail has nothing left -- it never repeats a themed row.
+      expect(state.forYou).toEqual([]);
       expect(state.personRow).toBeNull();
+    });
+
+    // Regression: rankCandidates caps results per primary genre (default 4) to
+    // keep one genre from swamping a mixed rail. A genre row *is* one genre, so
+    // the cap used to truncate it to 4 of the 12 requested items.
+    it('fills a genre row to its limit even when every candidate shares a primary genre', async () => {
+      const pool = dramaPool(14);
+      mockUseWatchLogStoreGetState.mockReturnValue({
+        fetchWatchLog: jest.fn().mockResolvedValue(undefined),
+        entries: [watchLogEntry({ id: 1 }), watchLogEntry({ id: 2 }), watchLogEntry({ id: 3 })],
+      });
+      mockGetGenreIdByName.mockImplementation((_name: string, scope: string) =>
+        scope === 'movie' ? 18 : 118,
+      );
+      mockDiscoverMoviesByGenre.mockResolvedValue({ results: pool });
+      mockDiscoverTVShowsByGenre.mockResolvedValue({ results: [] });
+      mockDiscoverMoviesByDecade.mockResolvedValue({ results: [] });
+      mockDiscoverMoviesByPerson.mockResolvedValue({ results: [] });
+
+      await useRecommendationsStore.getState().fetchPersonalized();
+
+      const state = useRecommendationsStore.getState();
+      expect(state.genreRows).toHaveLength(1);
+      expect(state.genreRows[0].items.map((entry) => entry.id)).toEqual([
+        100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
+      ]);
+      // The two candidates the row could not fit are what forYou falls back to,
+      // and there is no overlap between the rails.
+      expect(state.forYou.map((entry) => entry.id)).toEqual([112, 113]);
+    });
+
+    // Regression: forYou ranks the union of every pool with the same scorer as
+    // the themed rows, so its top items used to be exactly each row's top items.
+    it('keeps forYou disjoint from every themed row', async () => {
+      mockUseWatchLogStoreGetState.mockReturnValue({
+        fetchWatchLog: jest.fn().mockResolvedValue(undefined),
+        entries: [watchLogEntry({ id: 1 }), watchLogEntry({ id: 2 }), watchLogEntry({ id: 3 })],
+      });
+      mockGetGenreIdByName.mockImplementation((_name: string, scope: string) =>
+        scope === 'movie' ? 18 : 118,
+      );
+      mockDiscoverMoviesByGenre.mockResolvedValue({ results: dramaPool(14) });
+      mockDiscoverTVShowsByGenre.mockResolvedValue({ results: [] });
+      mockDiscoverMoviesByDecade.mockResolvedValue({
+        results: [{ ...item, id: 200, genres: ['Drama'], year: '1994', voteAverage: 9 }],
+      });
+      mockDiscoverMoviesByPerson.mockResolvedValue({ results: [] });
+
+      await useRecommendationsStore.getState().fetchPersonalized();
+
+      const state = useRecommendationsStore.getState();
+      const rowKeys = [
+        ...state.genreRows.flatMap((row) => row.items),
+        ...(state.decadeRow?.items ?? []),
+        ...(state.personRow?.items ?? []),
+      ].map((entry) => `${entry.mediaType}-${entry.id}`);
+      const forYouKeys = state.forYou.map((entry) => `${entry.mediaType}-${entry.id}`);
+
+      expect(state.decadeRow).not.toBeNull();
+      expect(forYouKeys.length).toBeGreaterThan(0);
+      expect(forYouKeys.filter((key) => rowKeys.includes(key))).toEqual([]);
+    });
+
+    // Regression: the rows are replaced wholesale at the end of the pipeline,
+    // which used to resurrect a title dismissed while it was in flight (the
+    // exclusion set was snapshotted before the network work started).
+    it('does not resurrect a title dismissed while the fetch was in flight', async () => {
+      const pool = dramaPool(14);
+      mockUseWatchLogStoreGetState.mockReturnValue({
+        fetchWatchLog: jest.fn().mockResolvedValue(undefined),
+        entries: [watchLogEntry({ id: 1 }), watchLogEntry({ id: 2 }), watchLogEntry({ id: 3 })],
+      });
+      mockGetGenreIdByName.mockImplementation((_name: string, scope: string) =>
+        scope === 'movie' ? 18 : 118,
+      );
+      // Stands in for the user long-pressing a card that is still on screen
+      // from the previous load while this fetch is mid-flight.
+      mockDiscoverMoviesByGenre.mockImplementation(async () => {
+        useRecommendationsStore.getState().dismiss(pool[0]);
+        return { results: pool };
+      });
+      mockDiscoverTVShowsByGenre.mockResolvedValue({ results: [] });
+      mockDiscoverMoviesByDecade.mockResolvedValue({ results: [] });
+      mockDiscoverMoviesByPerson.mockResolvedValue({ results: [] });
+
+      await useRecommendationsStore.getState().fetchPersonalized();
+
+      const state = useRecommendationsStore.getState();
+      expect(state.dismissedKeys.has('movie-100')).toBe(true);
+      expect(state.genreRows[0].items.map((entry) => entry.id)).not.toContain(100);
+      expect(state.forYou.map((entry) => entry.id)).not.toContain(100);
+    });
+
+    // Regression: the mid-flight server snapshot used to replace dismissedKeys
+    // outright, discarding an optimistic dismissal recorded after it was read.
+    it('keeps an optimistic dismissal that the server snapshot does not know about yet', async () => {
+      mockUseWatchLogStoreGetState.mockReturnValue({
+        fetchWatchLog: jest.fn().mockResolvedValue(undefined),
+        entries: [watchLogEntry({ id: 1 }), watchLogEntry({ id: 2 })],
+      });
+      mockFetchDismissedKeys.mockResolvedValue(new Set(['movie-777']));
+      useRecommendationsStore.getState().dismiss({ ...item, id: 500 });
+
+      await useRecommendationsStore.getState().fetchPersonalized();
+
+      const state = useRecommendationsStore.getState();
+      expect([...state.dismissedKeys].sort()).toEqual(['movie-500', 'movie-777']);
     });
   });
 

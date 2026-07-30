@@ -73,8 +73,12 @@ interface RecommendationsState {
   reset: () => void;
 }
 
+function keyOf(item: MediaCardItem): string {
+  return `${item.mediaType}-${item.id}`;
+}
+
 function withoutKey<T extends MediaCardItem>(items: T[], key: string): T[] {
-  return items.filter((item) => `${item.mediaType}-${item.id}` !== key);
+  return items.filter((item) => keyOf(item) !== key);
 }
 
 // Credits for the user's favorite titles come from the metadata cache; a
@@ -121,13 +125,11 @@ export const useRecommendationsStore = create<RecommendationsState>((set, get) =
       // The user's own watch log gates what the row may suggest, so make sure
       // it's loaded before aggregating.
       await useWatchLogStore.getState().fetchWatchLog();
-      const dismissedKeys = await fetchDismissedKeys().catch(() => get().dismissedKeys);
-      // The aggregate helper's exclusion set covers "never show this" keys,
-      // so dismissed titles ride along with the user's own watches.
-      const watchedByMe = new Set([
-        ...useWatchLogStore.getState().entries.map((entry) => `${entry.mediaType}-${entry.id}`),
-        ...dismissedKeys,
-      ]);
+      const fetchedDismissed = await fetchDismissedKeys().catch(() => new Set<string>());
+      // Merge rather than replace: a dismiss that lands while this is in
+      // flight must not be dropped by an older server snapshot.
+      set((state) => ({ dismissedKeys: new Set([...state.dismissedKeys, ...fetchedDismissed]) }));
+      const watchedKeys = useWatchLogStore.getState().entries.map(keyOf);
 
       const lists = await fetchMyLists();
       const listData = await Promise.all(
@@ -140,11 +142,18 @@ export const useRecommendationsStore = create<RecommendationsState>((set, get) =
         }),
       );
 
-      set({
-        friendsWatched: aggregateFriendsWatched(listData, watchedByMe),
-        dismissedKeys,
+      // Aggregated inside the updater so the exclusion set reflects any dismiss
+      // that happened during the awaits above -- the row is replaced wholesale
+      // here, which would otherwise resurrect a title the user just hid.
+      set((state) => ({
+        // The aggregate helper's exclusion set covers "never show this" keys,
+        // so dismissed titles ride along with the user's own watches.
+        friendsWatched: aggregateFriendsWatched(
+          listData,
+          new Set([...watchedKeys, ...state.dismissedKeys]),
+        ),
         isFriendsLoading: false,
-      });
+      }));
     } catch {
       set({ isFriendsLoading: false });
     }
@@ -162,12 +171,14 @@ export const useRecommendationsStore = create<RecommendationsState>((set, get) =
   fetchPersonalized: async () => {
     set({ isPersonalizedLoading: true });
     try {
-      const [, , dismissedKeys] = await Promise.all([
+      const [, , fetchedDismissed] = await Promise.all([
         useWatchLogStore.getState().fetchWatchLog(),
         useListsStore.getState().fetchWatchlist(),
-        fetchDismissedKeys().catch(() => get().dismissedKeys),
+        fetchDismissedKeys().catch(() => new Set<string>()),
       ]);
-      set({ dismissedKeys });
+      // Merge rather than replace: a dismiss that lands while this is in
+      // flight must not be dropped by an older server snapshot.
+      set((state) => ({ dismissedKeys: new Set([...state.dismissedKeys, ...fetchedDismissed]) }));
       const entries = useWatchLogStore.getState().entries;
       if (entries.length < MIN_SIGNALS) {
         set({
@@ -191,9 +202,9 @@ export const useRecommendationsStore = create<RecommendationsState>((set, get) =
       const profile = buildTasteProfile(signals);
 
       const excludeKeys = new Set<string>([
-        ...entries.map((entry) => `${entry.mediaType}-${entry.id}`),
+        ...entries.map(keyOf),
         ...Object.keys(useListsStore.getState().watchlist),
-        ...dismissedKeys,
+        ...get().dismissedKeys,
       ]);
 
       const topGenres = profile.topGenres.slice(0, 2);
@@ -228,42 +239,80 @@ export const useRecommendationsStore = create<RecommendationsState>((set, get) =
         ? (await discoverMoviesByPerson(topPerson.id)).results.map(toMovieCardItem)
         : [];
 
+      // maxPerGenre is off for the single-axis rows: the diversity cap keys on
+      // item.genres[0], which for a row that *is* one genre matches nearly every
+      // candidate -- a 20-item pool collapses to 4 items at the default cap.
       const genreRows: GenreRow[] = genrePools
         .map(({ genre, movieGenreId, pool }) => ({
           genre,
           movieGenreId,
-          items: rankCandidates(pool, profile, { excludeKeys, limit: 12 }),
+          items: rankCandidates(pool, profile, {
+            excludeKeys,
+            limit: 12,
+            maxPerGenre: Infinity,
+          }),
         }))
         .filter((row) => row.items.length > 0);
 
+      // The decade row keeps the cap: it spans genres, so one of them filling
+      // the whole row is exactly what the cap is for.
       const decadeRow: DecadeRow | null =
         decade !== null
           ? { decade, items: rankCandidates(decadePool, profile, { excludeKeys, limit: 12 }) }
           : null;
 
       // The person pool is already tightly themed, so rank it purely for
-      // exclusions/diversity; genre affinity ordering still applies within it.
+      // exclusions; genre affinity ordering still applies within it.
       const personItems = topPerson
-        ? rankCandidates(personPool, profile, { excludeKeys, limit: 12 })
+        ? rankCandidates(personPool, profile, { excludeKeys, limit: 12, maxPerGenre: Infinity })
         : [];
       const personRow: PersonRow | null =
         topPerson && personItems.length > 0
           ? { personId: topPerson.id, personName: topPerson.name, items: personItems }
           : null;
 
+      // "For You" is the catch-all rail, so it takes what the themed rows did
+      // not. Without this it ranks the same pools with the same scorer and its
+      // top items are, by construction, the top items of each themed row. The
+      // themed rows get first pick because their pools are small (a single
+      // person's filmography can be ~20 titles, and losing a few to For You
+      // would drop the row entirely), while For You draws from every pool at
+      // once and has candidates to spare.
+      const rowKeys = new Set<string>([
+        ...genreRows.flatMap((row) => row.items.map(keyOf)),
+        ...(decadeRow?.items ?? []).map(keyOf),
+        ...personItems.map(keyOf),
+      ]);
       const combinedPool = [
         ...genrePools.flatMap(({ pool }) => pool),
         ...decadePool,
         ...personPool,
       ];
-      const forYou = rankCandidates(combinedPool, profile, { excludeKeys, limit: 20 });
+      const forYou = rankCandidates(combinedPool, profile, {
+        excludeKeys: new Set([...excludeKeys, ...rowKeys]),
+        limit: 20,
+      });
 
-      set({
-        forYou,
-        genreRows,
-        decadeRow: decadeRow && decadeRow.items.length > 0 ? decadeRow : null,
-        personRow,
-        isPersonalizedLoading: false,
+      // Ranking above ran against a snapshot of dismissedKeys; drop anything
+      // dismissed since then so this wholesale replace can't resurrect it.
+      set((state) => {
+        const keep = <T extends MediaCardItem>(items: T[]): T[] =>
+          items.filter((candidate) => !state.dismissedKeys.has(keyOf(candidate)));
+        const decadeItems = decadeRow ? keep(decadeRow.items) : [];
+        const keptPersonItems = personRow ? keep(personRow.items) : [];
+        return {
+          forYou: keep(forYou),
+          genreRows: genreRows
+            .map((row) => ({ ...row, items: keep(row.items) }))
+            .filter((row) => row.items.length > 0),
+          decadeRow:
+            decadeRow && decadeItems.length > 0 ? { ...decadeRow, items: decadeItems } : null,
+          personRow:
+            personRow && keptPersonItems.length > 0
+              ? { ...personRow, items: keptPersonItems }
+              : null,
+          isPersonalizedLoading: false,
+        };
       });
     } catch {
       set({ isPersonalizedLoading: false });
