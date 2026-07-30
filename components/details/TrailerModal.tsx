@@ -119,7 +119,9 @@ export function TrailerModal({ visible, onClose, trailerKeys }: TrailerModalProp
     // Surfaced for triage: YouTube's documented IFrame API codes are 2, 5, 100,
     // 101 and 150, but the player emits others in the wild (152 observed), and
     // the handling is the same for all of them.
-    console.warn(`[TrailerModal] playback failed (code ${code})`);
+    console.warn(
+      `[TrailerModal] playback failed (code ${code}) key=${trailerKey} attempt=${attempt + 1}/${trailerKeys.length}`,
+    );
     const action = nextTrailerAction(trailerKeys, attempt);
     if (action.type === 'retry') {
       setAttempt(action.index);
