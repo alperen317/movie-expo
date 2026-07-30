@@ -6,10 +6,10 @@ import type {
   TMDBPersonCombinedCastCredit,
   TMDBPersonDetails,
   TMDBTVShowDetails,
-  TMDBVideos,
   TMDBWatchProviderRegion,
   TMDBWatchProviders,
 } from './types';
+import { getTrailerCandidates } from './trailer';
 
 export interface MediaCastMember {
   id: number;
@@ -60,7 +60,8 @@ export interface MediaDetails {
   genres: string[];
   cast: MediaCastMember[];
   backdrops: string[];
-  trailerKey: string | null;
+  /** YouTube keys to try in order; see lib/tmdb/trailer.ts. Empty when none. */
+  trailerKeys: string[];
   // tv-only; empty/null for movies
   seasons: MediaSeasonSummary[];
   numberOfSeasons: number | null;
@@ -120,15 +121,6 @@ function getWatchProviders(
   };
 }
 
-function getTrailerKey(videos: TMDBVideos | undefined): string | null {
-  const clips = (videos?.results ?? []).filter((video) => video.site === 'YouTube');
-  const trailer =
-    clips.find((video) => video.type === 'Trailer' && video.official) ??
-    clips.find((video) => video.type === 'Trailer') ??
-    clips.find((video) => video.type === 'Teaser');
-  return trailer?.key ?? null;
-}
-
 export function toMovieDetails(movie: TMDBMovieDetails, region: string): MediaDetails {
   return {
     id: movie.id,
@@ -144,7 +136,7 @@ export function toMovieDetails(movie: TMDBMovieDetails, region: string): MediaDe
     genres: movie.genres.map((genre) => genre.name),
     cast: mapCast(movie.credits.cast),
     backdrops: mapBackdrops(movie.images),
-    trailerKey: getTrailerKey(movie.videos),
+    trailerKeys: getTrailerCandidates(movie.videos),
     seasons: [],
     numberOfSeasons: null,
     nextEpisodeToAir: null,
@@ -169,7 +161,7 @@ export function toTVDetails(show: TMDBTVShowDetails, region: string): MediaDetai
     genres: show.genres.map((genre) => genre.name),
     cast: mapCast(show.credits.cast),
     backdrops: mapBackdrops(show.images),
-    trailerKey: getTrailerKey(show.videos),
+    trailerKeys: getTrailerCandidates(show.videos),
     seasons: (show.seasons ?? [])
       .filter((season) => season.episode_count > 0)
       .map((season) => ({

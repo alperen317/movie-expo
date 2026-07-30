@@ -1,6 +1,7 @@
 {
   "toasts": {
     "couldNotOpenLink": "Could not open link",
+    "trailerOpeningInYoutube": "This trailer can't play in the app — opening it in YouTube",
     "genericError": "Something went wrong. Please try again.",
     "addedToFavorites": "{{title}} added to Favorites",
     "removedFromFavorites": "{{title}} removed from Favorites",

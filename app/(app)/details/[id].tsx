@@ -34,6 +34,7 @@ import { SeasonAccordion } from '../../../components/watchLog/SeasonAccordion';
 import { WatchLogSheet } from '../../../components/watchLog/WatchLogSheet';
 import { getBackdropUrl, getLogoUrl, getProfileUrl } from '../../../lib/tmdb/config';
 import { MediaDetails, toMovieDetails, toTVDetails } from '../../../lib/tmdb/details';
+import { youtubeWatchUrl } from '../../../lib/tmdb/trailer';
 import {
   getMovieDetails,
   getMovieRecommendations,
@@ -286,11 +287,11 @@ export default function DetailsScreen() {
             </View>
 
             <View className="gap-stack-sm">
-              {details.trailerKey && (
+              {details.trailerKeys.length > 0 && (
                 <Pressable
                   onPress={() => {
                     if (Platform.OS === 'web') {
-                      openUrlSafely(`https://www.youtube.com/watch?v=${details.trailerKey}`);
+                      openUrlSafely(youtubeWatchUrl(details.trailerKeys[0]));
                     } else {
                       setIsTrailerOpen(true);
                     }
@@ -483,7 +484,7 @@ export default function DetailsScreen() {
       <TrailerModal
         visible={isTrailerOpen}
         onClose={() => setIsTrailerOpen(false)}
-        trailerKey={details?.trailerKey ?? null}
+        trailerKeys={details?.trailerKeys ?? []}
       />
 
       {cardItem && (

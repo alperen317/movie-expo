@@ -1,6 +1,7 @@
 {
   "toasts": {
     "couldNotOpenLink": "Bağlantı açılamadı",
+    "trailerOpeningInYoutube": "Bu fragman uygulama içinde oynatılamıyor — YouTube'da açılıyor",
     "genericError": "Bir şeyler ters gitti. Lütfen tekrar dene.",
     "addedToFavorites": "{{title}} Favorilere eklendi",
     "removedFromFavorites": "{{title}} Favorilerden çıkarıldı",
