@@ -22,6 +22,21 @@ interface LastWatchedEpisode {
   watchedAt: string;
 }
 
+// Pure derivation over the entries map, exported alongside the store method
+// that delegates to it. Components that need this in render can memoize on
+// `entries` directly instead of reaching for getState() inside a useMemo --
+// which would leave the memo with no dependency the linter can verify.
+export function showIdsInProgressFrom(entries: Record<string, EpisodeProgressEntry>): number[] {
+  const byShow = new Map<number, string>();
+  for (const entry of Object.values(entries)) {
+    const current = byShow.get(entry.showId);
+    if (!current || entry.watchedAt > current) byShow.set(entry.showId, entry.watchedAt);
+  }
+  return Array.from(byShow.entries())
+    .sort((a, b) => (a[1] > b[1] ? -1 : 1))
+    .map(([showId]) => showId);
+}
+
 interface EpisodeProgressState {
   entries: Record<string, EpisodeProgressEntry>;
   isLoading: boolean;
@@ -189,16 +204,7 @@ export const useEpisodeProgressStore = create<EpisodeProgressState>((set, get) =
     }
   },
 
-  showIdsInProgress: () => {
-    const byShow = new Map<number, string>();
-    for (const entry of Object.values(get().entries)) {
-      const current = byShow.get(entry.showId);
-      if (!current || entry.watchedAt > current) byShow.set(entry.showId, entry.watchedAt);
-    }
-    return Array.from(byShow.entries())
-      .sort((a, b) => (a[1] > b[1] ? -1 : 1))
-      .map(([showId]) => showId);
-  },
+  showIdsInProgress: () => showIdsInProgressFrom(get().entries),
 
   lastWatchedForShow: (showId) => {
     let latest: LastWatchedEpisode | null = null;

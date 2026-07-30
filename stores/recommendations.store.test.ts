@@ -1,6 +1,6 @@
 import { addDismissed, fetchDismissedKeys } from '../lib/supabase/recommendationFeedback';
 import { fetchListItems, fetchListWatchSummary, fetchMyLists } from '../lib/supabase/sharedLists';
-import { getGenreIdByName, normalizeGenreName } from '../lib/tmdb/genres';
+import { getGenreIdByName } from '../lib/tmdb/genres';
 import { getMediaMetadata } from '../lib/tmdb/mediaMetadataCache';
 import {
   discoverMoviesByDecade,

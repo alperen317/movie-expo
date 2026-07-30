@@ -119,7 +119,9 @@ export default function DetailsScreen() {
         if (!cancelled) setDetails(media);
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : t('details.loadError'));
+          // i18n.t, not the hook's t: a t() closure would make this effect
+          // depend on it and refetch the title on every language change.
+          setError(err instanceof Error ? err.message : i18n.t('details.loadError'));
         }
       } finally {
         if (!cancelled) setIsLoading(false);

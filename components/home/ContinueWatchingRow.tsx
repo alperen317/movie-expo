@@ -6,7 +6,7 @@ import { FlatList, Text, View } from 'react-native';
 
 import { getPosterUrl } from '../../lib/tmdb/config';
 import { getTVShowDetails } from '../../lib/tmdb/tv';
-import { useEpisodeProgressStore } from '../../stores/episodeProgress.store';
+import { showIdsInProgressFrom, useEpisodeProgressStore } from '../../stores/episodeProgress.store';
 import { AnimatedPressable } from '../ui/AnimatedPressable';
 
 interface ContinueWatchingItem {
@@ -21,8 +21,10 @@ interface ContinueWatchingItem {
 export function ContinueWatchingRow() {
   const { t } = useTranslation();
   const entries = useEpisodeProgressStore((state) => state.entries);
-  const showIds = useMemo(() => useEpisodeProgressStore.getState().showIdsInProgress(), [entries]);
-  const showIdsKey = showIds.join(',');
+  // Keyed on the id list's *contents*, so the fetch below re-runs only when the
+  // set of in-progress shows changes -- not on every episode marked within the
+  // shows already on screen.
+  const showIdsKey = useMemo(() => showIdsInProgressFrom(entries).join(','), [entries]);
 
   const [items, setItems] = useState<ContinueWatchingItem[]>([]);
 
@@ -31,6 +33,7 @@ export function ContinueWatchingRow() {
       setItems([]);
       return;
     }
+    const showIds = showIdsKey.split(',').map(Number);
     let cancelled = false;
 
     (async () => {

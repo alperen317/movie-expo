@@ -10,6 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MediaRow } from '../../../components/home/MediaRow';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
+import i18n from '../../../lib/i18n';
 import { getProfileUrl } from '../../../lib/tmdb/config';
 import { PersonDetails, toPersonDetails } from '../../../lib/tmdb/details';
 import { getPersonDetails } from '../../../lib/tmdb/person';
@@ -23,7 +24,7 @@ function formatDate(dateString: string | null, language: string): string | null 
 }
 
 export default function ActorScreen() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
@@ -43,7 +44,9 @@ export default function ActorScreen() {
         if (!cancelled) setPerson(data);
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : t('actor.loadError'));
+          // i18n.t, not the hook's t: a t() closure would make this effect
+          // depend on it and refetch the person on every language change.
+          setError(err instanceof Error ? err.message : i18n.t('actor.loadError'));
         }
       } finally {
         if (!cancelled) setIsLoading(false);

@@ -1,4 +1,9 @@
-import i18n from 'i18next';
+// `use`/`changeLanguage` are imported as named exports rather than called as
+// i18n.use(...)/i18n.changeLanguage(...): i18next exports them already bound to
+// this same default instance, so the two forms are identical, and the named form
+// doesn't trip import/no-named-as-default-member. `use` is aliased because
+// react-hooks/rules-of-hooks reads any bare use*() call as a React hook.
+import i18n, { changeLanguage, use as registerI18nPlugin } from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 import {
@@ -116,7 +121,7 @@ const resources = {
 // Init synchronously with the device language so the first render is already
 // localized; the stored preference (which may override it) is applied right
 // after via applyStoredLanguagePreference, since reading it is async.
-i18n.use(initReactI18next).init({
+registerI18nPlugin(initReactI18next).init({
   resources,
   lng: detectDeviceLanguage(),
   fallbackLng: 'en',
@@ -129,14 +134,14 @@ export async function applyStoredLanguagePreference(): Promise<void> {
   const preference = await getStoredLanguagePreference();
   const language = resolveLanguage(preference);
   if (i18n.language !== language) {
-    await i18n.changeLanguage(language);
+    await changeLanguage(language);
   }
 }
 
 // Persists the chosen preference and applies it immediately.
 export async function changeLanguagePreference(preference: LanguagePreference): Promise<void> {
   await setStoredLanguagePreference(preference);
-  await i18n.changeLanguage(resolveLanguage(preference));
+  await changeLanguage(resolveLanguage(preference));
 }
 
 export default i18n;

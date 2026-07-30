@@ -12,7 +12,7 @@ import { useThemeColors } from '../../lib/theme/useThemeColors';
 import { requestEpisodeReminderPermission } from '../../lib/notifications/episodeReminders';
 import { getPosterUrl } from '../../lib/tmdb/config';
 import { getTVShowDetails } from '../../lib/tmdb/tv';
-import { useEpisodeProgressStore } from '../../stores/episodeProgress.store';
+import { showIdsInProgressFrom, useEpisodeProgressStore } from '../../stores/episodeProgress.store';
 
 interface UpcomingEpisode {
   showId: number;
@@ -39,8 +39,10 @@ export default function CalendarScreen() {
   const { t, i18n } = useTranslation();
   const colors = useThemeColors();
   const entries = useEpisodeProgressStore((state) => state.entries);
-  const showIds = useMemo(() => useEpisodeProgressStore.getState().showIdsInProgress(), [entries]);
-  const showIdsKey = showIds.join(',');
+  // Keyed on the id list's *contents*, so the fetch below re-runs only when the
+  // set of in-progress shows changes -- not on every episode marked within the
+  // shows already on screen.
+  const showIdsKey = useMemo(() => showIdsInProgressFrom(entries).join(','), [entries]);
 
   const [episodes, setEpisodes] = useState<UpcomingEpisode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,6 +57,7 @@ export default function CalendarScreen() {
       setIsLoading(false);
       return;
     }
+    const showIds = showIdsKey.split(',').map(Number);
     let cancelled = false;
     setIsLoading(true);
 

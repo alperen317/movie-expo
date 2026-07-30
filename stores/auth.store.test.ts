@@ -1,6 +1,14 @@
-// Declared before the jest.mock() calls below (and before any imports) so
-// the "mock"-prefixed name is visible inside the hoisted factories -- see
+import { setRememberPreference } from '../lib/supabase/authStorage';
+import { supabase } from '../lib/supabase/client';
+import { useAuthStore } from './auth.store';
+
+import type { Session } from '@supabase/supabase-js';
+
+// The "mock" name prefix is what lets these be referenced from inside the
+// jest.mock() factories below, which babel hoists above the imports -- see
 // https://jestjs.io/docs/es6-class-mocks#calling-jestmock-with-the-module-factory-parameter.
+// Each factory only reads them from inside a getState() body, so they are
+// dereferenced when a test calls getState(), long after this assignment runs.
 const mockEpisodeProgressReset = jest.fn();
 const mockListsReset = jest.fn();
 const mockProfileReset = jest.fn();
@@ -56,12 +64,6 @@ jest.mock('./sharedLists.store', () => ({
 jest.mock('./watchLog.store', () => ({
   useWatchLogStore: { getState: () => ({ reset: mockWatchLogReset }) },
 }));
-
-import { setRememberPreference } from '../lib/supabase/authStorage';
-import { supabase } from '../lib/supabase/client';
-import { useAuthStore } from './auth.store';
-
-import type { Session } from '@supabase/supabase-js';
 
 const mockSignInWithPassword = supabase.auth.signInWithPassword as jest.Mock;
 const mockSignUp = supabase.auth.signUp as jest.Mock;

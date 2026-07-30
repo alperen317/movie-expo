@@ -18,6 +18,7 @@ import {
   toTVCardItem,
 } from '../../../components/home/MovieCard';
 import { AnimatedPressable, AnimatedView } from '../../../components/ui/AnimatedPressable';
+import i18n from '../../../lib/i18n';
 import { useThemeColors } from '../../../lib/theme/useThemeColors';
 import { toPersonDetails } from '../../../lib/tmdb/details';
 import {
@@ -191,7 +192,9 @@ export default function ListScreen() {
       })
       .catch((err) => {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : t('browse.loadError'));
+        // i18n.t, not the hook's t: a t() closure would make this effect
+        // depend on it and refetch the whole list on every language change.
+        setError(err instanceof Error ? err.message : i18n.t('browse.loadError'));
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
