@@ -7,13 +7,14 @@ import { Pressable, StyleSheet } from 'react-native';
 // handoff from the native splash to this overlay has no visible seam.
 const SPLASH_BACKGROUND = '#150D09';
 
-// Trimmed to 2.5s and stripped of audio in the asset itself rather than at
-// playback time -- a 10s splash reads as a frozen app, and a splash that makes
-// noise is never what anyone wants. splash-video-source.mp4 is the untrimmed
-// 10s original, kept for re-cutting a different window later; nothing requires
-// it, and app.json sets no assetBundlePatterns, so it never ships.
+// The 1.0s-3.5s window of the source, silent, cut in the asset itself rather
+// than at playback time -- a 10s splash reads as a frozen app, and a splash
+// that makes noise is never what anyone wants. splash-video-source.mp4 is the
+// untrimmed 10s original, kept for re-cutting a different window later;
+// nothing requires it, and app.json sets no assetBundlePatterns, so it never
+// ships.
 //
-//   ffmpeg -i assets/splash-video-source.mp4 -t 2.5 -an \
+//   ffmpeg -i assets/splash-video-source.mp4 -ss 1 -t 2.5 -an \
 //     -c:v libx264 -preset slow -crf 23 -pix_fmt yuv420p \
 //     -movflags +faststart assets/splash-video.mp4
 const SPLASH_VIDEO = require('../../assets/splash-video.mp4');
