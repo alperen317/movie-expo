@@ -1,5 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -38,10 +38,20 @@ function openUrlSafely(url: string) {
 // non-embeddable trailer a dead end. The API's onError crosses back over
 // postMessage instead.
 //
-// Loading the embed as HTML with a baseUrl (rather than source.uri) makes the
-// WebView present a real youtube.com origin/Referer, which the player requires;
-// `origin` in playerVars must match that baseUrl. `host` keeps the actual video
-// request on youtube-nocookie.com.
+// Loading the embed as HTML with a baseUrl (rather than source.uri) is what
+// gives the WebView a real origin/Referer to present -- source.uri sends none,
+// which the player rejects outright.
+//
+// EMBED_ORIGIN deliberately is *not* youtube.com. Claiming to be embedded on
+// youtube.com while not actually being youtube.com looks invalid to the player,
+// and this setup has now produced 153 and then 152 (the latter on every
+// candidate of a title, i.e. the context was refused rather than the video).
+// The origin playerVar must equal the document origin for the API's postMessage
+// handshake, so both come from this one constant. The host stays on plain
+// youtube.com rather than youtube-nocookie.com for the same reason: fewer
+// non-standard moving parts for the player to object to.
+const EMBED_ORIGIN = 'https://previously.app';
+
 function buildTrailerHtml(trailerKey: string) {
   return `<!DOCTYPE html>
 <html>
@@ -60,13 +70,13 @@ function buildTrailerHtml(trailerKey: string) {
       window.onYouTubeIframeAPIReady = function () {
         new YT.Player('player', {
           videoId: ${JSON.stringify(trailerKey)},
-          host: 'https://www.youtube-nocookie.com',
+          host: 'https://www.youtube.com',
           playerVars: {
             autoplay: 1,
             playsinline: 1,
             modestbranding: 1,
             rel: 0,
-            origin: 'https://www.youtube.com'
+            origin: ${JSON.stringify(EMBED_ORIGIN)}
           },
           events: {
             onReady: function (event) { event.target.playVideo(); post({ type: 'ready' }); },
@@ -89,25 +99,33 @@ export function TrailerModal({ visible, onClose, trailerKeys }: TrailerModalProp
   const { width: windowWidth } = useWindowDimensions();
   // Which candidate is on screen. Errors walk this forward before giving up.
   const [attempt, setAttempt] = useState(0);
+  // The player can report the same failure more than once (and a WebView error
+  // can arrive alongside it), which would otherwise launch YouTube twice.
+  const hasHandedOff = useRef(false);
 
   // Every open starts from the best candidate again -- a failure last time may
   // have been transient, and the title itself can change between opens.
   useEffect(() => {
-    if (visible) setAttempt(0);
+    if (visible) {
+      setAttempt(0);
+      hasHandedOff.current = false;
+    }
   }, [visible]);
 
   const trailerKey = trailerKeys[attempt] ?? null;
 
   const handleFailure = (code: string) => {
+    if (hasHandedOff.current) return;
     // Surfaced for triage: YouTube's documented IFrame API codes are 2, 5, 100,
-    // 101 and 150, but the player emits others in the wild, and the handling is
-    // the same for all of them.
+    // 101 and 150, but the player emits others in the wild (152 observed), and
+    // the handling is the same for all of them.
     console.warn(`[TrailerModal] playback failed (code ${code})`);
     const action = nextTrailerAction(trailerKeys, attempt);
     if (action.type === 'retry') {
       setAttempt(action.index);
       return;
     }
+    hasHandedOff.current = true;
     onClose();
     if (action.type === 'external') {
       useToastStore.getState().show(i18n.t('toasts.trailerOpeningInYoutube'), 'open-in-new');
@@ -137,7 +155,7 @@ export function TrailerModal({ visible, onClose, trailerKeys }: TrailerModalProp
                 key={trailerKey}
                 source={{
                   html: buildTrailerHtml(trailerKey),
-                  baseUrl: 'https://www.youtube.com',
+                  baseUrl: EMBED_ORIGIN,
                 }}
                 originWhitelist={['*']}
                 style={{ flex: 1, backgroundColor: '#000000' }}

@@ -23,11 +23,21 @@ export function getTrailerCandidates(videos: TMDBVideos | undefined): string[] {
   return [...new Set(ranked.map((video) => video.key))];
 }
 
+// One alternate is enough. Retrying is only worth anything when the block is
+// per-video, and observed 15x failures (152 seen on every candidate of a title)
+// are a rejection of the embedding context instead, which no other key escapes.
+// Walking a long candidate list therefore mostly buys the user a load-and-fail
+// cycle per clip before the same handoff, so the chain is capped.
+export const MAX_EMBED_ATTEMPTS = 2;
+
 // Falls back to the *first* candidate rather than the one that just failed:
 // that's the trailer the user actually asked for, and an embed-disabled video
 // still plays normally on youtube.com.
 export function nextTrailerAction(candidates: string[], failedIndex: number): TrailerFallback {
-  if (failedIndex + 1 < candidates.length) return { type: 'retry', index: failedIndex + 1 };
+  const nextIndex = failedIndex + 1;
+  if (nextIndex < candidates.length && nextIndex < MAX_EMBED_ATTEMPTS) {
+    return { type: 'retry', index: nextIndex };
+  }
   if (candidates.length > 0) return { type: 'external', key: candidates[0] };
   return { type: 'give-up' };
 }
