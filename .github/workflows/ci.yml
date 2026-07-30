@@ -14,7 +14,11 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          # Read from .nvmrc so CI and local development cannot drift: npm
+          # majors write package-lock differently, and a lock produced by a
+          # different one than CI runs fails `npm ci` with "Missing: ... from
+          # lock file" even though no dependency actually changed.
+          node-version-file: .nvmrc
           cache: npm
 
       - run: npm ci

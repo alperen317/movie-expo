@@ -80,6 +80,8 @@ Auth and data live in Supabase (Postgres + Row Level Security); see `supabase/mi
 
 ## Development
 
+Use the Node version in `.nvmrc` (`nvm use`). CI reads the same file, and matching it matters: npm majors write `package-lock.json` differently, so installing with a different one produces a lock that fails CI's `npm ci` with `Missing: ... from lock file` even though no dependency changed. `engines` in `package.json` warns if you're on another version.
+
 ```bash
 npx tsc --noEmit   # type check
 npm test           # jest
