@@ -59,6 +59,49 @@ describe('rememberAwareAuthStorage', () => {
     expect(await AsyncStorage.getItem(SESSION_KEY)).toBeNull();
   });
 
+  // A browser refresh throws away the JS heap, so an opted-out session held in
+  // memory would sign the user out on every reload. sessionStorage survives the
+  // reload and still dies with the tab.
+  describe('on web', () => {
+    const globals = globalThis as { window?: unknown };
+
+    function fakeSessionStorage() {
+      const entries = new Map<string, string>();
+      return {
+        getItem: (key: string) => entries.get(key) ?? null,
+        setItem: (key: string, value: string) => void entries.set(key, value),
+        removeItem: (key: string) => void entries.delete(key),
+      };
+    }
+
+    afterEach(() => {
+      delete globals.window;
+    });
+
+    it('parks an opted-out session in sessionStorage, not on disk', async () => {
+      const sessionStorage = fakeSessionStorage();
+      globals.window = { sessionStorage };
+
+      await setRememberPreference(false);
+      await rememberAwareAuthStorage.setItem(SESSION_KEY, 'token');
+
+      expect(sessionStorage.getItem(SESSION_KEY)).toBe('token');
+      expect(await AsyncStorage.getItem(SESSION_KEY)).toBeNull();
+      expect(await rememberAwareAuthStorage.getItem(SESSION_KEY)).toBe('token');
+    });
+
+    it('keeps a remembered session on disk rather than in sessionStorage', async () => {
+      const sessionStorage = fakeSessionStorage();
+      globals.window = { sessionStorage };
+
+      await setRememberPreference(true);
+      await rememberAwareAuthStorage.setItem(SESSION_KEY, 'token');
+
+      expect(sessionStorage.getItem(SESSION_KEY)).toBeNull();
+      expect(await AsyncStorage.getItem(SESSION_KEY)).toBe('token');
+    });
+  });
+
   it('removeItem clears both the in-memory and on-disk copies', async () => {
     await setRememberPreference(true);
     await rememberAwareAuthStorage.setItem(SESSION_KEY, 'token');
