@@ -17,6 +17,7 @@ import {
 import { ActionSheetModal } from '../../../components/ui/ActionSheetModal';
 import { AnimatedPressable } from '../../../components/ui/AnimatedPressable';
 import { MediaFilterBar } from '../../../components/ui/MediaFilterBar';
+import { SortButton } from '../../../components/ui/SortButton';
 import { useMediaTypeGenreFilter } from '../../../lib/hooks/useMediaTypeGenreFilter';
 import { useThemeColors } from '../../../lib/theme/useThemeColors';
 import { useListsStore } from '../../../stores/lists.store';
@@ -177,17 +178,10 @@ export default function FavoritesScreen() {
             onGenreFilterChange={setGenreFilter}
             availableGenres={availableGenres}
             rightAccessory={
-              <AnimatedPressable
+              <SortButton
+                label={t(SORT_LABEL_KEYS[sortOption])}
                 onPress={() => setIsSortOpen(true)}
-                accessibilityRole="button"
-                accessibilityLabel={t('a11y.openSortMenu')}
-                className="h-9 flex-row items-center gap-1 rounded-full border border-glass-border bg-surface-container-low px-3"
-              >
-                <MaterialIcons name="sort" size={16} color={colors.textSecondary} />
-                <Text className="font-sans-semibold text-caption text-text-secondary">
-                  {t(SORT_LABEL_KEYS[sortOption])}
-                </Text>
-              </AnimatedPressable>
+              />
             }
           />
         )}
@@ -271,6 +265,7 @@ export default function FavoritesScreen() {
         onClose={() => setIsSortOpen(false)}
         actions={(Object.keys(SORT_LABEL_KEYS) as SortOption[]).map((option) => ({
           label: t(SORT_LABEL_KEYS[option]),
+          selected: sortOption === option,
           onPress: () => setSortOption(option),
         }))}
       />

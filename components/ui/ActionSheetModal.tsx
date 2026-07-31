@@ -1,12 +1,18 @@
+import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Modal, Text, View } from 'react-native';
 
 import { AnimatedPressable } from './AnimatedPressable';
+import { useThemeColors } from '../../lib/theme/useThemeColors';
 
 export interface ActionSheetAction {
   label: string;
   onPress: () => void;
   destructive?: boolean;
+  // Marks the row as the current choice when the sheet stands in for a
+  // single-select picker (sort order, view mode). The checkmark is absolutely
+  // positioned so it can't push the label off center.
+  selected?: boolean;
 }
 
 interface ActionSheetModalProps {
@@ -29,6 +35,7 @@ export function ActionSheetModal({
   onClose,
 }: ActionSheetModalProps) {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View className="flex-1 items-center justify-center bg-background/80 px-margin-mobile">
@@ -52,15 +59,29 @@ export function ActionSheetModal({
                 onClose();
                 action.onPress();
               }}
+              accessibilityRole="button"
+              accessibilityState={action.selected ? { selected: true } : undefined}
               className="rounded-xl px-4 py-stack-md"
             >
               <Text
                 className={`text-center font-sans-semibold text-body-md ${
-                  action.destructive ? 'text-error' : 'text-text-primary'
+                  action.destructive
+                    ? 'text-error'
+                    : action.selected
+                      ? 'text-primary-container'
+                      : 'text-text-primary'
                 }`}
               >
                 {action.label}
               </Text>
+              {action.selected && (
+                <View
+                  pointerEvents="none"
+                  className="absolute bottom-0 right-4 top-0 justify-center"
+                >
+                  <MaterialIcons name="check" size={18} color={colors.gold} />
+                </View>
+              )}
             </AnimatedPressable>
           ))}
           <AnimatedPressable onPress={onClose} className="rounded-xl px-4 py-stack-md">

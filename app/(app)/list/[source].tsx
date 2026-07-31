@@ -32,6 +32,7 @@ import {
 } from '../../../lib/tmdb/movies';
 import { getPersonDetails } from '../../../lib/tmdb/person';
 import {
+  discoverTVShowsByGenre,
   getPopularTVShows,
   getSimilarTVShows,
   getTopRatedTVShows,
@@ -47,9 +48,11 @@ type Source =
   | 'person-credits'
   | 'person-movies'
   | 'genre-movies'
+  | 'genre-tv'
   | 'recommendations';
 
-type DynamicSource = 'person-credits' | 'person-movies' | 'genre-movies' | 'recommendations';
+type DynamicSource =
+  'person-credits' | 'person-movies' | 'genre-movies' | 'genre-tv' | 'recommendations';
 
 interface SourcePage {
   results: MediaCardItem[];
@@ -138,6 +141,15 @@ export default function ListScreen() {
         fetchPage: async (page) => {
           const data = await discoverMoviesByGenre(Number(genreId), page);
           return { results: data.results.map(toMovieCardItem), totalPages: data.total_pages };
+        },
+      };
+    }
+    if (source === 'genre-tv' && genreId) {
+      return {
+        title: title || t('browse.genre'),
+        fetchPage: async (page) => {
+          const data = await discoverTVShowsByGenre(Number(genreId), page);
+          return { results: data.results.map(toTVCardItem), totalPages: data.total_pages };
         },
       };
     }

@@ -12,8 +12,14 @@
     "watched": "Watched",
     "filterAll": "All",
     "filterMovies": "Movies",
-    "filterShows": "Shows",
+    "filterShows": "TV Series",
+    "filterPeople": "People",
     "filterAllGenres": "All genres",
+    "filterRatingTitle": "Minimum rating",
+    "filterRatingAny": "Any rating",
+    "filterRatingValue": "{{rating}}+",
+    "filterYearTitle": "Year",
+    "filterYearAny": "Any year",
     "noFilterMatches": "No titles match these filters",
     "clearFilters": "Clear filters"
   }

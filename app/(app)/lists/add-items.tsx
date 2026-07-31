@@ -37,7 +37,7 @@ export default function AddItemsScreen() {
   const { listId } = useLocalSearchParams<{ listId: string }>();
   const { width: windowWidth } = useWindowDimensions();
 
-  const { query, setQuery, debouncedQuery, results, isSearching, searchError } = useMediaSearch();
+  const { query, setQuery, debouncedQuery, results, status, searchError } = useMediaSearch();
   const items = useSharedListsStore((state) => state.items);
   const addItem = useSharedListsStore((state) => state.addItem);
   const removeItem = useSharedListsStore((state) => state.removeItem);
@@ -160,13 +160,13 @@ export default function AddItemsScreen() {
         />
       )}
 
-      {!isBrowsing && isSearching && results.length === 0 && (
+      {!isBrowsing && status === 'loading' && (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color={colors.textPrimary} />
         </View>
       )}
 
-      {!isBrowsing && searchError && !isSearching && (
+      {!isBrowsing && status === 'error' && (
         <View className="flex-1 items-center justify-center px-margin-mobile">
           <Text className="text-center font-sans text-body-md text-text-primary">
             {searchError}
@@ -174,7 +174,7 @@ export default function AddItemsScreen() {
         </View>
       )}
 
-      {!isBrowsing && !searchError && !isSearching && results.length === 0 && (
+      {!isBrowsing && status === 'ready' && results.length === 0 && (
         <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
           <MaterialIcons name="search-off" size={32} color={colors.icon} />
           <Text className="text-title-md font-sans-semibold text-text-primary">

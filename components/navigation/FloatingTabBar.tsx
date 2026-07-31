@@ -87,6 +87,18 @@ function TabBarButton({
   );
 }
 
+// 56px buttons + 10px padding on each side, plus the 1px border.
+const TAB_BAR_HEIGHT = 78;
+const TAB_BAR_BOTTOM_OFFSET = 32;
+
+// The bar floats over the tab screens, so scrollable content has to reserve
+// room for it or the last row sits under the blur. Deriving the number here
+// (instead of a magic 120/140 per screen) keeps it correct when the bar moves.
+export function useTabBarScrollInset(): number {
+  const insets = useSafeAreaInsets();
+  return insets.bottom + TAB_BAR_BOTTOM_OFFSET + TAB_BAR_HEIGHT + 16;
+}
+
 export function FloatingTabBar() {
   const insets = useSafeAreaInsets();
   const { colorScheme } = useColorScheme();
@@ -100,7 +112,7 @@ export function FloatingTabBar() {
         position: 'absolute',
         left: 0,
         right: 0,
-        bottom: insets.bottom + 32,
+        bottom: insets.bottom + TAB_BAR_BOTTOM_OFFSET,
         alignItems: 'center',
       }}
       pointerEvents="box-none"

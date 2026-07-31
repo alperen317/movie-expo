@@ -1,17 +1,29 @@
 {
   "search": {
     "heading": "Find your next masterpiece",
-    "placeholder": "Search movies, directors, or genres...",
+    "placeholder": "Search movies, shows, or genres...",
     "recentSearches": "Recent Searches",
     "clearRecent": "CLEAR",
     "popularTitle": "Popular Right Now",
     "popularGenres": "Browse by Genre",
+    "resultCount": "{{total}} results",
+    "peopleSection": "People",
+    "discoverCount": "{{total}} titles",
     "noResultsTitle": "No results found",
     "noResultsSubtitle": "Try a different title, actor, or genre.",
+    "clearSearch": "Clear search",
+    "errorTitle": "Search didn't go through",
+    "errorSubtitle": "Check your connection and try again.",
     "sortTitleLabel": "Sort by",
     "sortRelevance": "Best match",
     "sortRating": "Highest rated",
     "sortTitle": "Title A-Z",
-    "sortYear": "Newest year"
+    "sortYear": "Newest year",
+    "sortShortRelevance": "Match",
+    "sortShortRating": "Rating",
+    "sortShortTitle": "A-Z",
+    "sortShortYear": "Year",
+    "sortPopular": "Most popular",
+    "sortShortPopular": "Popular"
   }
 }

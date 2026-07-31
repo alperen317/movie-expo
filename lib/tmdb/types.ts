@@ -44,6 +44,10 @@ export interface TMDBMultiSearchResult {
   release_date?: string;
   first_air_date?: string;
   genre_ids?: number[];
+  // Only present on `media_type: 'person'` results.
+  profile_path?: string | null;
+  known_for_department?: string;
+  known_for?: { id: number; title?: string; name?: string }[];
 }
 
 export interface TMDBMultiSearchResponse {

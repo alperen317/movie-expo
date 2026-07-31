@@ -42,6 +42,40 @@ export const TMDB_TV_GENRE_MAP: Record<number, string> = {
   37: 'Western',
 };
 
+export interface GenreOption {
+  name: string;
+  movieId: number | null;
+  tvId: number | null;
+}
+
+// Browsing by filter needs ids, and one display name can stand for a different
+// id per scope: Comedy is 35 in both maps, "Sci-Fi & Fantasy" exists only for TV
+// and "Science Fiction" only for film. Keying the catalog by the translated name
+// keeps the chip list free of duplicates while remembering which scopes can
+// actually be queried for it. `language` is optional and only ever needs passing
+// by callers that must rebuild when the UI language changes.
+export function getGenreCatalog(language?: string): GenreOption[] {
+  const byName = new Map<string, GenreOption>();
+  const translate = (key: string, fallback: string) =>
+    i18n.t(key, { defaultValue: fallback, ...(language ? { lng: language } : {}) });
+
+  for (const [idString, fallback] of Object.entries(TMDB_GENRE_MAP)) {
+    const id = Number(idString);
+    const name = translate(`genres.movie.${id}`, fallback);
+    byName.set(name, { name, movieId: id, tvId: null });
+  }
+
+  for (const [idString, fallback] of Object.entries(TMDB_TV_GENRE_MAP)) {
+    const id = Number(idString);
+    const name = translate(`genres.tv.${id}`, fallback);
+    const existing = byName.get(name);
+    if (existing) existing.tvId = id;
+    else byName.set(name, { name, movieId: null, tvId: id });
+  }
+
+  return Array.from(byName.values()).sort((a, b) => a.name.localeCompare(b.name));
+}
+
 // List/search/trending responses only carry `genre_ids`, so names are resolved
 // from these maps rather than the (localized) detail payload. Translate each
 // resolved name through i18n, keyed by TMDB genre id, with the English map as

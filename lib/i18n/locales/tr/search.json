@@ -1,17 +1,29 @@
 {
   "search": {
     "heading": "Sıradaki başyapıtını bul",
-    "placeholder": "Film, yönetmen veya tür ara...",
+    "placeholder": "Film, dizi veya tür ara...",
     "recentSearches": "Son Aramalar",
     "clearRecent": "TEMİZLE",
     "popularTitle": "Şu An Popüler",
     "popularGenres": "Türe Göre Gözat",
+    "resultCount": "{{total}} sonuç",
+    "peopleSection": "Kişiler",
+    "discoverCount": "{{total}} yapım",
     "noResultsTitle": "Sonuç bulunamadı",
     "noResultsSubtitle": "Farklı bir başlık, oyuncu veya tür dene.",
+    "clearSearch": "Aramayı temizle",
+    "errorTitle": "Arama tamamlanamadı",
+    "errorSubtitle": "Bağlantını kontrol edip tekrar dene.",
     "sortTitleLabel": "Sırala",
     "sortRelevance": "En iyi eşleşme",
     "sortRating": "En yüksek puan",
     "sortTitle": "Başlık A-Z",
-    "sortYear": "En yeni yıl"
+    "sortYear": "En yeni yıl",
+    "sortShortRelevance": "Eşleşme",
+    "sortShortRating": "Puan",
+    "sortShortTitle": "A-Z",
+    "sortShortYear": "Yıl",
+    "sortPopular": "En popüler",
+    "sortShortPopular": "Popüler"
   }
 }

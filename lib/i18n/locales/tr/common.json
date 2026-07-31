@@ -13,7 +13,13 @@
     "filterAll": "Tümü",
     "filterMovies": "Filmler",
     "filterShows": "Diziler",
+    "filterPeople": "Kişiler",
     "filterAllGenres": "Tüm türler",
+    "filterRatingTitle": "Minimum puan",
+    "filterRatingAny": "Tüm puanlar",
+    "filterRatingValue": "{{rating}}+",
+    "filterYearTitle": "Yıl",
+    "filterYearAny": "Tüm yıllar",
     "noFilterMatches": "Bu filtrelere uyan yapım yok",
     "clearFilters": "Filtreleri temizle"
   }
