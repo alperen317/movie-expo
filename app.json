@@ -7,6 +7,12 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/af2c2003-19a8-491c-9fb0-41cc807474dd"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.alperen317.previously"
@@ -38,7 +44,9 @@
           "resizeMode": "contain"
         }
       ],
-      "expo-video"
+      "expo-video",
+      "expo-updates",
+      "@sentry/react-native/expo"
     ],
     "experiments": {
       "typedRoutes": true

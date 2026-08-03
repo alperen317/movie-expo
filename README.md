@@ -91,6 +91,28 @@ npm run format     # prettier --write
 
 CI runs type check, lint, format check, and tests on every push/PR to `master` (`.github/workflows/ci.yml`).
 
+## Releases and OTA updates
+
+Builds carry `expo-updates`, so a JS-only fix ships without a store review:
+
+```bash
+npx eas update --branch production --message "fix: ..."
+```
+
+Each build profile in `eas.json` is bound to a channel of the same name (`development`/`preview`/`production`); point an update branch at a channel with `eas channel:edit`. Installed apps check for an update on launch and apply it on the next one.
+
+`runtimeVersion` uses the `fingerprint` policy: it is derived from the project's native dependencies and config, so adding or upgrading a native module automatically changes it and an update meant for the new binary can never land on an old one. Anything that touches native code still needs a fresh build, not an update.
+
+Source maps for release builds are uploaded by the `@sentry/react-native/expo` config plugin (paired with `getSentryExpoConfig` in `metro.config.js`), which needs three values in the EAS build environment — set them once with `eas env:create`, `SENTRY_AUTH_TOKEN` as a secret:
+
+| Variable            | Value                                                       |
+| ------------------- | ----------------------------------------------------------- |
+| `SENTRY_ORG`        | Sentry organization slug                                     |
+| `SENTRY_PROJECT`    | Sentry project slug                                          |
+| `SENTRY_AUTH_TOKEN` | Sentry auth token with `project:releases` scope (secret)     |
+
+Without them the upload step is skipped with a warning and release stack traces stay minified; the app itself still builds and runs.
+
 ## Tech Stack
 
 Expo SDK 54 (React Native 0.81, React 19) · expo-router · TypeScript · NativeWind (Tailwind for RN) · Zustand · Supabase (Postgres, Auth, Realtime, RLS) · TMDB API · Jest
