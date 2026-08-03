@@ -7,6 +7,8 @@
     "save": "Save",
     "done": "Done",
     "somethingWrong": "Something went wrong.",
+    "errorBoundaryBody": "The app hit an unexpected error. Trying again usually clears it.",
+    "requestTimedOut": "The request took too long. Check your connection and try again.",
     "favorites": "Favorites",
     "watchlist": "Watchlist",
     "watched": "Watched",

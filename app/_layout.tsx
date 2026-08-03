@@ -16,6 +16,7 @@ import { AppState } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { SplashVideo } from '../components/splash/SplashVideo';
+import { AppErrorBoundary } from '../components/ui/AppErrorBoundary';
 import { applyStoredLanguagePreference } from '../lib/i18n';
 import { applyStoredThemePreference } from '../lib/theme/themePreference';
 import { supabase } from '../lib/supabase/client';
@@ -24,6 +25,11 @@ import { useAuthStore } from '../stores/auth.store';
 import { useSharedListsStore } from '../stores/sharedLists.store';
 
 SplashScreen.preventAutoHideAsync();
+
+// expo-router renders a route's `ErrorBoundary` export in place of that route
+// when its render throws. Exported from the root layout, it covers the whole
+// app: without it a single bad render is a blank screen with no way out.
+export { AppErrorBoundary as ErrorBoundary };
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({

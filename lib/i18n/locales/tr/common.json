@@ -7,6 +7,8 @@
     "save": "Kaydet",
     "done": "Tamam",
     "somethingWrong": "Bir şeyler ters gitti.",
+    "errorBoundaryBody": "Uygulama beklenmedik bir hatayla karşılaştı. Tekrar denemek genelde çözer.",
+    "requestTimedOut": "İstek çok uzun sürdü. Bağlantını kontrol edip tekrar dene.",
     "favorites": "Favoriler",
     "watchlist": "İzleme Listesi",
     "watched": "İzlenenler",
