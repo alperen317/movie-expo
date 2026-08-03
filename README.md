@@ -111,7 +111,9 @@ Source maps for release builds are uploaded by the `@sentry/react-native/expo` c
 | `SENTRY_PROJECT`    | Sentry project slug                                          |
 | `SENTRY_AUTH_TOKEN` | Sentry auth token with `project:releases` scope (secret)     |
 
-Without them the upload step is skipped with a warning and release stack traces stay minified; the app itself still builds and runs.
+**A `production` build fails without them.** sentry-cli exits non-zero when it can't authenticate, and neither the Xcode build phase nor the Gradle upload task tolerates a failing upload. That is the right default for `production` — shipping a release whose crashes can't be symbolicated defeats the point of uploading maps at all. `development` and `preview` set `SENTRY_ALLOW_FAILURE=true` in `eas.json`, so a missing token there degrades to a logged warning instead of a red build.
+
+To produce a production binary before Sentry is set up, run that build with `SENTRY_DISABLE_AUTO_UPLOAD=true`.
 
 ## Tech Stack
 
