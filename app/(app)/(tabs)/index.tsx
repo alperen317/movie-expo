@@ -1,10 +1,11 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   useWindowDimensions,
@@ -56,20 +57,36 @@ export default function HomeScreen() {
   const personRow = useRecommendationsStore((state) => state.personRow);
   // Long-pressed recommendation card awaiting a "not interested" confirm.
   const [dismissTarget, setDismissTarget] = useState<MediaCardItem | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleDismiss = (item: MediaCardItem) => {
     useRecommendationsStore.getState().dismiss(item);
     useToastStore.getState().show(t('toasts.notInterested', { title: item.title }), 'thumb-down');
   };
 
-  useEffect(() => {
-    fetchTrendingMovies();
-    fetchPopularTVShows();
-    fetchDiscoverRows();
-    useEpisodeProgressStore.getState().fetchProgress();
-    useRecommendationsStore.getState().fetchFriendsWatched();
-    useRecommendationsStore.getState().fetchPersonalized();
+  const loadHome = useCallback(() => {
+    return Promise.all([
+      fetchTrendingMovies(),
+      fetchPopularTVShows(),
+      fetchDiscoverRows(),
+      useEpisodeProgressStore.getState().fetchProgress(),
+      useRecommendationsStore.getState().fetchFriendsWatched(),
+      useRecommendationsStore.getState().fetchPersonalized(),
+    ]);
   }, [fetchTrendingMovies, fetchPopularTVShows, fetchDiscoverRows]);
+
+  useEffect(() => {
+    loadHome();
+  }, [loadHome]);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await loadHome();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [loadHome]);
 
   const heroSlides = trendingMovies.slice(0, 5);
   const rest = trendingMovies.slice(5);
@@ -100,6 +117,13 @@ export default function HomeScreen() {
           style={{ flex: 1 }}
           contentContainerStyle={{ paddingBottom: 140 }}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              tintColor="#FFFFFF"
+            />
+          }
         >
           <HeroCarousel movies={heroSlides} />
           {hasEpisodeProgress || hasWatchLog ? <ContinueWatchingRow /> : <ImportPromptCard />}

@@ -176,6 +176,8 @@ export default function DiaryScreen() {
           stickySectionHeadersEnabled
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 48 }}
           showsVerticalScrollIndicator={false}
+          onRefresh={() => useWatchLogStore.getState().fetchWatchLog()}
+          refreshing={isLoading}
         />
       )}
     </SafeAreaView>

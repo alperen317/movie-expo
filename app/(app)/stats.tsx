@@ -1,9 +1,9 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Sharing from 'expo-sharing';
 import { router } from 'expo-router';
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ViewShot from 'react-native-view-shot';
 
@@ -12,6 +12,8 @@ import { AnimatedPressable } from '../../components/ui/AnimatedPressable';
 import { useStatsData } from '../../hooks/useStatsData';
 import { filterInputByYear, monthlyActivity, summarizeStats } from '../../lib/stats';
 import { useThemeColors } from '../../lib/theme/useThemeColors';
+import { useEpisodeProgressStore } from '../../stores/episodeProgress.store';
+import { useWatchLogStore } from '../../stores/watchLog.store';
 
 type Period = 'all' | 'year';
 
@@ -27,10 +29,27 @@ export default function StatsScreen() {
   const monthLong = (month: number) =>
     new Date(2000, month, 1).toLocaleDateString(locale, { month: 'long' });
 
-  const { input, isLoading } = useStatsData();
+  const { input, isLoading, refresh } = useStatsData();
   const [period, setPeriod] = useState<Period>(isDecember ? 'year' : 'all');
   const [isSharing, setIsSharing] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const viewShotRef = useRef<ViewShot>(null);
+
+  // Stats are derived from watchLog/episodeProgress, which the home/diary
+  // screens populate on their own mount -- a pull here re-fetches that
+  // source data rather than just recomputing from whatever's already local.
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        useWatchLogStore.getState().fetchWatchLog(),
+        useEpisodeProgressStore.getState().fetchProgress(),
+      ]);
+      refresh();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refresh]);
 
   const scopedInput = useMemo(
     () => (period === 'year' ? filterInputByYear(input, currentYear) : input),
@@ -109,6 +128,13 @@ export default function StatsScreen() {
         <ScrollView
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 140, gap: 24 }}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.textPrimary}
+            />
+          }
         >
           {isDecember && (
             <View className="flex-row items-center gap-2 overflow-hidden rounded-xl border border-primary-container/40 bg-primary-container/10 p-4">
