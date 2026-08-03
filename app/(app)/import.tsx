@@ -17,6 +17,7 @@ import { useThemeColors } from '../../lib/theme/useThemeColors';
 import { readZipEntries } from '../../lib/importers/zip';
 import { addSavedMediaBatch } from '../../lib/supabase/lists';
 import { addWatchLogEntriesBatch } from '../../lib/supabase/watchLog';
+import { logBreadcrumb } from '../../lib/telemetry/sentry';
 import { getPosterUrl } from '../../lib/tmdb/config';
 import { searchMulti } from '../../lib/tmdb/search';
 import { useListsStore } from '../../stores/lists.store';
@@ -197,6 +198,7 @@ export default function ImportScreen() {
 
   const pickSource = async (source: Source) => {
     setError(null);
+    logBreadcrumb('import', 'source_selected', { source });
     try {
       const picked = await DocumentPicker.getDocumentAsync({
         type: ['application/zip', 'application/x-zip-compressed'],
@@ -226,6 +228,7 @@ export default function ImportScreen() {
       );
       setStep('review');
     } catch (err) {
+      logBreadcrumb('import', 'read_or_match_failed', { source });
       setError(err instanceof Error ? err.message : t('import.readError'));
       setStep('source');
     }
@@ -282,9 +285,12 @@ export default function ImportScreen() {
         useListsStore.getState().fetchWatchlist(),
       ]);
 
-      setSummary({ imported: chosen.length, skipped: results.length - chosen.length });
+      const skipped = results.length - chosen.length;
+      logBreadcrumb('import', 'completed', { imported: chosen.length, skipped });
+      setSummary({ imported: chosen.length, skipped });
       setStep('done');
     } catch (err) {
+      logBreadcrumb('import', 'commit_failed', { selected: selected.size });
       setError(err instanceof Error ? err.message : t('import.importError'));
       setStep('review');
     }

@@ -29,3 +29,19 @@ export async function initSentry(): Promise<void> {
 
   Sentry.init({ dsn, tracesSampleRate: 0.2 });
 }
+
+// A trail of what the user was doing leading up to a crash, not a standalone
+// analytics event: breadcrumbs only surface attached to a captured
+// exception (or manually in Sentry's UI), and Sentry.addBreadcrumb is a
+// no-op when the SDK was never initialized (no DSN) or has been closed
+// (crash reporting opted out), so callers don't need to guard on that
+// themselves. Keep `data` to plain values -- never the free-text a user
+// typed (a search query, an import file name) -- since this ships to a
+// third party.
+export function logBreadcrumb(
+  category: string,
+  message: string,
+  data?: Record<string, string | number | boolean>,
+): void {
+  Sentry.addBreadcrumb({ category, message, level: 'info', data });
+}

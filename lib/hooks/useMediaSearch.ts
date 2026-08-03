@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { MediaCardItem, toSearchCardItem } from '../../components/home/MovieCard';
 import { PersonResultItem, toPersonResultItem } from '../../components/search/PersonResultRow';
+import { logBreadcrumb } from '../telemetry/sentry';
 import { searchMulti } from '../tmdb/search';
 
 const SEARCH_DEBOUNCE_MS = 350;
@@ -106,11 +107,22 @@ export function useMediaSearch({ onQueryResolved }: UseMediaSearchOptions = {}) 
     searchMulti(debouncedQuery)
       .then((data) => {
         if (cancelled) return;
-        setResults(dedupe(toItems(data.results)));
-        setPeople(dedupePeople(toPeople(data.results)));
+        const items = dedupe(toItems(data.results));
+        const foundPeople = dedupePeople(toPeople(data.results));
+        setResults(items);
+        setPeople(foundPeople);
         setPage(1);
         setTotalPages(data.total_pages);
         onQueryResolved?.(debouncedQuery);
+        // Query text itself is never logged (see logBreadcrumb) -- only that
+        // this shape of query (length, word count) came back empty, which is
+        // enough to tell whether empty search results are a real problem.
+        if (items.length + foundPeople.length === 0) {
+          logBreadcrumb('search', 'no_results', {
+            queryLength: debouncedQuery.length,
+            wordCount: debouncedQuery.trim().split(/\s+/).length,
+          });
+        }
       })
       .catch((err) => {
         if (cancelled) return;

@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 
 import { Toast } from '../../components/ui/Toast';
 import { scheduleUpcomingEpisodeReminders } from '../../lib/notifications/episodeReminders';
+import { logBreadcrumb } from '../../lib/telemetry/sentry';
 import { useAuthStore } from '../../stores/auth.store';
 import { useEpisodeProgressStore } from '../../stores/episodeProgress.store';
 import { useListsStore } from '../../stores/lists.store';
@@ -34,6 +35,12 @@ export default function AppLayout() {
       useAuthStore.getState().setPendingRedirect(query ? `${pathname}?${query}` : pathname);
     }
   }, [session, pathname, searchParams]);
+
+  // Gives a crash report the navigation trail leading up to it -- covers
+  // every authenticated screen from one place rather than instrumenting each.
+  useEffect(() => {
+    if (session) logBreadcrumb('navigation', pathname);
+  }, [session, pathname]);
 
   if (!session) {
     return <Redirect href="/login" />;
