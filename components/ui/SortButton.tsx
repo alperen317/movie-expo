@@ -10,9 +10,36 @@ import { useThemeColors } from '../../lib/theme/useThemeColors';
 // the whole filter row twitch. Pinning the width keeps the row still.
 const SORT_BUTTON_WIDTH = 116;
 
-export function SortButton({ label, onPress }: { label: string; onPress: () => void }) {
+export function SortButton({
+  label,
+  onPress,
+  compact = false,
+}: {
+  label: string;
+  onPress: () => void;
+  // Icon-only, no pinned width: the search screen's filter row grows a
+  // fourth "People" segment when a query also matches people, and that plus
+  // this button's usual 116px left too little room for the "TV Series"
+  // segment label on a narrow phone. Dropping the label here is what buys
+  // that room back without shortening the segment label itself.
+  compact?: boolean;
+}) {
   const { t } = useTranslation();
   const colors = useThemeColors();
+
+  if (compact) {
+    return (
+      <AnimatedPressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={t('a11y.openSortMenu')}
+        accessibilityValue={{ text: label }}
+        className="h-9 w-9 items-center justify-center rounded-full border border-glass-border bg-surface-container-low"
+      >
+        <MaterialIcons name="sort" size={16} color={colors.textSecondary} />
+      </AnimatedPressable>
+    );
+  }
 
   return (
     <AnimatedPressable

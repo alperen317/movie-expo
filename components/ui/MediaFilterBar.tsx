@@ -140,6 +140,7 @@ export function MediaFilterBar({
               }`}
             >
               <Text
+                numberOfLines={1}
                 className={`font-sans-semibold text-caption ${
                   selected ? 'text-on-primary-container' : 'text-text-secondary'
                 }`}
@@ -159,6 +160,7 @@ export function MediaFilterBar({
             }`}
           >
             <Text
+              numberOfLines={1}
               className={`font-sans-semibold text-caption ${
                 peopleActive ? 'text-on-primary-container' : 'text-text-secondary'
               }`}

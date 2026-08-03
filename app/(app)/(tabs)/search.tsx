@@ -633,6 +633,10 @@ export default function SearchScreen() {
                 <SortButton
                   label={t(SORT_SHORT_LABEL_KEYS[sortOption])}
                   onPress={() => setIsSortOpen(true)}
+                  // A fourth "People" segment shows whenever people.length > 0
+                  // (see peopleSegment above); the label-less button is what
+                  // keeps "TV Series" from wrapping on a narrow phone then.
+                  compact={people.length > 0}
                 />
               )
             }
