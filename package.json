@@ -76,6 +76,7 @@
     "npm": "10.x"
   },
   "overrides": {
-    "jest-mock": "^30.4.1"
+    "jest-mock": "^30.4.1",
+    "jest-environment-node": "^30.4.1"
   }
 }
