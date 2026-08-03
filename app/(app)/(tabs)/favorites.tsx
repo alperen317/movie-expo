@@ -87,8 +87,15 @@ export default function FavoritesScreen() {
     setMediaTypeFilter,
     genreFilter,
     setGenreFilter,
+    minRating,
+    setMinRating,
+    decadeFilter,
+    setDecadeFilter,
     availableGenres,
+    availableRatings,
+    availableDecades,
     filteredItems,
+    activeFilterCount,
     clearFilters,
   } = useMediaTypeGenreFilter(items);
 
@@ -177,6 +184,14 @@ export default function FavoritesScreen() {
             genreFilter={genreFilter}
             onGenreFilterChange={setGenreFilter}
             availableGenres={availableGenres}
+            minRating={minRating}
+            onMinRatingChange={setMinRating}
+            availableRatings={availableRatings}
+            decadeFilter={decadeFilter}
+            onDecadeFilterChange={setDecadeFilter}
+            availableDecades={availableDecades}
+            activeFilterCount={activeFilterCount}
+            onClearFilters={clearFilters}
             rightAccessory={
               <SortButton
                 label={t(SORT_LABEL_KEYS[sortOption])}
