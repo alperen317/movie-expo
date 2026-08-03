@@ -91,6 +91,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signUp: async (email, password) => {
     set({ isSubmitting: true, error: null, needsEmailConfirmation: false });
     try {
+      // Sign-up has no "remember me" toggle, but persistToDisk is a module-level
+      // flag that outlives sign-out -- without resetting it here, a fresh
+      // account created right after an opted-out session would silently
+      // inherit that in-memory-only policy, and its session would be gone
+      // the moment the app restarts, before the user could set it themselves.
+      // This also covers verifySignUpOtp below, which writes the session that
+      // arrives after email confirmation using whatever this call last set.
+      await setRememberPreference(true);
       const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) throw error;
       set({ isSubmitting: false, needsEmailConfirmation: !data.session });

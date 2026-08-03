@@ -16,7 +16,9 @@ export default function LoginScreen() {
   const { signIn, isSubmitting, error } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
+  // Checked by default: staying signed in is what most people want, and
+  // unchecking it is one tap away for anyone on a shared device.
+  const [rememberMe, setRememberMe] = useState(true);
   // Captured once on mount so a re-render after the first consumption (e.g.
   // React StrictMode's double-invoke) can't reset the redirect target to '/'.
   const [redirectTarget] = useState(() => useAuthStore.getState().consumePendingRedirect() ?? '/');

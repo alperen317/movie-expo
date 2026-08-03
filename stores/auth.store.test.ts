@@ -114,6 +114,17 @@ describe('auth.store', () => {
   });
 
   describe('signUp', () => {
+    it('resets the remember-me preference to persist before signing up', async () => {
+      // Otherwise a fresh account created right after an opted-out session
+      // would silently inherit that in-memory-only policy -- there's no
+      // "remember me" toggle on this screen for the user to fix it with.
+      mockSignUp.mockResolvedValue({ data: { session: null }, error: null });
+
+      await useAuthStore.getState().signUp('a@b.com', 'password123');
+
+      expect(mockSetRememberPreference).toHaveBeenCalledWith(true);
+    });
+
     it('flags needsEmailConfirmation when sign-up succeeds without a session', async () => {
       mockSignUp.mockResolvedValue({ data: { session: null }, error: null });
 
