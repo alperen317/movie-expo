@@ -3,7 +3,6 @@ import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  ActivityIndicator,
   FlatList,
   Keyboard,
   Pressable,
@@ -13,31 +12,17 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import {
-  Easing,
-  FadeIn,
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated';
+import { FadeIn } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import {
-  CARD_WIDTH,
-  GRID_GAP,
-  GRID_PADDING,
-  MovieCard,
-  getGridColumns,
-  padGridRow,
-  toMovieCardItem,
-} from '../../../components/home/MovieCard';
+import { MovieCard, getGridColumns, toMovieCardItem } from '../../../components/home/MovieCard';
 import { useTabBarScrollInset } from '../../../components/navigation/FloatingTabBar';
+import { DiscoverGrid } from '../../../components/search/DiscoverGrid';
 import { GenreStrip } from '../../../components/search/GenreStrip';
-import { MediaResultRow } from '../../../components/search/MediaResultRow';
-import { PersonResultRow } from '../../../components/search/PersonResultRow';
+import { RefiningIndicator } from '../../../components/search/RefiningIndicator';
+import { SearchResultsList } from '../../../components/search/SearchResultsList';
 import { SearchResultSkeleton } from '../../../components/search/SearchResultSkeleton';
+import { SectionHeader } from '../../../components/search/SectionHeader';
 import { ActionSheetModal } from '../../../components/ui/ActionSheetModal';
 import { AnimatedPressable, AnimatedView } from '../../../components/ui/AnimatedPressable';
 import { MediaFilterBar } from '../../../components/ui/MediaFilterBar';
@@ -95,66 +80,6 @@ const DISCOVER_SORT: Record<SearchSortOption, DiscoverSort> = {
   title: 'title',
   year: 'year',
 };
-
-// Poster + gutter + gap, so row separators start under the title rather than
-// cutting the full width. The people list has a narrower avatar, hence its own.
-const SEPARATOR_INSET = 84;
-const PERSON_SEPARATOR_INSET = 76;
-
-// How many people the mixed "All" list previews before handing off to the
-// dedicated People tab -- enough to catch the person you meant, short enough
-// that titles stay above the fold.
-const PEOPLE_PREVIEW_COUNT = 3;
-
-function SectionHeader({
-  title,
-  action,
-}: {
-  title: string;
-  action?: { label: string; onPress: () => void };
-}) {
-  return (
-    <View className="mb-stack-md flex-row items-center justify-between px-margin-mobile">
-      <Text className="text-title-md font-sans-semibold text-text-primary">{title}</Text>
-      {action && (
-        <AnimatedPressable onPress={action.onPress} accessibilityRole="button" hitSlop={8}>
-          <Text className="font-sans-bold text-label-caps uppercase text-text-secondary">
-            {action.label}
-          </Text>
-        </AnimatedPressable>
-      )}
-    </View>
-  );
-}
-
-// Shown while a newer query is in flight but the previous results are still on
-// screen; without it, refining a search changes the list with no warning that
-// anything was loading.
-function RefiningIndicator({ active, color }: { active: boolean; color: string }) {
-  const reducedMotion = useReducedMotion();
-  const opacity = useSharedValue(0.25);
-
-  useEffect(() => {
-    if (!active || reducedMotion) {
-      opacity.value = active ? 0.6 : 0;
-      return;
-    }
-    opacity.value = withRepeat(
-      withTiming(1, { duration: 650, easing: Easing.inOut(Easing.quad) }),
-      -1,
-      true,
-    );
-  }, [active, opacity, reducedMotion]);
-
-  const style = useAnimatedStyle(() => ({ opacity: opacity.value }));
-
-  // The 2px track is always rendered so results don't shift when it appears.
-  return (
-    <AnimatedView
-      style={[{ height: 2, marginHorizontal: 16, borderRadius: 2, backgroundColor: color }, style]}
-    />
-  );
-}
 
 export default function SearchScreen() {
   const { t, i18n } = useTranslation();
@@ -399,67 +324,13 @@ export default function SearchScreen() {
   );
 
   const discoverColumns = getGridColumns(windowWidth);
-  const discoverGrid = padGridRow(discover.items, discoverColumns);
 
-  const discoverView = discover.isLoading ? (
-    <View className="flex-1 items-center justify-center">
-      <ActivityIndicator color={colors.textPrimary} />
-    </View>
-  ) : discover.error ? (
-    <View className="flex-1 items-center justify-center gap-stack-sm px-margin-mobile">
-      <MaterialIcons name="cloud-off" size={32} color={colors.icon} />
-      <Text className="text-center font-sans text-body-md text-text-secondary">
-        {discover.error}
-      </Text>
-    </View>
-  ) : discover.items.length === 0 ? (
-    <View className="flex-1 items-center gap-stack-sm px-margin-mobile pt-stack-lg">
-      <MaterialIcons name="filter-alt-off" size={32} color={colors.icon} />
-      <Text className="text-center text-title-md font-sans-semibold text-text-primary">
-        {t('common.noFilterMatches')}
-      </Text>
-      <AnimatedPressable
-        onPress={clearFilters}
-        accessibilityRole="button"
-        className="rounded-full border border-glass-border bg-background-blur px-6 py-3"
-      >
-        <Text className="font-sans-semibold text-primary-container">
-          {t('common.clearFilters')}
-        </Text>
-      </AnimatedPressable>
-    </View>
-  ) : (
-    <FlatList
-      key={discoverColumns}
-      data={discoverGrid}
-      numColumns={discoverColumns}
-      keyExtractor={(item, index) => (item ? `${item.mediaType}-${item.id}` : `filler-${index}`)}
-      renderItem={({ item, index }) =>
-        item ? (
-          <MovieCard item={item} index={index % discoverColumns} />
-        ) : (
-          <View style={{ width: CARD_WIDTH }} />
-        )
-      }
-      columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: GRID_GAP }}
-      contentContainerStyle={{ paddingHorizontal: GRID_PADDING, paddingBottom: scrollInset }}
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-      keyboardDismissMode="on-drag"
-      onEndReached={discover.loadMore}
-      onEndReachedThreshold={0.5}
-      ListHeaderComponent={
-        <Text className="pb-stack-sm pt-stack-sm font-sans text-caption text-on-surface-variant">
-          {t('search.discoverCount', { total: discover.items.length })}
-        </Text>
-      }
-      ListFooterComponent={
-        discover.isLoadingMore ? (
-          <View className="py-stack-md">
-            <ActivityIndicator color={colors.textSecondary} />
-          </View>
-        ) : null
-      }
+  const discoverView = (
+    <DiscoverGrid
+      discover={discover}
+      columns={discoverColumns}
+      scrollInset={scrollInset}
+      onClearFilters={clearFilters}
     />
   );
 
@@ -514,91 +385,17 @@ export default function SearchScreen() {
     </View>
   );
 
-  const resultCountLabel = (total: number) => (
-    <Text className="px-margin-mobile pb-stack-sm pt-stack-sm font-sans text-caption text-on-surface-variant">
-      {t('search.resultCount', { total })}
-    </Text>
-  );
-
-  const loadMoreFooter = isLoadingMore ? (
-    <View className="py-stack-md">
-      <ActivityIndicator color={colors.textSecondary} />
-    </View>
-  ) : null;
-
-  const peopleSection = (
-    <View className="pb-stack-sm pt-stack-sm">
-      <SectionHeader
-        title={t('search.peopleSection')}
-        action={
-          people.length > PEOPLE_PREVIEW_COUNT
-            ? { label: t('home.viewAll'), onPress: () => setShowPeopleOnly(true) }
-            : undefined
-        }
-      />
-      {people.slice(0, PEOPLE_PREVIEW_COUNT).map((person) => (
-        <PersonResultRow key={person.id} item={person} />
-      ))}
-    </View>
-  );
-
-  const resultsList = isPersonMode ? (
-    <FlatList
-      data={people}
-      keyExtractor={(item) => String(item.id)}
-      renderItem={({ item }) => <PersonResultRow item={item} />}
-      ItemSeparatorComponent={() => (
-        <View style={{ marginLeft: PERSON_SEPARATOR_INSET }} className="h-px bg-glass-border" />
-      )}
-      ListHeaderComponent={resultCountLabel(people.length)}
-      ListFooterComponent={loadMoreFooter}
-      contentContainerStyle={{ paddingBottom: scrollInset }}
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-      keyboardDismissMode="on-drag"
-      onEndReached={loadMore}
-      onEndReachedThreshold={0.6}
-    />
-  ) : (
-    <FlatList
-      data={sortedResults}
-      keyExtractor={(item) => `${item.mediaType}-${item.id}`}
-      renderItem={({ item }) => <MediaResultRow item={item} />}
-      ItemSeparatorComponent={() => (
-        <View style={{ marginLeft: SEPARATOR_INSET }} className="h-px bg-glass-border" />
-      )}
-      ListHeaderComponent={
-        <>
-          {showPeopleSection && peopleSection}
-          {sortedResults.length > 0 && resultCountLabel(sortedResults.length)}
-        </>
-      }
-      // Rendered in place rather than as a full-height centred panel: the
-      // people the query did match stay visible above it.
-      ListEmptyComponent={
-        <View className="items-center gap-stack-sm px-margin-mobile py-stack-lg">
-          <MaterialIcons name="filter-alt-off" size={32} color={colors.icon} />
-          <Text className="text-center text-title-md font-sans-semibold text-text-primary">
-            {t('common.noFilterMatches')}
-          </Text>
-          <AnimatedPressable
-            onPress={clearFilters}
-            accessibilityRole="button"
-            className="rounded-full border border-glass-border bg-background-blur px-6 py-3"
-          >
-            <Text className="font-sans-semibold text-primary-container">
-              {t('common.clearFilters')}
-            </Text>
-          </AnimatedPressable>
-        </View>
-      }
-      ListFooterComponent={loadMoreFooter}
-      contentContainerStyle={{ paddingBottom: scrollInset }}
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-      keyboardDismissMode="on-drag"
-      onEndReached={loadMore}
-      onEndReachedThreshold={0.6}
+  const resultsList = (
+    <SearchResultsList
+      isPersonMode={isPersonMode}
+      people={people}
+      sortedResults={sortedResults}
+      showPeopleSection={showPeopleSection}
+      onViewAllPeople={() => setShowPeopleOnly(true)}
+      isLoadingMore={isLoadingMore}
+      loadMore={loadMore}
+      onClearFilters={clearFilters}
+      scrollInset={scrollInset}
     />
   );
 
