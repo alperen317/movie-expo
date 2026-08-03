@@ -11,6 +11,25 @@ const RETRY_DELAY_MS = 600;
 // TMDB's Retry-After is in seconds and can be long; waiting it out would look
 // identical to a hang, so anything past this falls back to the fixed delay.
 const MAX_RETRY_AFTER_MS = 5_000;
+// Catalog data (ratings, cast, genres...) barely moves inside five minutes,
+// so a repeat request for the same URL within that window is redundant --
+// this trades a little staleness for far fewer requests (a screen remount, a
+// row and its detail view both wanting the same title, a pull-to-refresh
+// pressed right after the initial load).
+const CACHE_TTL_MS = 5 * 60 * 1000;
+
+interface CacheEntry {
+  value: unknown;
+  expiresAt: number;
+}
+
+// Keyed by the full request URL (language + every param baked in), so two
+// different queries never collide and identical ones from different screens
+// share an entry.
+const cache = new Map<string, CacheEntry>();
+// Concurrent callers for the same URL -- e.g. two components mounting at
+// once -- share one in-flight request instead of issuing it twice.
+const inFlight = new Map<string, Promise<unknown>>();
 
 // TMDB expects an ISO 639-1 (optionally region-qualified) language tag. Map the
 // app's active UI language to it so titles, overviews, genre names, and
@@ -59,18 +78,7 @@ async function fetchWithTimeout(url: string): Promise<Response> {
   }
 }
 
-export async function tmdbFetch<T>(path: string, params?: Record<string, string>): Promise<T> {
-  if (!TMDB_ACCESS_TOKEN) {
-    throw new Error(
-      'Missing EXPO_PUBLIC_TMDB_ACCESS_TOKEN. Add it to your .env file and restart Expo.',
-    );
-  }
-
-  const url = new URL(`${TMDB_BASE_URL}${path}`);
-  // Default to the active language; an explicit `language` in params still wins.
-  url.searchParams.set('language', activeTmdbLanguage());
-  Object.entries(params ?? {}).forEach(([key, value]) => url.searchParams.set(key, value));
-
+async function performRequest<T>(url: string): Promise<T> {
   // Loops until it returns or throws; every path out of the body is terminal on
   // the last attempt.
   for (let attempt = 1; ; attempt++) {
@@ -78,7 +86,7 @@ export async function tmdbFetch<T>(path: string, params?: Record<string, string>
     let response: Response;
 
     try {
-      response = await fetchWithTimeout(url.toString());
+      response = await fetchWithTimeout(url);
     } catch (error) {
       if (isLastAttempt) {
         // Screens render these messages verbatim, so the timeout gets a
@@ -98,4 +106,37 @@ export async function tmdbFetch<T>(path: string, params?: Record<string, string>
 
     throw new Error(`TMDB request failed: ${response.status} ${response.statusText}`);
   }
+}
+
+export async function tmdbFetch<T>(path: string, params?: Record<string, string>): Promise<T> {
+  if (!TMDB_ACCESS_TOKEN) {
+    throw new Error(
+      'Missing EXPO_PUBLIC_TMDB_ACCESS_TOKEN. Add it to your .env file and restart Expo.',
+    );
+  }
+
+  const url = new URL(`${TMDB_BASE_URL}${path}`);
+  // Default to the active language; an explicit `language` in params still wins.
+  url.searchParams.set('language', activeTmdbLanguage());
+  Object.entries(params ?? {}).forEach(([key, value]) => url.searchParams.set(key, value));
+  const key = url.toString();
+
+  const cached = cache.get(key);
+  if (cached && cached.expiresAt > Date.now()) return cached.value as T;
+
+  const pending = inFlight.get(key);
+  if (pending) return pending as Promise<T>;
+
+  // Cached only on success -- a failed request must never poison the next
+  // caller, so it's left to hit the network fresh instead of replaying the
+  // same error for the rest of the TTL window.
+  const request = performRequest<T>(key)
+    .then((value) => {
+      cache.set(key, { value, expiresAt: Date.now() + CACHE_TTL_MS });
+      return value;
+    })
+    .finally(() => inFlight.delete(key));
+
+  inFlight.set(key, request);
+  return request;
 }

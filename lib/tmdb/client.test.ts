@@ -134,3 +134,56 @@ describe('tmdbFetch', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });
+
+describe('tmdbFetch caching', () => {
+  // Every path below is unique across the whole file: the cache is a module
+  // singleton that outlives individual tests, so a reused path would read a
+  // stale entry left by an earlier test instead of exercising this one.
+
+  it('serves a repeat request for the same URL from cache', async () => {
+    fetchMock.mockResolvedValue(ok({ id: 100 }));
+
+    await tmdbFetch('/movie/100');
+    await expect(tmdbFetch('/movie/100')).resolves.toEqual({ id: 100 });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('dedupes concurrent requests for the same URL into a single fetch', async () => {
+    fetchMock.mockResolvedValue(ok({ id: 101 }));
+
+    const [a, b] = await Promise.all([tmdbFetch('/movie/101'), tmdbFetch('/movie/101')]);
+
+    expect(a).toEqual(b);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('refetches once the cache entry expires', async () => {
+    jest.useFakeTimers();
+    fetchMock.mockResolvedValue(ok({ id: 102 }));
+
+    await tmdbFetch('/movie/102');
+    await jest.advanceTimersByTimeAsync(5 * 60 * 1000 + 1);
+    await tmdbFetch('/movie/102');
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('never caches a failed request', async () => {
+    fetchMock.mockResolvedValueOnce(failure(404)).mockResolvedValueOnce(ok({ id: 103 }));
+
+    await expect(tmdbFetch('/movie/103')).rejects.toThrow();
+    await expect(tmdbFetch('/movie/103')).resolves.toEqual({ id: 103 });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('keys the cache by the full URL, not just the path', async () => {
+    fetchMock.mockResolvedValueOnce(ok({ page: 1 })).mockResolvedValueOnce(ok({ page: 2 }));
+
+    await expect(tmdbFetch('/movie/104', { page: '1' })).resolves.toEqual({ page: 1 });
+    await expect(tmdbFetch('/movie/104', { page: '2' })).resolves.toEqual({ page: 2 });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+});
