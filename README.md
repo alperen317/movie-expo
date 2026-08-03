@@ -91,6 +91,8 @@ npm run format     # prettier --write
 
 CI runs type check, lint, format check, and tests on every push/PR to `master` (`.github/workflows/ci.yml`).
 
+Tests run on the `jest-expo` preset (React Native Testing Library underneath), so `*.test.ts`/`*.test.tsx` anywhere in the tree are picked up -- not just `lib/` and `stores/` as before. `supabase/functions/` is the one carve-out: those tests run on Deno (`Deno.test`, `https://` imports), not Jest.
+
 ## Releases and OTA updates
 
 Builds carry `expo-updates`, so a JS-only fix ships without a store review:
