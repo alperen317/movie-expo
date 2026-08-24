@@ -48,7 +48,7 @@ export default function SharedListDetailScreen() {
   const colors = useThemeColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { width: windowWidth } = useWindowDimensions();
-  const currentUserId = useAuthStore((state) => state.session?.user?.id);
+  const currentUserId = useAuthStore((state) => state.session?.userId);
 
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [isRenameOpen, setIsRenameOpen] = useState(false);

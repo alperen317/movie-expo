@@ -9,15 +9,14 @@ import { AnimatedPressable } from '../../components/ui/AnimatedPressable';
 import { useThemeColors } from '../../lib/theme/useThemeColors';
 import { BoringAvatar } from '../../components/ui/BoringAvatar';
 import { AVATAR_VARIANTS, AvatarVariant } from '../../lib/avatar/generate';
-import { useAuthStore } from '../../stores/auth.store';
 import { useProfileStore } from '../../stores/profile.store';
 import { useToastStore } from '../../stores/toast.store';
 
 export default function EditProfileScreen() {
   const { t } = useTranslation();
   const colors = useThemeColors();
-  const email = useAuthStore((state) => state.session?.user?.email ?? '');
   const profile = useProfileStore((state) => state.profile);
+  const email = profile?.email ?? '';
   const updateProfile = useProfileStore((state) => state.updateProfile);
 
   const [name, setName] = useState(profile?.displayName ?? '');

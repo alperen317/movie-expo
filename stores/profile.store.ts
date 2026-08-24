@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
+import { getOwnProfile, Profile, updateOwnProfile } from '../lib/api/account';
 import type { AvatarVariant } from '../lib/avatar/generate';
-import { getOwnProfile, Profile, updateOwnProfile } from '../lib/supabase/profiles';
 
 interface ProfileState {
   profile: Profile | null;
@@ -17,7 +17,7 @@ interface ProfileState {
   reset: () => void;
 }
 
-export const useProfileStore = create<ProfileState>((set) => ({
+export const useProfileStore = create<ProfileState>((set, get) => ({
   profile: null,
   isLoading: false,
   error: null,
@@ -36,7 +36,18 @@ export const useProfileStore = create<ProfileState>((set) => ({
   },
 
   updateProfile: async (updates) => {
-    const saved = await updateOwnProfile(updates);
+    // PUT /me replaces the whole editable profile server-side -- an omitted
+    // field is cleared, not left alone. Merge onto what's currently known so
+    // callers can keep passing a partial update (e.g. just a new avatar
+    // seed) without silently wiping the other fields.
+    const current = get().profile;
+    const saved = await updateOwnProfile({
+      displayName: current?.displayName ?? null,
+      avatarVariant: current?.avatarVariant ?? 'beam',
+      avatarSeed: current?.avatarSeed ?? null,
+      watchRegion: current?.watchRegion ?? null,
+      ...updates,
+    });
     set({ profile: saved });
   },
 

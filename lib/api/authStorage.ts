@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Supabase reads and writes the auth session through this adapter. "Remember
+// The API client reads and writes its tokens through this adapter. "Remember
 // me" decides whether that session outlives an app restart: when the user opts
 // out, tokens are kept off disk and held only for the current run, so starting
 // the app again returns to the login screen instead of restoring them.
@@ -45,9 +45,9 @@ const ephemeralStore = {
   },
 };
 
-// Restore the saved preference before Supabase reads the stored session on a
-// cold start, so token refreshes are written back to the same place the
-// session was read from. Defaults to persisting if the flag can't be read.
+// Restore the saved preference before the token store reads its persisted
+// tokens on a cold start, so a refresh is written back to the same place the
+// tokens were read from. Defaults to persisting if the flag can't be read.
 export async function loadRememberPreference(): Promise<void> {
   const value = await AsyncStorage.getItem(REMEMBER_PREFERENCE_KEY);
   persistToDisk = value !== 'false';

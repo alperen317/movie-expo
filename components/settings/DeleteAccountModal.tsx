@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Modal, Text, TextInput, View } from 'react-native';
 
-import { deleteAccount } from '../../lib/supabase/account';
+import { deleteAccount } from '../../lib/api/account';
 import { useAuthStore } from '../../stores/auth.store';
 import { useToastStore } from '../../stores/toast.store';
 import { AnimatedPressable } from '../ui/AnimatedPressable';

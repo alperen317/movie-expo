@@ -40,7 +40,6 @@ export default function ProfileScreen() {
   const { height: windowHeight } = useWindowDimensions();
   const colors = useThemeColors();
 
-  const session = useAuthStore((state) => state.session);
   const signOut = useAuthStore((state) => state.signOut);
 
   const favorites = useListsStore((state) => state.favorites);
@@ -75,9 +74,9 @@ export default function ProfileScreen() {
     }
   };
 
-  const email = session?.user?.email ?? '';
+  const email = profile?.email ?? '';
   const avatarSeed = profile?.avatarSeed || profile?.displayName || email;
-  const memberSince = formatMemberSince(session?.user?.created_at, i18n.language);
+  const memberSince = formatMemberSince(profile?.createdAt, i18n.language);
   const favoritesCount = Object.keys(favorites).length;
   const watchlistCount = Object.keys(watchlist).length;
   const watchedCount = dedupeWatchLog(watchLogEntries).length;

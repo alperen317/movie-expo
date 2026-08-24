@@ -13,7 +13,7 @@ jest.mock('@react-native-async-storage/async-storage', () => {
   return require('@react-native-async-storage/async-storage/jest/async-storage-mock');
 });
 
-const SESSION_KEY = 'sb-auth-token';
+const SESSION_KEY = 'previously.session';
 
 describe('rememberAwareAuthStorage', () => {
   beforeEach(async () => {

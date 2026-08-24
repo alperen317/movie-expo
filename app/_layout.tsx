@@ -19,7 +19,6 @@ import { SplashVideo } from '../components/splash/SplashVideo';
 import { AppErrorBoundary } from '../components/ui/AppErrorBoundary';
 import { applyStoredLanguagePreference } from '../lib/i18n';
 import { applyStoredThemePreference } from '../lib/theme/themePreference';
-import { supabase } from '../lib/supabase/client';
 import { initSentry } from '../lib/telemetry/sentry';
 import { useAuthStore } from '../stores/auth.store';
 import { useSharedListsStore } from '../stores/sharedLists.store';
@@ -56,14 +55,11 @@ export default function RootLayout() {
 
     const subscription = AppState.addEventListener('change', (state) => {
       if (state === 'active') {
-        supabase.auth.startAutoRefresh();
-        // The realtime WebSocket drops easily while backgrounded; silently
+        // The realtime connection drops easily while backgrounded; silently
         // resync whatever list screen is open and refresh the pending-invite
         // badge count rather than waiting for the user to leave and re-enter.
         useSharedListsStore.getState().refreshActiveList();
         useSharedListsStore.getState().fetchPendingInvites();
-      } else {
-        supabase.auth.stopAutoRefresh();
       }
     });
 
