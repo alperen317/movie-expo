@@ -7,7 +7,7 @@ import {
   markEpisodeWatched,
   unmarkEpisodeWatched,
   unmarkSeasonWatched,
-} from '../lib/supabase/episodeProgress';
+} from '../lib/api/episodeProgress';
 import i18n from '../lib/i18n';
 import type { MediaSeasonSummary } from '../lib/tmdb/details';
 import { useToastStore } from './toast.store';

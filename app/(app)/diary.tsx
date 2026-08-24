@@ -10,7 +10,7 @@ import { AnimatedPressable } from '../../components/ui/AnimatedPressable';
 import { buildDiarySections } from '../../lib/diary';
 import { useThemeColors } from '../../lib/theme/useThemeColors';
 import { getPosterUrl } from '../../lib/tmdb/config';
-import type { WatchLogEntry } from '../../lib/supabase/watchLog';
+import type { WatchLogEntry } from '../../lib/api/watchLog';
 import { useWatchLogStore } from '../../stores/watchLog.store';
 
 function formatMonth(monthKey: string, locale: string): string {

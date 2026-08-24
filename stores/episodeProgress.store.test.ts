@@ -2,7 +2,7 @@ import {
   markEpisodeWatched,
   markEpisodesWatchedBatch,
   unmarkEpisodeWatched,
-} from '../lib/supabase/episodeProgress';
+} from '../lib/api/episodeProgress';
 import { useToastStore } from './toast.store';
 import { episodeKey, useEpisodeProgressStore } from './episodeProgress.store';
 
@@ -11,10 +11,10 @@ import { episodeKey, useEpisodeProgressStore } from './episodeProgress.store';
 // actually touches (i18n.t) instead of chasing that dependency down.
 jest.mock('../lib/i18n', () => ({ __esModule: true, default: { t: (key: string) => key } }));
 
-// lib/supabase/episodeProgress imports lib/supabase/client, which throws at
-// import time without EXPO_PUBLIC_SUPABASE_* env vars -- mock the whole
-// module so the real client is never constructed.
-jest.mock('../lib/supabase/episodeProgress', () => ({
+// lib/api/episodeProgress imports lib/api/config, which throws at import
+// time without EXPO_PUBLIC_API_BASE_URL -- mock the whole module so the
+// real client is never constructed.
+jest.mock('../lib/api/episodeProgress', () => ({
   fetchAllEpisodeProgress: jest.fn(),
   markEpisodeWatched: jest.fn(),
   unmarkEpisodeWatched: jest.fn(),

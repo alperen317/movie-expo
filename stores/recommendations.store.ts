@@ -7,7 +7,7 @@ import {
 } from '../lib/recommendations/friendsWatched';
 import { buildPersonAffinities, type PersonSignal } from '../lib/recommendations/personSignal';
 import { rankCandidates } from '../lib/recommendations/score';
-import { addDismissed, fetchDismissedKeys } from '../lib/supabase/recommendationFeedback';
+import { addDismissed, fetchDismissedKeys } from '../lib/api/recommendationFeedback';
 import { buildTasteProfile, type TasteSignal } from '../lib/recommendations/tasteProfile';
 import { getGenreIdByName, normalizeGenreName } from '../lib/tmdb/genres';
 import { getMediaMetadata } from '../lib/tmdb/mediaMetadataCache';

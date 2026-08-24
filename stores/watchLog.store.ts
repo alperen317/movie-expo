@@ -10,7 +10,7 @@ import {
   fetchWatchLog,
   updateWatchLogEntry,
   WatchLogEntry,
-} from '../lib/supabase/watchLog';
+} from '../lib/api/watchLog';
 import { useListsStore } from './lists.store';
 import { useToastStore } from './toast.store';
 

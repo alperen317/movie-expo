@@ -4,25 +4,25 @@ import {
   addWatchLogEntry,
   deleteWatchLogEntries,
   updateWatchLogEntry,
-} from '../lib/supabase/watchLog';
+} from '../lib/api/watchLog';
 import { useListsStore } from './lists.store';
 import { useToastStore } from './toast.store';
 import { dedupeWatchLog, useWatchLogStore } from './watchLog.store';
 
 import type { MediaCardItem } from '../components/home/MovieCard';
-import type { WatchLogEntry } from '../lib/supabase/watchLog';
+import type { WatchLogEntry } from '../lib/api/watchLog';
 
 jest.mock('@react-native-async-storage/async-storage', () => {
   // jest.mock factories are hoisted above imports, so a static import can't
   // be referenced here -- require is the supported pattern (see
-  // lib/supabase/authStorage.test.ts for the same convention).
+  // lib/api/authStorage.test.ts for the same convention).
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   return require('@react-native-async-storage/async-storage/jest/async-storage-mock');
 });
 
 jest.mock('../lib/i18n', () => ({ __esModule: true, default: { t: (key: string) => key } }));
 
-jest.mock('../lib/supabase/watchLog', () => ({
+jest.mock('../lib/api/watchLog', () => ({
   fetchWatchLog: jest.fn(),
   addWatchLogEntry: jest.fn(),
   updateWatchLogEntry: jest.fn(),

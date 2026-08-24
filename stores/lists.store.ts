@@ -9,7 +9,7 @@ import {
   fetchSavedMedia,
   removeSavedMedia,
   SavedMediaItem,
-} from '../lib/supabase/lists';
+} from '../lib/api/savedMedia';
 import { useToastStore } from './toast.store';
 
 function keyOf(mediaType: 'movie' | 'tv', id: number): string {

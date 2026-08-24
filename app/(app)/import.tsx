@@ -15,8 +15,8 @@ import { matchImportRecords, type MatchResult } from '../../lib/importers/match'
 import { parseTVTimeExport } from '../../lib/importers/tvtime';
 import { useThemeColors } from '../../lib/theme/useThemeColors';
 import { readZipEntries } from '../../lib/importers/zip';
-import { addSavedMediaBatch } from '../../lib/supabase/lists';
-import { addWatchLogEntriesBatch } from '../../lib/supabase/watchLog';
+import { addSavedMediaBatch } from '../../lib/api/savedMedia';
+import { addWatchLogEntriesBatch } from '../../lib/api/watchLog';
 import { logBreadcrumb } from '../../lib/telemetry/sentry';
 import { getPosterUrl } from '../../lib/tmdb/config';
 import { searchMulti } from '../../lib/tmdb/search';

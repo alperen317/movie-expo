@@ -1,4 +1,4 @@
-import { addDismissed, fetchDismissedKeys } from '../lib/supabase/recommendationFeedback';
+import { addDismissed, fetchDismissedKeys } from '../lib/api/recommendationFeedback';
 import { fetchListItems, fetchListWatchSummary, fetchMyLists } from '../lib/supabase/sharedLists';
 import { getGenreIdByName } from '../lib/tmdb/genres';
 import { getMediaMetadata } from '../lib/tmdb/mediaMetadataCache';
@@ -13,7 +13,7 @@ import { useRecommendationsStore } from './recommendations.store';
 import { useWatchLogStore } from './watchLog.store';
 
 import type { MediaCardItem } from '../components/home/MovieCard';
-import type { WatchLogEntry } from '../lib/supabase/watchLog';
+import type { WatchLogEntry } from '../lib/api/watchLog';
 
 // components/home/MovieCard pulls in react-native / expo-image / reanimated,
 // none of which run under the plain node test environment -- mock the
@@ -36,7 +36,7 @@ jest.mock('../lib/tmdb/movies', () => ({
   discoverMoviesByPerson: jest.fn(),
 }));
 jest.mock('../lib/tmdb/tv', () => ({ discoverTVShowsByGenre: jest.fn() }));
-jest.mock('../lib/supabase/recommendationFeedback', () => ({
+jest.mock('../lib/api/recommendationFeedback', () => ({
   addDismissed: jest.fn(),
   fetchDismissedKeys: jest.fn(),
 }));
