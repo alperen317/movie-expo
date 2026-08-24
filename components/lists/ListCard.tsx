@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 
 import { getRelativeTimeParts } from '../../lib/format/relativeTime';
-import type { SharedListSummary } from '../../lib/supabase/sharedLists';
+import type { SharedListSummary } from '../../lib/api/sharedLists';
 import { AnimatedPressable } from '../ui/AnimatedPressable';
 import { useThemeColors } from '../../lib/theme/useThemeColors';
 

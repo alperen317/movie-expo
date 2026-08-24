@@ -7,7 +7,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { AnimatedPressable } from '../ui/AnimatedPressable';
 import { getPosterUrl } from '../../lib/tmdb/config';
-import type { PollCandidate, SharedListItem } from '../../lib/supabase/sharedLists';
+import type { PollCandidate, SharedListItem } from '../../lib/api/sharedLists';
 import { useThemeColors } from '../../lib/theme/useThemeColors';
 
 interface ActivePollCardProps {

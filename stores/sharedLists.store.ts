@@ -1,8 +1,8 @@
-import type { RealtimeChannel } from '@supabase/supabase-js';
 import { create } from 'zustand';
 
 import type { MediaCardItem } from '../components/home/MovieCard';
 import i18n from '../lib/i18n';
+import { subscribeToList, unsubscribeFromList, type ListSubscription } from '../lib/api/realtime';
 import {
   addListItem,
   castPollVote as castPollVoteRequest,
@@ -25,15 +25,11 @@ import {
   removeMember as removeMemberRequest,
   renameSharedList,
   respondToInvite as respondToInviteRequest,
-  sendInviteEmail,
   SharedListItem,
-  sharedListItemFromRow,
   SharedListsError,
   SharedListSummary,
   startPoll as startPollRequest,
-  subscribeToList,
-  unsubscribeFromList,
-} from '../lib/supabase/sharedLists';
+} from '../lib/api/sharedLists';
 import { useToastStore } from './toast.store';
 
 function keyOf(mediaType: 'movie' | 'tv', id: number): string {
@@ -83,21 +79,19 @@ interface SharedListsState {
 
   // Most recent poll for the open list (active or just-closed), or null if
   // one was never started. Refreshed on open/resume and on any realtime
-  // change to the poll tables (see onPollChange below) -- low-frequency
-  // enough that a full refetch is simpler than fine-grained patching.
+  // update to it -- low-frequency enough that a full refetch is simpler
+  // than fine-grained patching.
   activePoll: ListPoll | null;
   startPoll: (listId: string, deadlineIso: string, itemIds: string[]) => Promise<void>;
   castPollVote: (candidateId: string) => Promise<void>;
 
   // Keyed the same way as `items` (keyOf(mediaType, id)). Read-only, no
-  // realtime -- watch_log isn't in the realtime publication, and watching
+  // realtime -- watch history isn't part of ListHub's events and watching
   // something happens outside this screen anyway; refreshed on open/resume.
   watchSummary: Record<string, number>;
 
-  _listItemsByRowId: Record<string, string>;
-
-  _channel: RealtimeChannel | null;
-  _subscribeRealtime: (listId: string) => void;
+  _subscription: ListSubscription | null;
+  _subscribeRealtime: (listId: string) => Promise<void>;
   _unsubscribeRealtime: () => void;
 
   reset: () => void;
@@ -150,7 +144,7 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
   },
 
   // Not optimistic: the new list's id is server-generated and doesn't
-  // exist until the RPC returns, so there's no stable key to render
+  // exist until the request returns, so there's no stable key to render
   // against beforehand.
   createList: async (name) => {
     const list = await createSharedList(name);
@@ -236,7 +230,6 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
   detailError: null,
   activePoll: null,
   watchSummary: {},
-  _listItemsByRowId: {},
 
   openList: async (listId) => {
     get()._unsubscribeRealtime();
@@ -247,7 +240,6 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
       items: {},
       activePoll: null,
       watchSummary: {},
-      _listItemsByRowId: {},
       isDetailLoading: true,
       detailError: null,
     });
@@ -263,14 +255,11 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
         activeList: list,
         members: Object.fromEntries(members.map((m) => [m.membershipId, m])),
         items: Object.fromEntries(items.map((item) => [keyOf(item.mediaType, item.id), item])),
-        _listItemsByRowId: Object.fromEntries(
-          items.map((item) => [item.rowId, keyOf(item.mediaType, item.id)]),
-        ),
         activePoll,
         watchSummary,
         isDetailLoading: false,
       });
-      get()._subscribeRealtime(listId);
+      await get()._subscribeRealtime(listId);
     } catch (err) {
       set({
         detailError: err instanceof Error ? err.message : 'Failed to load list.',
@@ -288,16 +277,15 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
       items: {},
       activePoll: null,
       watchSummary: {},
-      _listItemsByRowId: {},
       detailError: null,
     });
   },
 
   // Called when the app returns to the foreground with a list screen open --
-  // mobile WebSockets drop easily in the background, so the realtime channel
-  // may be dead by the time the user comes back. Re-fetches without touching
+  // the realtime connection drops easily while backgrounded, so it may be
+  // stale by the time the user comes back. Re-fetches without touching
   // isDetailLoading/detailError (unlike openList) so the screen doesn't flash
-  // a spinner, then rebuilds the channel in case it went stale.
+  // a spinner, then rebuilds the subscription in case it went stale.
   refreshActiveList: async () => {
     const listId = get().activeListId;
     if (!listId) return;
@@ -313,17 +301,14 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
         activeList: list,
         members: Object.fromEntries(members.map((m) => [m.membershipId, m])),
         items: Object.fromEntries(items.map((item) => [keyOf(item.mediaType, item.id), item])),
-        _listItemsByRowId: Object.fromEntries(
-          items.map((item) => [item.rowId, keyOf(item.mediaType, item.id)]),
-        ),
         activePoll,
         watchSummary,
       });
       get()._unsubscribeRealtime();
-      get()._subscribeRealtime(listId);
+      await get()._subscribeRealtime(listId);
     } catch {
       // Best-effort refresh; a transient failure just leaves the screen
-      // showing whatever it had before, same as onMembersChange/onListChange.
+      // showing whatever it had before, same as onMembersChanged/onListRenamed.
     }
   },
 
@@ -336,10 +321,6 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
           : {},
       );
       useToastStore.getState().show(i18n.t('toasts.inviteSent', { email }), 'person-add');
-      sendInviteEmail(member.membershipId).catch(() => {
-        // Best-effort: the invite already succeeded, so a notification-email
-        // failure shouldn't surface to the inviter.
-      });
     } catch (err) {
       const message =
         err instanceof SharedListsError ? err.message : 'Something went wrong. Please try again.';
@@ -393,7 +374,11 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
       .show(i18n.t('toasts.addedToSharedList', { title: item.title }), 'playlist-add-check');
 
     try {
-      await addListItem(listId, item);
+      // Unlike the optimistic placeholder, the server's response already has
+      // the real rowId and the adder's name/avatar filled in -- replace with
+      // it directly rather than waiting on the realtime echo to backfill them.
+      const saved = await addListItem(listId, item);
+      set((state) => ({ items: { ...state.items, [key]: saved } }));
     } catch (err) {
       set((state) => {
         const items = { ...state.items };
@@ -457,96 +442,89 @@ export const useSharedListsStore = create<SharedListsState>((set, get) => ({
     }
   },
 
-  _channel: null,
-  _subscribeRealtime: (listId) => {
-    const channel = subscribeToList(listId, {
-      onItemsChange: (payload) => {
-        // Subscribed to the whole table (no server-side filter), so ignore
-        // events that belong to a different list. On DELETE the old row only
-        // carries the primary key, so match via the rowId->key map instead of
-        // media_id/media_type (which may be absent from the WAL).
-        if (payload.eventType === 'DELETE') {
-          const oldRowId = (payload.old as { id?: string }).id;
-          if (!oldRowId) return;
-          const key = get()._listItemsByRowId[oldRowId];
-          if (!key) return;
+  _subscription: null,
+  _subscribeRealtime: async (listId) => {
+    try {
+      const subscription = await subscribeToList(listId, {
+        onItemAdded: (item) => {
+          // Group membership already scopes events to this list server-side;
+          // this is a narrow defense against a stale listener from a
+          // just-closed subscription still being attached for a moment.
+          if (item.listId !== get().activeListId) return;
+          set((state) => ({ items: { ...state.items, [keyOf(item.mediaType, item.id)]: item } }));
+        },
+        onItemRemoved: ({ mediaId, mediaType }) => {
+          const key = keyOf(mediaType, mediaId);
           set((state) => {
+            if (!(key in state.items)) return state;
             const items = { ...state.items };
-            const byRowId = { ...state._listItemsByRowId };
             delete items[key];
-            delete byRowId[oldRowId];
-            return { items, _listItemsByRowId: byRowId };
+            return { items };
           });
-          return;
-        }
+        },
+        onMembersChanged: async () => {
+          const listId = get().activeListId;
+          if (!listId) return;
+          try {
+            const members = await fetchListMembers(listId);
+            set({ members: Object.fromEntries(members.map((m) => [m.membershipId, m])) });
+          } catch {
+            // Best-effort refresh; a transient failure here just means the
+            // member list is stale until the next change or manual refresh.
+          }
+        },
+        onListRenamed: ({ name }) => {
+          set((state) => ({
+            activeList: state.activeList ? { ...state.activeList, name } : state.activeList,
+            myLists:
+              state.activeListId && state.myLists[state.activeListId]
+                ? {
+                    ...state.myLists,
+                    [state.activeListId]: { ...state.myLists[state.activeListId], name },
+                  }
+                : state.myLists,
+          }));
+        },
+        onListDeleted: () => {
+          const listId = get().activeListId;
+          if (!listId) return;
+          set((state) => {
+            const myLists = { ...state.myLists };
+            delete myLists[listId];
+            return { myLists, detailError: i18n.t('listDetail.deletedError') };
+          });
+          useToastStore.getState().show(i18n.t('listDetail.deletedError'), 'delete-outline');
+        },
+        onPollUpdated: async () => {
+          const listId = get().activeListId;
+          if (!listId) return;
+          try {
+            const poll = await fetchActivePoll(listId);
+            set({ activePoll: poll });
+          } catch {
+            // Best-effort refresh; a transient failure just leaves the poll
+            // card showing whatever it had before.
+          }
+        },
+      });
 
-        const row = payload.new as unknown as Parameters<typeof sharedListItemFromRow>[0];
-        if (row.list_id !== get().activeListId) return;
-
-        // Realtime postgres_changes payloads carry raw columns only (no
-        // PostgREST embed), so `adder` -- and thus addedByName -- is empty
-        // here. Whoever added it must be an accepted member of this same
-        // list (insert RLS requires is_list_member), so they're already in
-        // the members map loaded by openList; resolve the name from there
-        // instead of an extra round-trip.
-        const item = sharedListItemFromRow(row);
-        const adder = Object.values(get().members).find((m) => m.userId === item.addedBy);
-        if (adder) {
-          item.addedByName = adder.displayName || adder.email;
-          item.addedByAvatarVariant = adder.avatarVariant;
-          item.addedByAvatarSeed = adder.avatarSeed;
-        }
-        const key = keyOf(item.mediaType, item.id);
-        set((state) => ({
-          items: { ...state.items, [key]: item },
-          _listItemsByRowId: { ...state._listItemsByRowId, [item.rowId]: key },
-        }));
-      },
-      onPollChange: async () => {
-        // Poll activity is low-frequency (a handful of votes over a short
-        // window), so a full refetch is simpler and plenty fast -- same
-        // best-effort pattern as onMembersChange/onListChange below.
-        const listId = get().activeListId;
-        if (!listId) return;
-        try {
-          const poll = await fetchActivePoll(listId);
-          set({ activePoll: poll });
-        } catch {
-          // Best-effort refresh; a transient failure just leaves the poll
-          // card showing whatever it had before.
-        }
-      },
-      onMembersChange: async (payload) => {
-        // Subscribed to the whole table; skip members of other lists.
-        const row = (payload.new ?? payload.old) as { list_id?: string } | undefined;
-        if (row && row.list_id && row.list_id !== get().activeListId) return;
-        const listId = get().activeListId;
-        if (!listId) return;
-        try {
-          const members = await fetchListMembers(listId);
-          set({ members: Object.fromEntries(members.map((m) => [m.membershipId, m])) });
-        } catch {
-          // Best-effort refresh; a transient failure here just means the
-          // member list is stale until the next change or manual refresh.
-        }
-      },
-      onListChange: async () => {
-        const listId = get().activeListId;
-        if (!listId) return;
-        try {
-          const list = await fetchListById(listId);
-          set({ activeList: list });
-        } catch {
-          // Best-effort refresh, same as onMembersChange above.
-        }
-      },
-    });
-    set({ _channel: channel });
+      // A fast close/reopen could have moved on to a different list (or none)
+      // by the time the connection/JoinList round trip finishes.
+      if (get().activeListId === listId) {
+        set({ _subscription: subscription });
+      } else {
+        unsubscribeFromList(subscription).catch(() => {});
+      }
+    } catch {
+      // Best-effort -- the screen still works without live updates; opening
+      // it again (or the AppState resume path) will retry.
+    }
   },
   _unsubscribeRealtime: () => {
-    const channel = get()._channel;
-    if (channel) unsubscribeFromList(channel);
-    set({ _channel: null });
+    const subscription = get()._subscription;
+    if (!subscription) return;
+    set({ _subscription: null });
+    unsubscribeFromList(subscription).catch(() => {});
   },
 
   reset: () => {

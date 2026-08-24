@@ -11,6 +11,7 @@ import {
 } from '../lib/api/auth';
 import { loadRememberPreference, setRememberPreference } from '../lib/api/authStorage';
 import { ensureValidToken, onSessionExpired } from '../lib/api/client';
+import { stopRealtimeConnection } from '../lib/api/realtime';
 import {
   clearTokens,
   currentTokens,
@@ -71,6 +72,9 @@ function resetAllDomainStores(): void {
   useEpisodeProgressStore.getState().reset();
   useProfileStore.getState().reset();
   useRecommendationsStore.getState().reset();
+  // An idle SignalR connection would otherwise sit there retrying its
+  // automatic reconnect forever with a token that's no longer valid.
+  stopRealtimeConnection().catch(() => {});
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({

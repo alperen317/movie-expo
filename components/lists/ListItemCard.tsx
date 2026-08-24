@@ -6,7 +6,7 @@ import { CARD_WIDTH, MovieCard } from '../home/MovieCard';
 import { AnimatedPressable } from '../ui/AnimatedPressable';
 import { BoringAvatar } from '../ui/BoringAvatar';
 import { getRelativeTimeParts } from '../../lib/format/relativeTime';
-import type { SharedListItem } from '../../lib/supabase/sharedLists';
+import type { SharedListItem } from '../../lib/api/sharedLists';
 import { useThemeColors } from '../../lib/theme/useThemeColors';
 
 interface ListItemCardProps {

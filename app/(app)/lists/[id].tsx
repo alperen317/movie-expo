@@ -25,7 +25,7 @@ import { SortButton } from '../../../components/ui/SortButton';
 import { useMediaTypeGenreFilter } from '../../../lib/hooks/useMediaTypeGenreFilter';
 import { useThemeColors } from '../../../lib/theme/useThemeColors';
 import { BoringAvatar } from '../../../components/ui/BoringAvatar';
-import type { PollCandidate, SharedListItem } from '../../../lib/supabase/sharedLists';
+import type { PollCandidate, SharedListItem } from '../../../lib/api/sharedLists';
 import { useAuthStore } from '../../../stores/auth.store';
 import { useSharedListsStore } from '../../../stores/sharedLists.store';
 
@@ -308,7 +308,11 @@ export default function SharedListDetailScreen() {
       {activeList && (
         <InviteModal
           visible={isInviteOpen}
-          joinCode={activeList.joinCode}
+          // Only reachable once the caller is an accepted member (this
+          // screen's own fetches 404 otherwise), so the server always has a
+          // real code to give back here -- the fallback is purely to satisfy
+          // the wider `string | null` type an invitee-viewer's response can carry.
+          joinCode={activeList.joinCode ?? ''}
           isCreator={isCreator}
           onClose={() => setIsInviteOpen(false)}
           onSubmit={async (email) => {

@@ -1,6 +1,6 @@
 import { Text, View } from 'react-native';
 
-import type { ListMember } from '../../lib/supabase/sharedLists';
+import type { ListMember } from '../../lib/api/sharedLists';
 import { BoringAvatar } from '../ui/BoringAvatar';
 
 const MAX_VISIBLE = 4;

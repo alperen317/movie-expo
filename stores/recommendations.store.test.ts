@@ -1,5 +1,5 @@
 import { addDismissed, fetchDismissedKeys } from '../lib/api/recommendationFeedback';
-import { fetchListItems, fetchListWatchSummary, fetchMyLists } from '../lib/supabase/sharedLists';
+import { fetchListItems, fetchListWatchSummary, fetchMyLists } from '../lib/api/sharedLists';
 import { getGenreIdByName } from '../lib/tmdb/genres';
 import { getMediaMetadata } from '../lib/tmdb/mediaMetadataCache';
 import {
@@ -40,7 +40,7 @@ jest.mock('../lib/api/recommendationFeedback', () => ({
   addDismissed: jest.fn(),
   fetchDismissedKeys: jest.fn(),
 }));
-jest.mock('../lib/supabase/sharedLists', () => ({
+jest.mock('../lib/api/sharedLists', () => ({
   fetchListItems: jest.fn(),
   fetchListWatchSummary: jest.fn(),
   fetchMyLists: jest.fn(),

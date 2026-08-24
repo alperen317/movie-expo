@@ -1,6 +1,7 @@
 {
   "listDetail": {
     "fallbackTitle": "List",
+    "deletedError": "This list was deleted.",
     "memberCount_one": "{{count}} member",
     "memberCount_other": "{{count}} members",
     "emptyTitle": "No titles yet",

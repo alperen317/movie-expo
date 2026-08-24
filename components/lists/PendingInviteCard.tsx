@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, View } from 'react-native';
 
-import type { PendingInvite } from '../../lib/supabase/sharedLists';
+import type { PendingInvite } from '../../lib/api/sharedLists';
 import { AnimatedPressable } from '../ui/AnimatedPressable';
 
 interface PendingInviteCardProps {

@@ -9,6 +9,7 @@ import {
 } from '../lib/api/auth';
 import { loadRememberPreference, setRememberPreference } from '../lib/api/authStorage';
 import { ensureValidToken, onSessionExpired } from '../lib/api/client';
+import { stopRealtimeConnection } from '../lib/api/realtime';
 import { clearTokens, currentTokens, decodeUserId, loadTokens, saveTokens } from '../lib/api/tokenStore';
 import { useAuthStore, type Session } from './auth.store';
 
@@ -46,6 +47,10 @@ jest.mock('../lib/api/tokenStore', () => ({
   saveTokens: jest.fn(),
 }));
 
+jest.mock('../lib/api/realtime', () => ({
+  stopRealtimeConnection: jest.fn(),
+}));
+
 const mockRegister = register as jest.Mock;
 const mockResendVerification = resendVerification as jest.Mock;
 const mockVerifyEmail = verifyEmail as jest.Mock;
@@ -57,6 +62,7 @@ const mockLoadRememberPreference = loadRememberPreference as jest.Mock;
 const mockSetRememberPreference = setRememberPreference as jest.Mock;
 const mockEnsureValidToken = ensureValidToken as jest.Mock;
 const mockOnSessionExpired = onSessionExpired as jest.Mock;
+const mockStopRealtimeConnection = stopRealtimeConnection as jest.Mock;
 const mockClearTokens = clearTokens as jest.Mock;
 const mockCurrentTokens = currentTokens as jest.Mock;
 const mockDecodeUserId = decodeUserId as jest.Mock;
@@ -130,6 +136,7 @@ describe('auth.store', () => {
     mockLoadRememberPreference.mockResolvedValue(undefined);
     mockSaveTokens.mockResolvedValue(undefined);
     mockClearTokens.mockResolvedValue(undefined);
+    mockStopRealtimeConnection.mockResolvedValue(undefined);
     mockDecodeUserId.mockReturnValue('user-1');
   });
 
@@ -310,6 +317,7 @@ describe('auth.store', () => {
       expect(mockEpisodeProgressReset).toHaveBeenCalled();
       expect(mockProfileReset).toHaveBeenCalled();
       expect(mockRecommendationsReset).toHaveBeenCalled();
+      expect(mockStopRealtimeConnection).toHaveBeenCalled();
     });
 
     it('still clears local session state when the network request fails', async () => {

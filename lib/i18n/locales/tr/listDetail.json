@@ -1,6 +1,7 @@
 {
   "listDetail": {
     "fallbackTitle": "Liste",
+    "deletedError": "Bu liste silindi.",
     "memberCount_one": "{{count}} üye",
     "memberCount_other": "{{count}} üye",
     "emptyTitle": "Henüz yapım yok",

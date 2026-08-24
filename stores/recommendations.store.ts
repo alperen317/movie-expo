@@ -17,7 +17,7 @@ import {
   discoverMoviesByPerson,
 } from '../lib/tmdb/movies';
 import { discoverTVShowsByGenre } from '../lib/tmdb/tv';
-import { fetchListItems, fetchListWatchSummary, fetchMyLists } from '../lib/supabase/sharedLists';
+import { fetchListItems, fetchListWatchSummary, fetchMyLists } from '../lib/api/sharedLists';
 import { useListsStore } from './lists.store';
 import { useWatchLogStore } from './watchLog.store';
 
