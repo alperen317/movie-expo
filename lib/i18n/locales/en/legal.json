@@ -1,6 +1,6 @@
 {
   "legal": {
-    "lastUpdated": "Last updated: July 2026",
+    "lastUpdated": "Last updated: August 2026",
     "privacy": {
       "title": "Privacy Policy",
       "collectTitle": "What we collect",
@@ -12,7 +12,7 @@
       "permissionsTitle": "Device permissions",
       "permissionsBody": "If you enable episode reminders, we request notification permission to schedule local reminders for upcoming episodes. This doesn't send any data off your device.",
       "thirdPartiesTitle": "Third parties",
-      "thirdPartiesBody": "We use Supabase to host our database and handle authentication — your data is stored on their infrastructure as our processor. We use TMDB for movie/TV metadata (posters, titles, ratings); no personal data is sent to TMDB. If you keep crash reporting enabled in Profile, anonymized crash reports may be sent to Sentry to help us fix bugs — you can turn this off at any time.",
+      "thirdPartiesBody": "Our own backend hosts the database and handles authentication — your data is not stored on a third party's infrastructure. We use Brevo to send account emails (verification codes, shared-list invites), TMDB for movie/TV metadata (posters, titles, ratings; no personal data is sent to TMDB). If you keep crash reporting enabled in Profile, anonymized crash reports may be sent to Sentry to help us fix bugs — you can turn this off at any time.",
       "deleteTitle": "Deleting your data",
       "deleteBody": "You can permanently delete your account and all associated data at any time from Profile → Delete Account. This also deletes any shared lists you own, for every member.",
       "contactTitle": "Contact",

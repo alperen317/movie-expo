@@ -1,6 +1,6 @@
 {
   "legal": {
-    "lastUpdated": "Son güncelleme: Temmuz 2026",
+    "lastUpdated": "Son güncelleme: Ağustos 2026",
     "privacy": {
       "title": "Gizlilik Politikası",
       "collectTitle": "Neleri topluyoruz",
@@ -12,7 +12,7 @@
       "permissionsTitle": "Cihaz izinleri",
       "permissionsBody": "Bölüm hatırlatıcılarını etkinleştirirsen, yaklaşan bölümler için yerel hatırlatıcılar planlamak üzere bildirim izni isteriz. Bu, cihazından hiçbir veri göndermez.",
       "thirdPartiesTitle": "Üçüncü taraflar",
-      "thirdPartiesBody": "Veritabanımızı barındırmak ve kimlik doğrulamayı yürütmek için Supabase kullanırız — verilerin, işleyicimiz olarak onların altyapısında saklanır. Film/dizi meta verileri (afişler, başlıklar, puanlar) için TMDB kullanırız; TMDB'ye hiçbir kişisel veri gönderilmez. Profil'de çökme raporlamayı açık tutarsan, hataları düzeltmemize yardımcı olmak için anonim çökme raporları Sentry'ye gönderilebilir — bunu istediğin zaman kapatabilirsin.",
+      "thirdPartiesBody": "Veritabanını barındıran ve kimlik doğrulamayı yürüten altyapı kendi sunucumuzdur — verilerin bir üçüncü tarafın altyapısında saklanmaz. Hesap e-postalarını (doğrulama kodları, paylaşılan liste davetleri) göndermek için Brevo, film/dizi meta verileri (afişler, başlıklar, puanlar) için TMDB kullanırız; TMDB'ye hiçbir kişisel veri gönderilmez. Profil'de çökme raporlamayı açık tutarsan, hataları düzeltmemize yardımcı olmak için anonim çökme raporları Sentry'ye gönderilebilir — bunu istediğin zaman kapatabilirsin.",
       "deleteTitle": "Verilerini silme",
       "deleteBody": "Hesabını ve ilişkili tüm verileri istediğin zaman Profil → Hesabı Sil'den kalıcı olarak silebilirsin. Bu, sahibi olduğun paylaşılan listeleri tüm üyeler için de siler.",
       "contactTitle": "İletişim",
