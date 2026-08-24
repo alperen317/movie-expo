@@ -10,7 +10,13 @@ import {
 import { loadRememberPreference, setRememberPreference } from '../lib/api/authStorage';
 import { ensureValidToken, onSessionExpired } from '../lib/api/client';
 import { stopRealtimeConnection } from '../lib/api/realtime';
-import { clearTokens, currentTokens, decodeUserId, loadTokens, saveTokens } from '../lib/api/tokenStore';
+import {
+  clearTokens,
+  currentTokens,
+  decodeUserId,
+  loadTokens,
+  saveTokens,
+} from '../lib/api/tokenStore';
 import { useAuthStore, type Session } from './auth.store';
 
 // jest.fn()s are created *inside* each factory rather than referenced from an
@@ -109,7 +115,11 @@ jest.mock('./watchLog.store', () => ({
   useWatchLogStore: { getState: () => ({ reset: mockWatchLogReset }) },
 }));
 
-const tokens = { accessToken: 'access-1', refreshToken: 'refresh-1', expiresAt: '2099-01-01T00:00:00Z' };
+const tokens = {
+  accessToken: 'access-1',
+  refreshToken: 'refresh-1',
+  expiresAt: '2099-01-01T00:00:00Z',
+};
 const session: Session = {
   accessToken: 'access-1',
   refreshToken: 'refresh-1',

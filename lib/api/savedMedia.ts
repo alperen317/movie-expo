@@ -40,11 +40,9 @@ export async function addSavedMediaBatch(
   if (items.length === 0) return;
 
   for (let i = 0; i < items.length; i += BATCH_CHUNK_SIZE) {
-    await api.post(
-      '/saved-media/batch',
-      items.slice(i, i + BATCH_CHUNK_SIZE).map(titleRequest),
-      { listType },
-    );
+    await api.post('/saved-media/batch', items.slice(i, i + BATCH_CHUNK_SIZE).map(titleRequest), {
+      listType,
+    });
   }
 }
 

@@ -1,10 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import {
-  addWatchLogEntry,
-  deleteWatchLogEntries,
-  updateWatchLogEntry,
-} from '../lib/api/watchLog';
+import { addWatchLogEntry, deleteWatchLogEntries, updateWatchLogEntry } from '../lib/api/watchLog';
 import { useListsStore } from './lists.store';
 import { useToastStore } from './toast.store';
 import { dedupeWatchLog, useWatchLogStore } from './watchLog.store';
